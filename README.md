@@ -41,6 +41,9 @@ Colab Notebooks are available for:
 
 ## Author
 Michael Cole Sitar
+
+M.S. student, Colorado State University Department of Geosciences
+
 email: mcsitar@colostate.edu
 
 ## References
