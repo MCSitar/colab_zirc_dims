@@ -1,10 +1,10 @@
 # colab_zirc_dims
-This repository contains code allowing measurement of the dimensions of zircons from LA-ICP-MS alignment images using Google Colab, w/ or w/o aid of RCNN segmentation. Because processing is done in Google Colab, this method should be available to anyone with an internet connection. [Detectron2](https://github.com/facebookresearch/detectron2) was used for model training and is used for Colab implementation.
+This repository contains code for dimensional anlaysis of zircons in LA-ICP-MS alignment images using Google Colab, with or without the aid of RCNN segmentation. Because processing is done in Google Colab, this method should be available to anyone with an internet connection. [Detectron2](https://github.com/facebookresearch/detectron2) was used for model training and is used for Colab implementation.
 
 ## Features
 The code in this repo enables organization (e.g., matching zircon mosaic images to .scancsv scanlists), data extraction (e.g., mapping shots to subimages of mosaics), and post-segmentation processing (e.g., extracting accurate zircon dimensions from segmentation masks) of mosaic-scanlist datasets. Said code currently only supports processing of images and scanlists from the [UA LaserChron Center](https://sites.google.com/laserchron.org/arizonalaserchroncenter/home), but may be updated in the ~near future to support processing of datasets from other LA-ICP-MS geochronology facilities. RCNN instance segmentation of zircons is handled by Detectron2 and implemented in ready-to-run Google Colab Notebooks (see 'Links').
 
-In datasets with good image quality and well exposed zircons (e.g., with full cross-sections visible above puck(s)), automated processing achieves measurements comparable to those produced by humans (with net error along long and short axes < .5 μm vs. humans in several tested datasets) in a fraction of the time. See below for an example analysis of a single spot.
+In datasets with good image quality and well-exposed zircons (i.e., with full cross-sections visible above puck(s)), automated processing achieves measurements comparable to those produced by humans (with net error along long and short axes < .5 μm vs. humans in several tested datasets) in a fraction of the time. See below for an example analysis of a single spot.
 
 ![Spot 315_cropped](https://user-images.githubusercontent.com/74220513/139790689-a68c5cf8-7c6b-4158-b555-76b6718673b8.png)
 
@@ -26,16 +26,16 @@ Colab Notebooks are available for:
 [A template project folder with a trained model is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
 ## Project Status (updated 11/02/2021)
-- This is still a work in progress, though all features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks
+- This is still a work in progress, though all features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks.
 - Model training/improvement is ongoing, and new, better-performing models will be made available in the near future.
 - module **mos_match** has full docstring documentation.
 - module **mos_proc** needs cleanup and docstring documentation.
 - module **zirc_dims_GUI** is sort of a horror-show of code, but a functional one. I won't touch this until other modules are in great condition and/or I have a lot of free time.
 
 ## Additional Notes
-- Training and large-n zircon measurment datasets for this project were provided Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data for more information.
+- Training and large-n zircon measurment datasets for this project were provided Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
 - Some additional training data is from the [UCSB Petrochronology Center](https://www.petrochronology.com/).
-- Although models were trained on (and tests have only been performed on) detrital zircon mosaic images, I think that this method could probably be applied to LA-ICP-MS mosaics/samples of other minerals (e.g., monazite).
+- Although models were trained on (and tests have only been performed on) detrital zircon mosaic images, I think that this method could probably be applied to LA-ICP-MS mosaics/samples of other minerals (e.g., monazite) without further model training.
 - I do plan to write this project up into some sort of publication (journal article, conference paper, conference poster, vanity license plate, etc). At that point, I will post citation info here. If you submit a publication utilizing this code in the meantime, please reach out to me.
 - Any suggestions, comments, or questions about this project are also welcome.
 
