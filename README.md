@@ -30,7 +30,7 @@ Colab Notebooks are available for:
 - Model training/improvement is ongoing, and new, better-performing models will be made available in the near future.
 - module **mos_match** has full docstring documentation.
 - module **mos_proc** needs cleanup and docstring documentation.
-- module **zirc_dims_GUI** is sort of a horror-show of code, but a functional one. I won't touch this until other modules are in great condition and/or I have a lot of free time.
+- module **zirc_dims_GUI** is sort of a horror show of code, but a functional one. I won't touch this until other modules are in great condition and/or I have a lot of free time.
 
 ## Additional Notes
 - Training and large-n zircon measurment datasets for this project were provided Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
