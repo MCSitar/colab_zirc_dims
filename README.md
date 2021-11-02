@@ -33,7 +33,7 @@ Colab Notebooks are available for:
 - module **zirc_dims_GUI** is sort of a horror-show of code, but a functional one. I won't touch this until other modules are in great condition and/or I have a lot of free time.
 
 ## Additional Notes
-- Training and large-n zircon measurment datasets for this project were provided Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) detailing the utility of augmenting LA-ICP-MS data with grain size data for more information.
+- Training and large-n zircon measurment datasets for this project were provided Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data for more information.
 - Some additional training data is from the [UCSB Petrochronology Center](https://www.petrochronology.com/).
 - Although models were trained on (and tests have only been performed on) detrital zircon mosaic images, I think that this method could probably be applied to LA-ICP-MS mosaics/samples of other minerals (e.g., monazite).
 - I do plan to write this project up into some sort of publication (journal article, conference paper, conference poster, vanity license plate, etc). At that point, I will post citation info here. If you submit a publication utilizing this code in the meantime, please reach out to me.
