@@ -39,6 +39,10 @@ Colab Notebooks are available for:
 - I do plan to write this project up into some sort of publication (journal article, conference paper, conference poster, vanity license plate, etc). At that point, I will post citation info here. If you submit a publication utilizing this code in the meantime, please reach out to me.
 - Any suggestions, comments, or questions about this project are also welcome.
 
+## Author
+Michael Cole Sitar
+email: mcsitar@colostate.edu
+
 ## References
 
 Yuxin Wu, Alexander Kirillov, Francisco Massa and Wan-Yen Lo, & Ross Girshick. (2019). Detectron2. https://github.com/facebookresearch/detectron2.
