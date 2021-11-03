@@ -4,9 +4,8 @@
 # In[7]:
 
 import os
-import xml.etree.ElementTree as ET
-import pandas as pd
 
+from . import czd_utils
 
 def get_mos_bounds(align_file_path):
     """Get bounding coordinates for a mosaic image from .Align file
@@ -23,60 +22,13 @@ def get_mos_bounds(align_file_path):
             [min_x, max_x, min_y, max_y]
 
     """
-    align_x_center, align_y_center = 0.0, 0.0
-    align_x_size, align_y_size = 0.0, 0.0
+    Align_data = czd_utils.get_Align_center_size(align_file_path)
 
-    if align_file_path != '':
-        align_tree = ET.parse(align_file_path)
-        align_root = align_tree.getroot()
+    align_x_center, align_y_center, align_x_size, align_y_size = Align_data
 
-        #loop through xml file to get image center, size
-        ##UPDATE TO INCLUDE ROTATION IF NEEDED##
-        for eachchild in align_root:
-            if eachchild.tag == 'Alignment':
-                for each_align_data in eachchild:
-                    if each_align_data.tag == 'Center':
-                        align_x_center, align_y_center = [float(data) for data in each_align_data.text.split(',')]
-                    if each_align_data.tag == 'Size':
-                        align_x_size, align_y_size = [float(data) for data in each_align_data.text.split(',')]
     min_x, max_x = align_x_center - align_x_size/2, align_x_center + align_x_size/2
     min_y, max_y = align_y_center - align_y_size/2, align_y_center + align_y_size/2
     return [min_x, max_x, min_y, max_y]
-
-
-def get_shot_coords(scancsv_file_path):
-    """Get coordinates for all spot shots in a scancsv file.
-
-    Parameters
-    ----------
-    scancsv_file_path : str
-        Full path to the .scancsv file for which shot coords will be returned
-
-    Returns
-    -------
-    coords_dict : dict
-        A dictionary with coordinates of all shots in the .scancsv file with format
-        {shot: [x_coords, y_coords], ...}
-
-    """
-        #dictionary for info on individual scans and their coordinates
-    coords_dict = {}
-
-    each_scanlist = pd.read_csv(scancsv_file_path, header=0, index_col=False,
-                                squeeze=False, encoding='cp1252').to_dict('list')
-    added_scans_unchanged = [] # list of scans added to output dictionary
-
-    #loops through shotlist and gets coordinates for each scan + numbers repeated instances
-    for eachscan_index, eachscan in enumerate(each_scanlist['Description']):
-        if each_scanlist['Scan Type'][eachscan_index] == 'Spot':
-            eachscan_coords = [float(data) for data in each_scanlist['Vertex List'][eachscan_index].split(',')][:2]
-            if eachscan in added_scans_unchanged:
-                temp_scanname = str(eachscan) + '-' + str(added_scans_unchanged.count(eachscan) + 1)
-                coords_dict[temp_scanname] = eachscan_coords
-            else:
-                coords_dict[str(eachscan)] = eachscan_coords
-            added_scans_unchanged.append(eachscan)
-    return coords_dict
 
 
 def check_shots_vs_bounds(shot_dict, mosaic_bounds, max_out_of_bounds = 3):
@@ -85,7 +37,8 @@ def check_shots_vs_bounds(shot_dict, mosaic_bounds, max_out_of_bounds = 3):
     Parameters
     ----------
     shot_dict : dict
-        A dictionary (see get_shot_coords()) with coordinates of all shots in a .scancsv file:
+        A dictionary (see czd_utils.scancsv_to_dict()) with coordinates of all
+        shots in a .scancsv file:
             {shot: [x_coords, y_coords], ...}
     mosaic_bounds : list
         A list of bounds to a .Align file (see get_mos_bounds()):
@@ -140,12 +93,14 @@ def check_scan_mos_matches(scancsv_dir, mos_dir, max_out_of_bounds=1):
     #creates a dict with all shots
     all_shots_dict = {}
     for each_scan_file in scancsv_file_list:
-        all_shots_dict[each_scan_file] = get_shot_coords(os.path.join(scancsv_dir, each_scan_file))
+        all_shots_dict[each_scan_file] = czd_utils.scancsv_to_dict(os.path.join(scancsv_dir,
+                                                                                each_scan_file))
 
     #creates a dict with all mosaic bounds
     all_mos_bounds_dict = {}
     for each_mos_file in mos_file_list:
-        all_mos_bounds_dict[each_mos_file] = get_mos_bounds(os.path.join(mos_dir, each_mos_file))
+        all_mos_bounds_dict[each_mos_file] = get_mos_bounds(os.path.join(mos_dir,
+                                                                         each_mos_file))
 
     #creates a matches dict
     matches_dict = {}
