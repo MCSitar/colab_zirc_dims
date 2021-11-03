@@ -523,13 +523,13 @@ def get_central_mask(results):
     #converts mask outputs to np arrays and stacks them into a np array, \
     # w/ different method for lists of masks (e.g., from Otsu segmentation)
     masks = []
-    if type(results) == list:
+    if isinstance(results, list):
         masks = mask_list_to_np(results)
     else:
         masks = prediction_to_np(results)
 
     #does not search for masks if no zircons segmented from image
-    if not masks:
+    if masks == []:
         print('NO ZIRCON MASKS FOUND')
         return mask_found_bool, []
 
