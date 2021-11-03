@@ -1,4 +1,4 @@
-# colab_zirc_dims
+# colab-zirc-dims
 This repository contains code for dimensional anlaysis of zircons in LA-ICP-MS alignment images using Google Colab, with or without the aid of RCNN (deep learning) segmentation. Because processing is done in Google Colab, this method should be available to anyone with an internet connection. [Detectron2](https://github.com/facebookresearch/detectron2) was used for model training and is used for Colab implementation.
 
 ## Features
