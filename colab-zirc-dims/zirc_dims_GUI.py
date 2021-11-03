@@ -7,7 +7,6 @@
 import base64
 import io
 import json
-from typing import Dict
 from typing import List
 from typing import Union
 import uuid
@@ -20,10 +19,11 @@ import pandas as pd
 
 from google.colab import output
 from google.colab.output import eval_js
-import os, random, math, sys, copy, datetime
-from skimage import color, draw
+import os, copy, datetime
+from skimage import draw
 import skimage.measure as measure
 
+from . import czd_utils
 from . import mos_proc
 
 ### This is a function to automatically segment all selected samples in a dataset and allow \
@@ -697,7 +697,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
             output_dataframe = pd.DataFrame(output_data_list,                                                     columns=['Analysis', 'Area (µm^2)', 'Convex area (µm^2)', 'Eccentricity',                                                             'Equivalent diameter (µm)', 'Perimeter (µm)', 'Major axis length (µm)',                                                             'Minor axis length (µm)', 'Circularity', 'Scale factor (µm/pixel)',                                                             'Human_or_auto', 'tagged?'])
             csv_filename = str(sample_name) + '_zircon_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
-            mos_proc.save_csv(output_csv_filepath, output_dataframe)
+            czd_utils.save_csv(output_csv_filepath, output_dataframe)
 
             
             # output the annotations to the errorlog
@@ -803,7 +803,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         curr_dict_copy = copy.deepcopy(sample_data_dict[index_tracker.curr_sample])
 
         #loads sample mosaic
-        each_mosaic = mos_proc.mos_img(curr_dict_copy['Mosaic'], curr_dict_copy['Align_file'],                                        curr_dict_copy['Max_zircon_size'], curr_dict_copy['Offsets'])
+        each_mosaic = mos_proc.MosImg(curr_dict_copy['Mosaic'], curr_dict_copy['Align_file'],                                        curr_dict_copy['Max_zircon_size'], curr_dict_copy['Offsets'])
         curr_scan_names = list(curr_dict_copy['Scan_dict'].keys())
         print('Scale factor:', each_mosaic.scale_factor, 'µm/pixel')
         print(2 * "\n")
