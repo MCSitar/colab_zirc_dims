@@ -25,11 +25,10 @@ Colab Notebooks are available for:
 
 [A template project folder with a trained model is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
-## Project Status (updated 11/02/2021)
+## Project Status (updated 11/03/2021)
 - All features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks.
 - Model training/improvement is ongoing, and new, better-performing models will be made available in the near future.
-- module **mos_match** has full docstring documentation.
-- module **mos_proc** has full docstring documentation.
+- modules **czd_utils**, **mos_match**, and **mos_proc** have full docstring documentation.
 - module **zirc_dims_GUI** is sort of a horror show of code, but a functional one. I won't touch this until other modules are in great condition and/or I have a lot of free time.
 
 ## Additional Notes
