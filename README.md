@@ -25,12 +25,12 @@ Colab Notebooks are available for:
 
 [A template project folder with a trained model is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
-## Project Status (updated 11/03/2021)
+## Project Status (updated 11/04/2021)
 - All features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks.
 - Model training/improvement is ongoing, and new, better-performing models will be made available in the near future.
 - Modules **czd_utils**, **mos_match**, and **mos_proc** have full docstring documentation.
 - Module **zirc_dims_GUI** is sort of a horror show of code, but a functional one. I won't touch this until other modules are in great condition and/or I have a lot of free time.
-- In-progress: a function to try different segmentation methods (1st: CNN segmentation on a contrast-enhanced version of the image, 2nd: Otsu threshholding) in case an initial attempt at segmenting a grain is unsuccessful.
+- To do: add watershed to the Otsu threshholding function; this should improve results somewhat.
 
 ## Additional Notes
 - Training and large-n zircon measurment datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
