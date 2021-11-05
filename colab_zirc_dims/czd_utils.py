@@ -4,6 +4,7 @@
 # In[1]:
 
 import os
+import operator
 
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -249,9 +250,34 @@ def rescale_2d_arr(im, nR, nC):
     return np.asarray([[ im[int(nR0 * r / nR)][int(nC0 * c / nC)]  
                         for c in range(nC)] for r in range(nR)])
 
+
+# from https://stackoverflow.com/a/50322574
+def crop_nd_arr(img, bounding):
+    """Crop the central portion of an array so that it matches shape 'bounding'.
+
+    Parameters
+    ----------
+    img : array
+        An nd array that needs to be cropped.
+    bounding : tuple
+        Shape tupple smaller than shape of img to crop img to.
+
+    Returns
+    -------
+    array
+        A version of img with its edges uniformly cropped to
+        match size of 'bounding' input.
+
+    """
+    start = tuple(map(lambda a, da: a//2-da//2, img.shape, bounding))
+    end = tuple(map(operator.add, start, bounding))
+    slices = tuple(map(slice, start, end))
+    return img[slices]
+
+
 def mask_to_3D_arr_size(input_mask, input_arr):
     """Check whether a mask (2D array) is the same (x, y) shape as an input
-       image; resizes it to match if not.
+       image; resizes or crops it to match if not.
 
     Parameters
     ----------
@@ -267,7 +293,13 @@ def mask_to_3D_arr_size(input_mask, input_arr):
 
     """
     output_arr = input_mask
-    if input_mask.shape != input_arr.shape[:2]:
+
+    #crop if mask is larger than original image
+    if all([input_mask.shape[0] > input_arr.shape[0],
+            input_mask.shape[1] > input_arr.shape[1]]):
+        output_arr = crop_nd_arr(input_mask, input_arr.shape[:2])
+    #rescale if mask is smaller in x or y than original image
+    elif input_mask.shape != input_arr.shape[:2]:
         output_arr = rescale_2d_arr(input_mask, *input_arr.shape[:2])
     return output_arr
 
