@@ -4,6 +4,7 @@
 # In[1]:
 
 import os
+import operator
 
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -225,6 +226,82 @@ def mask_list_to_np(input_mask_list):
         arr = np.stack(input_mask_list, 2)
     return arr
 
+# from https://stackoverflow.com/a/58567022
+def rescale_2d_arr(im, nR, nC):
+    """Rescale a 2d array to input size (nR x nC)
+
+    Parameters
+    ----------
+    im : array
+        Input 2D array (likely a mask image).
+    nR : int
+        Rows for rescaled array/image.
+    nC : int
+        Columns for rescaled array/image.
+
+    Returns
+    -------
+    array
+        Input array im resized to nR rows, nC columns.
+
+    """
+    nR0 = len(im)     # source number of rows 
+    nC0 = len(im[0])  # source number of columns 
+    return np.asarray([[ im[int(nR0 * r / nR)][int(nC0 * c / nC)]  
+                        for c in range(nC)] for r in range(nR)])
+
+
+# from https://stackoverflow.com/a/50322574
+def crop_nd_arr(img, bounding):
+    """Crop the central portion of an array so that it matches shape 'bounding'.
+
+    Parameters
+    ----------
+    img : array
+        An nd array that needs to be cropped.
+    bounding : tuple
+        Shape tupple smaller than shape of img to crop img to.
+
+    Returns
+    -------
+    array
+        A version of img with its edges uniformly cropped to
+        match size of 'bounding' input.
+
+    """
+    start = tuple(map(lambda a, da: a//2-da//2, img.shape, bounding))
+    end = tuple(map(operator.add, start, bounding))
+    slices = tuple(map(slice, start, end))
+    return img[slices]
+
+
+def mask_to_3D_arr_size(input_mask, input_arr):
+    """Check whether a mask (2D array) is the same (x, y) shape as an input
+       image; resizes or crops it to match if not.
+
+    Parameters
+    ----------
+    input_mask : array
+        A 2D array (presumably a mask).
+    input_arr : array
+        A 3D array (presumably a 3-channel image).
+
+    Returns
+    -------
+    output_arr : array
+        Either input_mask or input_mask resized to match the x,y of input_arr.
+
+    """
+    output_arr = input_mask
+
+    #crop if mask is larger than original image
+    if all([input_mask.shape[0] > input_arr.shape[0],
+            input_mask.shape[1] > input_arr.shape[1]]):
+        output_arr = crop_nd_arr(input_mask, input_arr.shape[:2])
+    #rescale if mask is smaller in x or y than original image
+    elif input_mask.shape != input_arr.shape[:2]:
+        output_arr = rescale_2d_arr(input_mask, *input_arr.shape[:2])
+    return output_arr
 
 
 def scancsv_to_dict(scancsv_path):
@@ -418,110 +495,3 @@ def load_data_dict(project_dir_string):
             temp_output_dict[eachsample]['Scan_dict'] = coords_dict
 
     return temp_output_dict
-
-
-# class for generating points, moving ~radially outwards from center of image, \
-# to find central mask if not at actual center
-class PointGenerator:
-    """Class for generating points moving ~radially outwards from center
-        of an image. Used for checking whether zircon masks appear in
-        masked images.
-
-    Parameters
-    ----------
-    x_center : int
-        x coordinate of the center of an image, plot, etc..
-    y_center : int
-        y coordinate of the center of an image, plot, etc..
-    pixel_increment : int
-        Number of pixels (or other points) to increase search radius by
-        after each rotation.
-    n_incs : int, optional
-        Max number of increments before point generator stops. The default is 20.
-    n_pts : int, optional
-        Number of points to return around each circle. The default is 18.
-
-    Returns
-    -------
-    None.
-
-    """
-    def __init__(self, x_center, y_center, pixel_increment,
-                 n_incs = 20, n_pts=18):
-        self.x_center, self.y_center = x_center, y_center
-        self.pixel_increment = pixel_increment
-        self.n_pts = n_pts
-        self.max_inc = n_incs
-
-        # current, x, y for output
-        self.curr_pts = [self.x_center, self.y_center]
-
-        # int from 0 to (n_pts - 1) defining location around circle
-        self.rot_counter = 0
-
-        #degree increment for points around circle
-        self.deg_inc = 360 / int(self.n_pts)
-
-        #pixel increment multiplier, current pixel radius
-        self.inc_multiplier, self.curr_radius = 0, 0
-
-        #bool changes to False if generator reaches max increments
-        self.in_bounds = True
-
-    def get_curr_pts(self):
-        """Get current points from the point generator.
-
-        Returns
-        -------
-        int
-            x coordinate of current search location.
-        int
-            y coordinate of current search location.
-
-        """
-        return self.curr_pts[0], self.curr_pts[1]
-
-    # updates pts (around circumference of circle w/ diameter curr_radius)
-    def update_pts(self):
-        """Update points of the point generator. Called internally.
-
-        Returns
-        -------
-        None.
-
-        """
-        curr_rot_rad = np.radians(self.rot_counter * self.deg_inc)
-        self.curr_pts = [
-            int(self.x_center + self.curr_radius * np.cos(curr_rot_rad)),
-            int(self.y_center + self.curr_radius * np.sin(curr_rot_rad))
-            ]
-
-    def next_inc(self):
-        """Cycles generator to a larger pixel increment, updates pts. Internal.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.inc_multiplier += 1
-        if self.inc_multiplier > self.max_inc:
-            self.in_bounds = False
-        self.curr_radius = self.inc_multiplier * self.pixel_increment
-
-        self.update_pts()
-
-    # cycles to a new point around center w/o changing pixel increment
-    def next_pt(self):
-        """Move to the next point and/or radius increment. Called by user.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.rot_counter += 1
-        if self.rot_counter >= self.n_pts or self.inc_multiplier == 0:
-            self.rot_counter = 0
-            self.next_inc()
-        self.update_pts()

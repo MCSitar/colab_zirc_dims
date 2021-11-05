@@ -12,12 +12,10 @@ import matplotlib.pyplot as plt
 
 import skimage
 import skimage.measure as measure
-import skimage.filters as filters
 import skimage.io as skio
 
-from skimage.morphology import binary_closing
-
 from . import czd_utils
+from . import pointgen
 
 # Various small functions that simplify larger functions below
 
@@ -91,12 +89,13 @@ def get_central_mask(results):
 
     #gets central points for masks/image, number of masks created
     masks_shape = masks.shape
+
     x_cent, y_cent = int(masks_shape[0]/2), int(masks_shape[1]/2)
     num_masks = int(masks_shape[2])
 
     #counter for generating pts at and around center of image; \
-    # will run through central ~1/5th of image
-    pts = czd_utils.PointGenerator(x_cent, y_cent, masks_shape[0]//100)
+    # will run through central ~15% of image
+    pts = pointgen.PointGenerator(x_cent, y_cent, round(masks_shape[0]/150))
 
     central_mask_indices = []
 
@@ -200,7 +199,10 @@ def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
         and/or only contiguous region in the input mask image.
 
     """
-
+    #resize array if necessary
+    input_central_mask = czd_utils.mask_to_3D_arr_size(input_central_mask,
+                                                       original_image)
+    #get main region properties
     main_region = get_main_region_props(input_central_mask)
 
     if display_bool or save_dir:
@@ -295,38 +297,6 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False):
 
     return props_list
 
-
-# Get regionated masks from an image via Otsu threshholding
-def otsu_masks(input_image):
-    """Use Otsu threshholding to segment an image.
-
-    Parameters
-    ----------
-    input_image : image array
-        An input image array. Will be threshholded in grayscale.
-
-    Returns
-    -------
-    output_masks_list : list[arr]
-        A list of mask arrays (one for each region) from Otsu thresholding.
-
-    """
-    gray_img = skimage.color.rgb2gray(input_image)
-    thresh_val = filters.threshold_otsu(gray_img)
-    thresh_img = binary_closing(gray_img > thresh_val)
-    label_mask = measure.label(thresh_img.astype(int))
-    region_vals = list(np.unique(label_mask))
-
-    #removes very small regions
-    larger_region_vals = [val for val in region_vals
-                          if np.count_nonzero(label_mask == val) > 100]
-
-    output_masks_list = []
-    for each_region in larger_region_vals:
-        each_mask = label_mask == each_region
-        output_masks_list.append(each_mask)
-
-    return output_masks_list
 
 #adjusts contrast if necessary via histogram normalization
 def auto_inc_contrast(input_image, low_cont_threshhold =0.10):
@@ -452,6 +422,8 @@ class MosImg:
     def __init__(self, mosaic_image_path, align_file_path = '',
                  sub_img_size = 500, x_y_shift_list = [0, 0]):
 
+        #records original sub_img_size input; useful for later adjustments
+        self.sub_img_size_input = sub_img_size
         #the mosaic image from which subimages are clipped
         self.full_img = auto_inc_contrast(skio.imread(mosaic_image_path))
 
@@ -462,6 +434,7 @@ class MosImg:
         #origins for x, y (for mapping coordinates \
         # (from align, shotlist files) to mosaic image)
         self.x_origin, self.y_origin = 0, 0
+        self.curr_coords = [0, 0] #current coordinates (default = 0, 0)
 
         #gets info from .Align xml file
         if align_file_path:
@@ -494,7 +467,7 @@ class MosImg:
                                  self.mos_dims[0]], dtype=np.uint8)
 
     def set_sub_img_size(self, new_sub_img_size):
-        """Set a new sub image size.
+        """Set a new sub image size, updates subimage.
 
         Parameters
         ----------
@@ -507,6 +480,7 @@ class MosImg:
 
         """
         self.sub_img_size = czd_utils.round_to_even(new_sub_img_size / self.scale_factor)
+        self.set_subimg(*self.curr_coords)
 
     #maps coordinates (as in shotlist) to image pixels
     def coords_to_pix(self, x_coord, y_coord):
@@ -545,6 +519,8 @@ class MosImg:
         None.
 
         """
+        #records coordinates
+        self.curr_coords = [x_coord, y_coord]
 
         #sets all vars back to base values
         self.x_y_0, self.x_y_0_offsets = [0, 0], [0, 0]
