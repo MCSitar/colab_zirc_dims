@@ -32,7 +32,7 @@ def mask_size_at_pt(input_mask, coords):
     input_mask : binary array
         Array of a mask.
     coords : list
-        Coordinates [x, y] within the mask to re.
+        Coordinates [x, y] within the mask to check for mask size.
 
     Returns
     -------
@@ -43,7 +43,7 @@ def mask_size_at_pt(input_mask, coords):
     label_mask = measure.label(input_mask.astype(int))
     coords_x, coords_y = coords
     size_reg = 0
-    reg_at_pt = int(label_mask[coords_x, coords_y])
+    reg_at_pt = int(label_mask[coords_y, coords_x])
     if reg_at_pt:
         size_reg = np.count_nonzero(label_mask == reg_at_pt)
     return size_reg
@@ -90,7 +90,7 @@ def get_central_mask(results):
     #gets central points for masks/image, number of masks created
     masks_shape = masks.shape
 
-    x_cent, y_cent = int(masks_shape[0]/2), int(masks_shape[1]/2)
+    x_cent, y_cent = round(masks_shape[0]/2), round(masks_shape[1]/2)
     num_masks = int(masks_shape[2])
 
     #counter for generating pts at and around center of image; \
@@ -102,7 +102,7 @@ def get_central_mask(results):
     #loops through masks output and finds whether mask includes center of image
     for i in range(0, num_masks):
         curr_x, curr_y = pts.curr_pts
-        if masks[curr_x, curr_y, i] is True:
+        if masks[curr_y, curr_x, i] is True:
             central_mask_indices.append(i)
     if len(central_mask_indices) > 0:
         mask_found_bool = True
@@ -112,7 +112,7 @@ def get_central_mask(results):
         pts.next_pt()
         curr_x, curr_y = pts.curr_pts
         for i in range(0, num_masks):
-            if masks[curr_x, curr_y, i]:
+            if masks[curr_y, curr_x, i]:
                 central_mask_indices.append(i)
         if len(central_mask_indices) > 0:
             mask_found_bool = True
