@@ -90,7 +90,7 @@ def get_central_mask(results):
     #gets central points for masks/image, number of masks created
     masks_shape = masks.shape
 
-    x_cent, y_cent = round(masks_shape[0]/2), round(masks_shape[1]/2)
+    y_cent, x_cent = round(masks_shape[0]/2), round(masks_shape[1]/2)
     num_masks = int(masks_shape[2])
 
     #counter for generating pts at and around center of image; \
