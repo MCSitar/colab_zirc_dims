@@ -214,7 +214,7 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
                                 in np.shape(original_image)[:2]]
     adj_analys_name = analys_name
     #overlay mask if mask and props provided
-    if input_central_mask and main_region:
+    if input_central_mask != None and main_region != None:
 
         ax.imshow(input_central_mask, alpha=0.4)
 
