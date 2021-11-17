@@ -246,8 +246,10 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     else:
         adj_analys_name = str(analys_name) + '_failed'
 
-    ax.set_xticks(x_tick_locs, [str(label) for label in x_tick_labels])
-    ax.set_yticks(y_tick_locs, [str(label) for label in y_tick_labels])
+    ax.set_xticks(x_tick_locs)
+    ax.set_xticklabels([str(label) for label in x_tick_labels])
+    ax.set_yticks(y_tick_locs)
+    ax.set_yticklabels([str(label) for label in y_tick_labels])
 
     if save_dir:
         img_save_filename = os.path.join(save_dir, adj_analys_name + '.png')
