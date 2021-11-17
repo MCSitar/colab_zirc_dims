@@ -208,9 +208,15 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     if scale_factor:
         figext_y, figext_x = [size * scale_factor for size
                                 in np.shape(original_image)[:2]]
+    #set axis tick locations, labels
+    x_tick_labels = list(range(0, int(figext_x), 50))
+    x_tick_locs = [loc/scale_factor for loc in x_tick_labels]
+    y_tick_labels = list(range(0, int(figext_y), 50))
+    y_tick_locs = [loc/scale_factor for loc in y_tick_labels]
+
     #set up image plot
     fig, ax = plt.subplots()
-    ax.imshow(original_image, extent=[0, figext_x, figext_y, 0])
+    ax.imshow(original_image)
 
     adj_analys_name = analys_name
 
@@ -239,6 +245,9 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     #mark 'failed' shots
     else:
         adj_analys_name = str(analys_name) + '_failed'
+
+    ax.set_xticks(x_tick_locs, [str(label) for label in x_tick_labels])
+    ax.set_yticks(y_tick_locs, [str(label) for label in y_tick_labels])
 
     if save_dir:
         img_save_filename = os.path.join(save_dir, adj_analys_name + '.png')
