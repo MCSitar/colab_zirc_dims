@@ -208,10 +208,15 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     if scale_factor:
         figext_y, figext_x = [size * scale_factor for size
                                 in np.shape(original_image)[:2]]
+    #sets interval between ticks based on image size
+    tick_interval = 5
+    for each_interval in [10, 25, 50, 100, 250, 500, 1000, 2500, 5000]:
+        if int(figext_x / each_interval) >= 5:
+            tick_interval = each_interval
     #set axis tick locations, labels
-    x_tick_labels = list(range(0, int(figext_x), 50))
+    x_tick_labels = list(range(0, int(figext_x), tick_interval))
     x_tick_locs = [loc/scale_factor for loc in x_tick_labels]
-    y_tick_labels = list(range(0, int(figext_y), 50))
+    y_tick_labels = list(range(0, int(figext_y), tick_interval))
     y_tick_locs = [loc/scale_factor for loc in y_tick_labels]
 
     #set up image plot
