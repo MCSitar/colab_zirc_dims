@@ -202,19 +202,24 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
 
     """
 
-    #set up image plot
-    fig, ax = plt.subplots()
-    ax.imshow(original_image)
-
     #gets figure size
-    figsize_y, figsize_x = np.shape(original_image)[:2]
+    figext_y, figext_x = np.shape(original_image)[:2]
     #if scale factor is provided, scale figsize to microns
     if scale_factor:
-        figsize_y, figsize_x = [size * scale_factor for size
+        figext_y, figext_x = [size * scale_factor for size
                                 in np.shape(original_image)[:2]]
+    #set up image plot
+    fig, ax = plt.subplots()
+    ax.imshow(original_image, extent=[0, figext_x, figext_y, 0])
+
     adj_analys_name = analys_name
+
     #overlay mask if mask and props provided
-    if input_central_mask != None and main_region != None:
+    overlay_bool = False
+    if not isinstance(input_central_mask, type(None)):
+        if not isinstance(main_region, type(None)):
+            overlay_bool = True
+    if overlay_bool:
 
         ax.imshow(input_central_mask, alpha=0.4)
 
@@ -234,8 +239,6 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     #mark 'failed' shots
     else:
         adj_analys_name = str(analys_name) + '_failed'
-
-    ax.axis((0, figsize_x, figsize_y, 0))
 
     if save_dir:
         img_save_filename = os.path.join(save_dir, adj_analys_name + '.png')
