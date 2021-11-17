@@ -16,12 +16,12 @@ In sub-optimal datasets, automated processing is less successful and can produce
 
 ![auto_seg_gif_reduced](https://user-images.githubusercontent.com/74220513/139791884-b88c9854-c825-4a95-a678-598abb204eea.gif)
 
-Various functions for processing mosaic image datasets are available in modules **mos_match** and **mos_proc**.
+Various functions for processing mosaic image datasets are available in modules **czd_utils**, **mos_match**, and **mos_proc**.
 
 ## Links
 Colab Notebooks are available for:
-- [Matching mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1ZW1UJYNZrys5o8muUlc_QFaQUtLbALJj?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from images](https://colab.research.google.com/drive/1YehLS8_A43ewQ3Q7MFRho-mgKWJnEQXN?usp=sharing)
+- [Matching mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1VNI3BwXkArqMLjRm374N8zXqWGjSnUcm?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring zircons from images](https://colab.research.google.com/drive/1AimkPFXoNfzvsieBbToEXcXe_hvbJh78?usp=sharing)
 
 [A template project folder with a trained model is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
