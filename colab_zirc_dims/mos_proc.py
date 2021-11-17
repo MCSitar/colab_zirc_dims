@@ -260,7 +260,7 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
         img_save_filename = os.path.join(save_dir, adj_analys_name + '.png')
         if tag_bool:
             img_save_filename = os.path.join(save_dir,
-                                             analys_name + '_tagged.png')
+                                             adj_analys_name + '_tagged.png')
 
         plt.savefig(img_save_filename)
 
