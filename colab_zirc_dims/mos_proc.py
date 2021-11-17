@@ -163,12 +163,121 @@ def get_main_region_props(input_central_mask):
 
     return main_region_props
 
+def save_show_results_img(original_image, analys_name, display_bool=False,
+                          save_dir='', tag_bool=False, input_central_mask=None,
+                          main_region=None, scale_factor=None):
+    """Save and/or display a (optionally) scaled figure showing a shot-image,
+       w/ or w/o mask and axes overlaid.
+
+    Parameters
+    ----------
+    original_image : array
+        Image array for shot image. If input_central_mask is provided, this must
+        be the image that the input central mask was derived from.
+    analys_name : str
+        Name of analysis (e.g., 'Spot-213') corresponding to mask.
+        Used as base save file name (.png will be added).
+    display_bool : Boolean, optional
+        True or False; determines whether plot is displayed in output.
+    save_dir : str, optional
+        If entered, plot image will be saved to this directory. If blank,
+        the image will not be saved. The default is ''.
+    tag_bool : Boolean, optional
+        If True and save_dir != '', '_tagged' will be appended to
+        plot image file name. Called in zirc_dims_GUI. The default is False.
+    input_central_mask : array, optional
+        Binary mask for the segmented input original image. If not provided,
+        this mask will not be overlaid on the origninal image. The default is None.
+    main_region : skimage RegionProperties instance
+        A RegionProperties instance corresponding to the largest
+        and/or only contiguous region in the input mask image. If not provided,
+        no mask/props will be overlaid on original image. The default is None.
+    scale_factor : float, optional
+        Scale factor (microns/pixel) for original image and mask.
+        The default is None.
+
+    Returns
+    -------
+    None.
+
+    """
+
+    #gets figure size
+    figext_y, figext_x = np.shape(original_image)[:2]
+    #if scale factor is provided, scale figsize to microns
+    if scale_factor:
+        figext_y, figext_x = [size * scale_factor for size
+                                in np.shape(original_image)[:2]]
+    #sets interval between ticks based on image size
+    tick_interval = 5
+    for each_interval in [10, 25, 50, 100, 250, 500, 1000, 2500, 5000]:
+        if int(figext_x / each_interval) >= 5:
+            tick_interval = each_interval
+    #set axis tick locations, labels
+    x_tick_labels = list(range(0, int(figext_x), tick_interval))
+    x_tick_locs = [loc/scale_factor for loc in x_tick_labels]
+    y_tick_labels = list(range(0, int(figext_y), tick_interval))
+    y_tick_locs = [loc/scale_factor for loc in y_tick_labels]
+
+    #set up image plot
+    fig, ax = plt.subplots()
+    ax.imshow(original_image)
+
+    adj_analys_name = analys_name
+
+    #overlay mask if mask and props provided
+    overlay_bool = False
+    if not isinstance(input_central_mask, type(None)):
+        if not isinstance(main_region, type(None)):
+            overlay_bool = True
+    if overlay_bool:
+
+        ax.imshow(input_central_mask, alpha=0.4)
+
+        #plots measured axes atop image
+        #for props in regions:
+        y0, x0 = main_region.centroid
+        orientation = main_region.orientation
+        x1 = x0 + math.cos(orientation) * 0.5 * main_region.minor_axis_length
+        y1 = y0 - math.sin(orientation) * 0.5 * main_region.minor_axis_length
+        x2 = x0 - math.sin(orientation) * 0.5 * main_region.major_axis_length
+        y2 = y0 - math.cos(orientation) * 0.5 * main_region.major_axis_length
+
+        ax.plot((x0, x1), (y0, y1), '-r', linewidth=1.5)
+        ax.plot((x0, x2), (y0, y2), '-r', linewidth=1.5)
+        ax.plot(x0, y0, '.g', markersize=10)
+
+    #mark 'failed' shots
+    else:
+        adj_analys_name = str(analys_name) + '_failed'
+
+    ax.set_xticks(x_tick_locs)
+    ax.set_xticklabels([str(label) for label in x_tick_labels])
+    ax.set_yticks(y_tick_locs)
+    ax.set_yticklabels([str(label) for label in y_tick_labels])
+
+    if save_dir:
+        img_save_filename = os.path.join(save_dir, adj_analys_name + '.png')
+        if tag_bool:
+            img_save_filename = os.path.join(save_dir,
+                                             adj_analys_name + '_tagged.png')
+
+        plt.savefig(img_save_filename)
+
+    #plt.clf()
+
+    if display_bool:
+        plt.show()
+
+    plt.close('all')
+
 
 #measures zircon mask (in pixels) using skimage, creates an image by \
 # overlaying the mask atop the original subimage, and optionally displays \
 # (if display_bool = True) and/or saves (if save_dir != '') this image.
 def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
-                               display_bool=False, save_dir='', tag_bool=False):
+                               display_bool=False, save_dir='', tag_bool=False,
+                               scale_factor=None):
     """Measures zircon mask (in pixels) using skimage, creates an image by
        overlaying the mask atop the original subimage, and optionally displays
        (if display_bool = True) and/or saves (if save_dir != '') this image.
@@ -191,6 +300,9 @@ def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
     tag_bool : Boolean, optional
         If True and save_dir != '', '_tagged' will be appended to
         plot image file name. Called in zirc_dims_GUI. The default is False.
+    scale_factor : float, optional
+        Scale factor (microns/pixel) for original image and mask.
+        The default is None.
 
     Returns
     -------
@@ -206,44 +318,10 @@ def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
     main_region = get_main_region_props(input_central_mask)
 
     if display_bool or save_dir:
+        save_show_results_img(original_image, analys_name, display_bool,
+                              save_dir, tag_bool, input_central_mask,
+                              main_region, scale_factor)
 
-        #overlays mask on the original subimage
-        fig, ax = plt.subplots()
-        ax.imshow(original_image, cmap = 'gray')
-        ax.imshow(input_central_mask, alpha=0.4)
-
-        #gets figure size
-        figsize_x, figsize_y = np.shape(input_central_mask)
-
-        #plots measured axes atop image
-        #for props in regions:
-        y0, x0 = main_region.centroid
-        orientation = main_region.orientation
-        x1 = x0 + math.cos(orientation) * 0.5 * main_region.minor_axis_length
-        y1 = y0 - math.sin(orientation) * 0.5 * main_region.minor_axis_length
-        x2 = x0 - math.sin(orientation) * 0.5 * main_region.major_axis_length
-        y2 = y0 - math.cos(orientation) * 0.5 * main_region.major_axis_length
-
-        ax.plot((x0, x1), (y0, y1), '-r', linewidth=1.5)
-        ax.plot((x0, x2), (y0, y2), '-r', linewidth=1.5)
-        ax.plot(x0, y0, '.g', markersize=10)
-
-        ax.axis((0, figsize_x, figsize_y, 0))
-
-        if save_dir:
-            img_save_filename = os.path.join(save_dir, analys_name + '.png')
-            if tag_bool:
-                img_save_filename = os.path.join(save_dir,
-                                                 analys_name + '_tagged.png')
-
-            plt.savefig(img_save_filename)
-
-        #plt.clf()
-
-        if display_bool:
-            plt.show()
-
-        plt.close('all')
     return main_region
 
 def parse_properties(props, img_scale_factor, analys_name, verbose = False):

@@ -677,20 +677,27 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
             for eachindex, eachpoly in enumerate(poly_storage_pointer):
 
                 poly_mask = poly_to_mask(eachpoly, imgs[eachindex], sample_scale_factor)
+                
+                tag_Bool = False
+                if tags_for_export[eachindex] == 'True':
+                    tag_Bool = True
 
                 #if polygon sucessfully converted into a mask w/ area >0:
                 if poly_mask[0] == True:
-                    tag_Bool = False
-                    if tags_for_export[eachindex] == 'True':
-                        tag_Bool = True
-                    each_props = mos_proc.overlay_mask_and_get_props(poly_mask[1], imgs[eachindex], spot_names[eachindex],                                                                     display_bool = False, save_dir=each_img_save_dir, tag_bool = tag_Bool)
-                    each_props_list = mos_proc.parse_properties(each_props, sample_scale_factor,                                                                 spot_names[eachindex], verbose = False)
+                    each_props = mos_proc.overlay_mask_and_get_props(poly_mask[1], imgs[eachindex], spot_names[eachindex],
+                                                                     display_bool = False, save_dir=each_img_save_dir,
+                                                                     tag_bool = tag_Bool, scale_factor=sample_scale_factor)
+                    each_props_list = mos_proc.parse_properties(each_props, sample_scale_factor,
+                                                                spot_names[eachindex], verbose = False)
                     each_props_list.extend([human_auto_list[eachindex], tags_for_export[eachindex]])
                     output_data_list.append(each_props_list)
                 else:
                     null_properties = mos_proc.parse_properties([], sample_scale_factor, spot_names[eachindex], verbose = False)
                     null_properties.extend([human_auto_list[eachindex], tags_for_export[eachindex]])
                     output_data_list.append(null_properties)
+                    mos_proc.save_show_results_img(imgs[eachindex], spot_names[eachindex], display_bool=False,
+                                                   save_dir=each_img_save_dir, tag_bool=tag_Bool,
+                                                   scale_factor=sample_scale_factor)
 
 
             #converts collected data to pandas DataFrame, saves as .csv
