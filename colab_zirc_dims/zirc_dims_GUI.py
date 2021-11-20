@@ -161,17 +161,9 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         return data
 
 
-    def draw_polygons(image_urls, spot_names, track_list, original_polys,                       sample_name, sample_scale_factor, callbackId1, callbackId2):  # pylint: disable=invalid-name
-        """Open the bounding box UI and send the results to a callback function.
-        Args:
-          image_urls: list[str | np.ndarray]
-            List of locations from where to load the images from. If a np.ndarray is
-            given, the array is interpretted as an image and sent to the frontend.
-            If a str is given, the string is interpreted as a path and is read as a
-            np.ndarray before being sent to the frontend.
-          callbackId: str
-            The ID for the callback function to send the bounding box results to
-            when the user hits submit.
+    def draw_polygons(image_urls, spot_names, track_list, original_polys,
+                      sample_name, sample_scale_factor, callbackId1, callbackId2):  # pylint: disable=invalid-name
+        """Open polygon annotation UI and send the results to a callback function.
         """
         js = Javascript('''
                     async function load_image(imgs, spot_nms, trck_list, orig_polys, sample_nm, sample_scl,  callbackId1, callbackId2) {
@@ -232,7 +224,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                         canvas_img.setAttribute('draggable', false);
                         crosshair_v.setAttribute('draggable', false);
                         crosshair_h.setAttribute('draggable', false);
-                        // bounding box containers
+                        // polygon containers
                         const height = 500
                         //const width = 600
                         var allPolygons = [];
@@ -242,7 +234,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                         var im_height = 0;
                         var im_width = 0;
                         var aspect_ratio = 0.0;
-                        //initialize bounding boxes
+                        //initialize polygons
                         for (var i = 0; i < imgs.length; i++) {
                           allPolygons[i] = [...orig_polys[i]];
                           all_human_auto[i] = 'auto';
@@ -316,7 +308,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                             resetcanvas();
                         }
 
-                        // on delete, deletes the last bounding box
+                        // on delete, deletes the last polygon
                         deleteButton.textContent = "undo last pt";
                         deleteButton.onclick = function(){
                           if (poly.length > 0) {
@@ -330,7 +322,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                               drawPoly(poly);
                           };
                         }
-                        // on all delete, deletes all of the bounding box
+                        // on all delete, deletes all of the polygons
                         deleteAllbutton.textContent = "clear polygon"
                         deleteAllbutton.onclick = function(){
                           if (poly.length > 0) {
@@ -357,11 +349,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                               drawPoly(poly);
                           };
                         }
-                        // on submit, send the boxes to display
+                        // on submit, send the polygon to display
                         submit.textContent = "Analyze sample zircon dimensions and export to Drive";
                         submit.onclick = function(){
                           errorlog.innerHTML = "Segmentations sent for processing";
-                          // send box data to callback fucntion
+                          // send polygon data to callback function
                           google.colab.kernel.invokeFunction(callbackId1, [allPolygons, all_human_auto, all_tags], {});
                         }
                         // on next sample, moves to next sample (will not work if at last sample)
@@ -397,9 +389,9 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                             y: 0,
 
                       };
-                      // the array of all rectangles
+                      // the array of polygon points
                       let poly = allPolygons[curr_image];
-                      // the actual rectangle, the one that is being drawn
+                      // the actual polygon being drawn
                       let o = {};
                       // a variable to store the mouse position
                       let m = {},
@@ -581,7 +573,9 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         # call java script function pass string byte array(image_data) as input
         display(js)
         
-        eval_js('load_image({}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,                                                                                 sample_name, str(sample_scale_factor),                                                                                 callbackId1, callbackId2))
+        eval_js('load_image({}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
+                                                                                    sample_name, str(sample_scale_factor),
+                                                                                    callbackId1, callbackId2))
 
         return
 
@@ -595,22 +589,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                   predictor_input,
                   sample_name: str = None,
                   sample_scale_factor: float = 0.0):
-        """Open the bounding box UI and prompt the user for input.
-        Args:
-          imgs: list[str | np.ndarray]
-            List of locations from where to load the images from. If a np.ndarray is
-            given, the array is interpretted as an image and sent to the frontend. If
-            a str is given, the string is interpreted as a path and is read as a
-            np.ndarray before being sent to the frontend.
-          poly_storage_pointer: list[np.ndarray]
-            Destination list for bounding box arrays. Each array in this list
-            corresponds to one of the images given in imgs. The array is a
-            N x 4 array where N is the number of bounding boxes given by the user
-            for that particular image. If there are no bounding boxes for an image,
-            None is used instead of an empty array.
-          callbackId: str, optional
-            The ID for the callback function that communicates between the fontend
-            and the backend. If no ID is given, a random UUID string is used instead.
+        """Open the polygon annotation UI and prompt the user for input.
         """
 
         # Set random IDs for the callback functions
@@ -622,10 +601,6 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
             This function converts the dictionary from the frontend (if the format
             {x, y} as shown in callbackFunction) into a list
             ([x, y])
-            Args:
-              input_bbox:
-            Returns:
-              A list with bbox coordinates in the form [ymin, xmin, ymax, xmax].
             """
             return (input_poly['y'], input_poly['x'])
 
@@ -701,7 +676,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
 
 
             #converts collected data to pandas DataFrame, saves as .csv
-            output_dataframe = pd.DataFrame(output_data_list,                                                     columns=['Analysis', 'Area (µm^2)', 'Convex area (µm^2)', 'Eccentricity',                                                             'Equivalent diameter (µm)', 'Perimeter (µm)', 'Major axis length (µm)',                                                             'Minor axis length (µm)', 'Circularity', 'Scale factor (µm/pixel)',                                                             'Human_or_auto', 'tagged?'])
+            output_dataframe = pd.DataFrame(output_data_list,
+                                            columns=['Analysis', 'Area (µm^2)', 'Convex area (µm^2)', 'Eccentricity',
+                                                     'Equivalent diameter (µm)', 'Perimeter (µm)', 'Major axis length (µm)',
+                                                     'Minor axis length (µm)', 'Circularity', 'Scale factor (µm/pixel)',
+                                                     'Human_or_auto', 'tagged?'])
             csv_filename = str(sample_name) + '_zircon_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
@@ -810,7 +789,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         curr_dict_copy = copy.deepcopy(sample_data_dict[index_tracker.curr_sample])
 
         #loads sample mosaic
-        each_mosaic = mos_proc.MosImg(curr_dict_copy['Mosaic'], curr_dict_copy['Align_file'],                                        curr_dict_copy['Max_zircon_size'], curr_dict_copy['Offsets'])
+        each_mosaic = mos_proc.MosImg(curr_dict_copy['Mosaic'], curr_dict_copy['Align_file'],
+                                      curr_dict_copy['Max_zircon_size'], curr_dict_copy['Offsets'])
         curr_scan_names = list(curr_dict_copy['Scan_dict'].keys())
         print('Scale factor:', each_mosaic.scale_factor, 'µm/pixel')
         print(2 * "\n")
@@ -828,7 +808,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
             #if a central zircon is found, does initial processing and adds polygon 
             if central_mask[0] == True:
                 print('Successful')
-                
+
                 ## uncomment below to produce and print initial (auto) zircon measurements while samples are loading
                 #each_props = mos_proc.overlay_mask_and_get_props(central_mask[1], each_mosaic.sub_img, eachscan, display_bool = False)
                 #props_list = mos_proc.parse_properties(each_props, each_mosaic.scale_factor, eachscan, verbose = True)
@@ -841,9 +821,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
 
         #starts annotator GUI for current sample
         output.clear()
-        annotate(curr_subimage_list, curr_poly_pointer, curr_auto_polys, curr_scan_names, index_tracker.track_list,                 run_dir, Predictor, str(index_tracker.curr_sample), curr_scale_factor)
+        annotate(curr_subimage_list, curr_poly_pointer, curr_auto_polys, curr_scan_names, index_tracker.track_list,
+                 run_dir, Predictor, str(index_tracker.curr_sample), curr_scale_factor)
 
-    
+
     ##code below runs upon initial startup
     index_tracker = sample_index(sample_list) #initializes sample/index tracker class instance
 
