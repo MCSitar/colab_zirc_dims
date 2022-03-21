@@ -7,10 +7,11 @@
 import base64
 import io
 import json
+import uuid
+import os, copy, datetime
+
 from typing import List
 from typing import Union
-import uuid
-
 from IPython.display import display
 from IPython.display import Javascript
 import numpy as np
@@ -19,12 +20,10 @@ import pandas as pd
 
 from google.colab import output
 from google.colab.output import eval_js
-import os, copy, datetime
-from skimage import draw
-import skimage.measure as measure
 
 from . import czd_utils
 from . import mos_proc
+from . import poly_utils
 
 ### This is a function to automatically segment all selected samples in a dataset and allow \
 ### users to inspect and/or replace all automatically-produced segmentations via a Javascript-based \
@@ -48,85 +47,6 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
     if len(sample_list) == 0:
         print('ERROR: NO SAMPLES SELECTED')
         return
-
-    ### Functions neccessary for GUI running below:
-    ###function to convert a mask to polygon in format for reading by JS annotation tool, /
-    ### w/ coordinates in {x = x/image width, y = y/image height}. /
-    ### Code here is (significantly) modified from https://github.com/waspinator/pycococreator; covered by Apache-2.0 License)
-    ### tolerance in microns, though in pixels too if scale factor = 1.0
-    def mask_to_poly(mask_for_conversion, tolerance = 1, scale_factor = 1.0):
-        #print('Input shape:', mask_for_conversion.shape)
-
-        #closes contour
-        def close_contour(contour):
-            if not np.array_equal(contour[0], contour[-1]):
-                contour = np.vstack((contour, contour[0]))
-            return contour
-        
-        export_polygon = []
-
-        full_mask_h, full_mask_w = mask_for_conversion.shape #size of original mask
-
-        #adjust tolerance to image size so that polygons are consistent during processing
-        adj_tolerance = tolerance / scale_factor
-
-        # padding of mask is apparently necessary for contour closure. This line also converts mask to binary.
-        padded_mask = np.pad(mask_for_conversion.astype(int), pad_width = 1, mode='constant', constant_values = 0)
-
-        mask_labels, labels_nnum = measure.label(padded_mask, return_num=True)
-        
-        main_region_label = 1
-
-        if labels_nnum > 1:
-            #selects largest region in case central zircon mask has multiple disconnected regions
-            regions = measure.regionprops(mask_labels)
-            area_list = [props.area for props in regions]
-            main_region_label = regions[area_list.index(max(area_list))].label
-
-        
-        mask_contours = measure.find_contours(mask_labels == main_region_label, 0.5)[0] #gets contours of mask
-        mask_contours = np.subtract(mask_contours, 1)
-        mask_contours = close_contour(mask_contours)
-        poly_pts = measure.approximate_polygon(mask_contours, adj_tolerance) #converts contours into mask
-        poly_pts = np.flip(poly_pts, axis=1) #flip ensures that polygons load properly (rather than mirrored) in GUI
-
-        #converts to list of {x:, y:} dicts for JS annotation tool
-        for each_pt in poly_pts:
-            pt_dict = {'x': 0.0, 'y': 0.0}
-              
-            if each_pt[0] >= 0:
-                pt_dict['x'] = round(each_pt[0]/full_mask_w, 3)
-
-            if each_pt[1] >= 0:
-                pt_dict['y'] = round(each_pt[1]/full_mask_h, 3)
-            export_polygon.append(pt_dict)
-
-        return(export_polygon)
-
-    #converts JS export polygons to masks
-    def poly_to_mask(poly_for_conversion, original_image, scale_factor = 1.0):
-        success_bool = False
-        if poly_for_conversion is None:
-            return(success_bool, [])
-        #polygon must have at least 3 points to have any area
-        if np.shape(poly_for_conversion)[0] < 3:
-            return(success_bool, [])
-
-        poly_pts = np.clip(poly_for_conversion, 0, 1)
-
-        original_image_shape = original_image.shape[:2]
-
-        rescaled_poly = poly_pts * np.asarray(original_image_shape)
-
-        mask_output = draw.polygon2mask(original_image_shape, rescaled_poly)
-        
-        #if polygon has no area, do not send it for measurements!
-        if len(np.column_stack(np.where(mask_output > 0))) < 10:
-            return(success_bool, [])
-        success_bool = True
-
-        return(success_bool, mask_output)
-
 
     ### CODE FOR FUNCTIONS BELOW (SIGNIFICANTLY) MODIFIED FROM tensorflow.models FOR POLYGON ANNOTATION ###
     # Lint as: python3
@@ -396,7 +316,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                       // a variable to store the mouse position
                       let m = {},
                       // a variable to store the point where you begin to draw the
-                      // rectangle
+                      // polygon
                       start = {};
                       // a boolean variable to store the drawing state
                       let isDrawing = false;
@@ -458,10 +378,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                           //o.h = (m.y - start.y)/image.height;  // height
                           ctx.clearRect(0, 0, canvas_img.width, canvas_img.height);
                           ctx.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight, 0, 0,  canvas_img.width,  canvas_img.height);
-                          // draw all the rectangles saved in the rectsRy
+                          // draw the polygon
                           drawPoly(poly);
-                          // draw the actual rectangle
-                          //drawRect(o); //need to add curr mouse position to this array
                       }
                       
                       // add the handlers needed for dragging
@@ -572,7 +490,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
 
         # call java script function pass string byte array(image_data) as input
         display(js)
-        
+
         eval_js('load_image({}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
                                                                                     sample_name, str(sample_scale_factor),
                                                                                     callbackId1, callbackId2))
@@ -627,8 +545,6 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
 
             # load the new annotations into the polygon list
             for annotations_per_img in annotations:
-                #rectangles_as_arrays = [np.clip(dictToList(annotation), 0, 1)
-                #                        for annotation in annotations_per_img]
                 polys_as_arrays = [dictToList(annotation)
                                         for annotation in annotations_per_img]
                 if polys_as_arrays:
@@ -651,7 +567,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
             
             for eachindex, eachpoly in enumerate(poly_storage_pointer):
 
-                poly_mask = poly_to_mask(eachpoly, imgs[eachindex], sample_scale_factor)
+                poly_mask = poly_utils.poly_to_mask(eachpoly, imgs[eachindex])
                 
                 tag_Bool = False
                 if tags_for_export[eachindex] == 'True':
@@ -813,7 +729,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                 #each_props = mos_proc.overlay_mask_and_get_props(central_mask[1], each_mosaic.sub_img, eachscan, display_bool = False)
                 #props_list = mos_proc.parse_properties(each_props, each_mosaic.scale_factor, eachscan, verbose = True)
                 
-                curr_auto_polys.append(mask_to_poly(central_mask[1], 1, each_mosaic.scale_factor))
+                curr_auto_polys.append(poly_utils.mask_to_poly(central_mask[1], 1, 
+                                                               each_mosaic.scale_factor))
             else:
                 curr_auto_polys.append([])
                 
@@ -849,4 +766,3 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
 
     #starts annotator for first time/sample
     load_and_annotate(Predictor)
-

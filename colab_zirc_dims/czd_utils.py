@@ -245,9 +245,9 @@ def rescale_2d_arr(im, nR, nC):
         Input array im resized to nR rows, nC columns.
 
     """
-    nR0 = len(im)     # source number of rows 
-    nC0 = len(im[0])  # source number of columns 
-    return np.asarray([[ im[int(nR0 * r / nR)][int(nC0 * c / nC)]  
+    nR0 = len(im)     # source number of rows
+    nC0 = len(im[0])  # source number of columns
+    return np.asarray([[ im[int(nR0 * r / nR)][int(nC0 * c / nC)]
                         for c in range(nC)] for r in range(nR)])
 
 
