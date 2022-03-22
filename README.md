@@ -29,11 +29,11 @@ Colab Notebooks are available for:
 - All features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks.
 - New models are now available.  Models are also now downloaded directly (from AWS) in the automated processing notebook and do not need to be included in project folder(s).
 - Modules **czd_utils**, **pointgen**, **mos_match**, **segment**, **poly_utils**, and **mos_proc** have full docstring documentation.
-- Module **zirc_dims_GUI** is functional but messy bit of code. Some additional improvements/cleanup to come.
-- Otsu threshholding function is available.
+- Module **zirc_dims_GUI** is a functional but messy bit of code. Some additional improvements/cleanup to come.
+- An Otsu threshholding function for segmentation is available, but probably needs some fixes.
 
 ## Additional Notes
-- Training and large-n zircon measurment datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
+- Training and large-n zircon measurement datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
 - Some additional training data are from the [UCSB Petrochronology Center](https://www.petrochronology.com/).
 - Although models were trained on (and tests have only been performed on) detrital zircon mosaic images, I think that this method could probably be applied to LA-ICP-MS mosaics/samples of other minerals (e.g., monazite) without further model training.
 - I do plan to write this project up into some sort of publication (journal article, conference paper, conference poster, vanity license plate, etc). At that point, I will post citation info here. If you submit a publication utilizing this code in the meantime, please reach out to me.
