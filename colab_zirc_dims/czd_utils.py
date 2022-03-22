@@ -5,6 +5,7 @@
 
 import os
 import operator
+import json
 
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -13,6 +14,46 @@ import pandas as pd
 
 ### Various functions and classes for file processing and code simplification
 ### in other modules below.
+
+def read_json(json_path):
+    """Read a .json file.
+
+    Parameters
+    ----------
+    json_path : str
+        Path to json file for reading.
+
+    Returns
+    -------
+    js : any
+        Contents of json file. For purposes of this package, this will be a list or dict.
+
+    """
+    with open(json_path, 'r') as f:
+        js = json.load(f)
+    return js
+
+def save_json(json_path, item_for_save):
+    """Save an item to a json file (will overwrite existing file with same path).
+
+    Parameters
+    ----------
+    json_path : str
+        Save path for json file.
+    item_for_save : any
+        Item for saving to json file. For purposes of this package, this will
+        be a list or dict.
+
+    Returns
+    -------
+    None.
+
+    """
+    if os.path.isfile(json_path):
+        os.remove(json_path)
+    with open(json_path, 'w') as f:
+        json.dump(item_for_save, f)
+    return
 
 def save_csv(path, pandas_table):
     """Save a pandas table as a .csv file
