@@ -20,17 +20,17 @@ Various functions for processing mosaic image datasets are available in modules 
 
 ## Links
 Colab Notebooks are available for:
-- [Matching mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1VNI3BwXkArqMLjRm374N8zXqWGjSnUcm?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from images](https://colab.research.google.com/drive/1AimkPFXoNfzvsieBbToEXcXe_hvbJh78?usp=sharing)
+- [Matching mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1cMf5IraQjqt2L6rWR8iwOAq0UhnMTnvI?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring zircons from images](https://colab.research.google.com/drive/1EqrM03toyRO_2jTSlvhQyvDsbGieNzg2?usp=sharing)
 
-[A template project folder with a trained model is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
+[A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
-## Project Status (updated 11/04/2021)
+## Project Status (updated 03/21/2022)
 - All features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks.
-- Model training/improvement is ongoing, and new, better-performing models will be made available in the near future.
-- Modules **czd_utils**, **pointgen**, **mos_match**, **segment**, and **mos_proc** have full docstring documentation.
-- Module **zirc_dims_GUI** is sort of a horror show of code, but a functional one. I won't touch this until other modules are in great condition and/or I have a lot of free time.
-- To do: add watershed to the Otsu threshholding function; this should improve results somewhat.
+- New models are now available.  Models are also now downloaded directly (from AWS) in the automated processing notebook and do not need to be included in project folder(s).
+- Modules **czd_utils**, **pointgen**, **mos_match**, **segment**, **poly_utils**, and **mos_proc** have full docstring documentation.
+- Module **zirc_dims_GUI** is functional but messy bit of code. Some additional improvements/cleanup to come.
+- Otsu threshholding function is available.
 
 ## Additional Notes
 - Training and large-n zircon measurment datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
