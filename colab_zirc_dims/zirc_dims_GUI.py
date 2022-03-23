@@ -24,6 +24,7 @@ from google.colab.output import eval_js
 from . import czd_utils
 from . import mos_proc
 from . import poly_utils
+from . import save_load
 
 ### This is a function to automatically segment all selected samples in a dataset and allow \
 ### users to inspect and/or replace all automatically-produced segmentations via a Javascript-based \
@@ -42,7 +43,42 @@ from . import poly_utils
 ###                     If =None, defaults to all keys in 'sample_data_dict'. \
 ###	  root_dir_path = string path to root project directory \
 ###       Predictor = Detectron 2 predictor for automatic segmentation of zircon images. Should be initialized before running this fxn.
-def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
+def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = None):
+    """Run the colab-based GUI for automated / manual zircon segmentation and
+       segmentation inspection.
+
+    Parameters
+    ----------
+    sample_data_dict : dict
+        A dict of dicts containing data from project folder w/ format:
+
+        {'SAMPLE NAME': {'Scanlist': SCANLIST (.SCANCSV) PATH,
+                         'Mosaic': MOSAIC .BMP PATH,
+                         'Align_file': MOSAIC ALIGN FILE PATH,
+                         'Max_zircon_size': MAX USER-INPUT ZIRCON SIZE,
+                         'Offsets': [USER X OFFSET, USER Y OFFSET],
+                         'Scan_dict': DICT LOADED FROM .SCANCSV FILE},
+         ...}.
+    sample_list : list of str
+        A list of sample names (selected by user while running Colab notebook)
+        indicating which samples they will actually be working with.
+    root_dir_path : str
+        Full path to project directory.
+    Predictor : Detectron2 Predictor class instance
+        A Detectron2 Predictor; should be initialized before running this fxn.
+    load_dir : str, optional
+        User-selected directory with .json files for loading polygons. The default is None.
+
+    Raises
+    ------
+    TypeError
+        Raised if image type is not supported (np array or array-like).
+
+    Returns
+    -------
+    None
+
+    """
 
     if len(sample_list) == 0:
         print('ERROR: NO SAMPLES SELECTED')
@@ -690,6 +726,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         nonlocal index_tracker
         nonlocal sample_data_dict
         nonlocal run_dir
+        nonlocal run_load_dir
 
         #lists, variables that will be called in function for loading new samples
         curr_auto_polys = [] #list of polygons from automatically generated masks (as np (N, 2) arrays)
@@ -698,10 +735,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         #curr_scan_name_list = [] #list of spot names corresponding to each subimage
         curr_auto_human_list = [] #list of strings indicating whether segmentation \
                                   # (or lack therof) of spot was done automatically or by a human
+        curr_spot_tags = [] #list of strings indicating whether user has 'tagged' each spot
         curr_scale_factor = 1.0 #current scale factor
 
 
-        print('Auto-processing:', index_tracker.curr_sample)
         curr_dict_copy = copy.deepcopy(sample_data_dict[index_tracker.curr_sample])
 
         #loads sample mosaic
@@ -711,30 +748,45 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         print('Scale factor:', each_mosaic.scale_factor, 'µm/pixel')
         print(2 * "\n")
         curr_scale_factor = each_mosaic.scale_factor
-        for eachscan in curr_scan_names:
+        load_outputs = [False]
+        if run_load_dir is not None:
+            load_outputs = save_load.find_load_json_polys(run_load_dir,
+                                                          index_tracker.curr_sample,
+                                                          curr_scan_names)
+        if load_outputs[0] is False:
+            #use predictor to automatically segment images if loadable polys unavailable
+            print('Auto-processing:', index_tracker.curr_sample)
+            for eachscan in curr_scan_names:
+                #gets subimage, processes it, and appends subimage and results (or empty values if unsuccessful) to various lists
+                each_mosaic.set_subimg(*curr_dict_copy['Scan_dict'][eachscan])
+                curr_subimage_list.append(each_mosaic.sub_img)
+                print(str(eachscan) + ':')
+                outputs = Predictor(each_mosaic.sub_img)
+                central_mask = mos_proc.get_central_mask(outputs)
+                curr_auto_human_list.append('auto')
+    
+                #if a central zircon is found, does initial processing and adds polygon 
+                if central_mask[0] == True:
+                    print('Successful')
+    
+                    ## uncomment below to produce and print initial (auto) zircon measurements while samples are loading
+                    #each_props = mos_proc.overlay_mask_and_get_props(central_mask[1], each_mosaic.sub_img, eachscan, display_bool = False)
+                    #props_list = mos_proc.parse_properties(each_props, each_mosaic.scale_factor, eachscan, verbose = True)
+                    
+                    curr_auto_polys.append(poly_utils.mask_to_poly(central_mask[1], 1, 
+                                                                   each_mosaic.scale_factor))
+                else:
+                    curr_auto_polys.append([])
+        else:
+            #simply load polygons from .json if possible
+            curr_auto_polys, curr_auto_human_list, curr_spot_tags = load_outputs[1:]
+            print('Preparing grain subimages')
+            for eachscan in curr_scan_names:
+                #gets subimage, processes it, and appends subimage and results (or empty values if unsuccessful) to various lists
+                each_mosaic.set_subimg(*curr_dict_copy['Scan_dict'][eachscan])
+                curr_subimage_list.append(each_mosaic.sub_img)
             
-            #gets subimage, processes it, and appends subimage and results (or empty values if unsuccessful) to various lists
-            each_mosaic.set_subimg(*curr_dict_copy['Scan_dict'][eachscan])
-            curr_subimage_list.append(each_mosaic.sub_img)
-            print(str(eachscan) + ':')
-            outputs = Predictor(each_mosaic.sub_img)
-            central_mask = mos_proc.get_central_mask(outputs)
-            curr_auto_human_list.append('auto')
-
-            #if a central zircon is found, does initial processing and adds polygon 
-            if central_mask[0] == True:
-                print('Successful')
-
-                ## uncomment below to produce and print initial (auto) zircon measurements while samples are loading
-                #each_props = mos_proc.overlay_mask_and_get_props(central_mask[1], each_mosaic.sub_img, eachscan, display_bool = False)
-                #props_list = mos_proc.parse_properties(each_props, each_mosaic.scale_factor, eachscan, verbose = True)
-                
-                curr_auto_polys.append(poly_utils.mask_to_poly(central_mask[1], 1, 
-                                                               each_mosaic.scale_factor))
-            else:
-                curr_auto_polys.append([])
-                
-            print('')
+        print('')
 
         #starts annotator GUI for current sample
         output.clear()
@@ -763,6 +815,13 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
     #creates a directory for zircon dimension .csv files
     csv_save_dir = os.path.join(run_dir, 'zircon_dimensions')
     os.makedirs(csv_save_dir)
+    
+    if load_dir is not None:
+        run_load_dir = save_load.transfer_json_files(sample_list, run_dir, load_dir,
+                                           verbose=True)
+    else:
+        run_load_dir = None
 
     #starts annotator for first time/sample
     load_and_annotate(Predictor)
+
