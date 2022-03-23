@@ -20,8 +20,8 @@ Various functions for processing mosaic image datasets are available in modules 
 
 ## Links
 Colab Notebooks are available for:
-- [Matching mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1cMf5IraQjqt2L6rWR8iwOAq0UhnMTnvI?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from images](https://colab.research.google.com/drive/1EqrM03toyRO_2jTSlvhQyvDsbGieNzg2?usp=sharing)
+- [Matching mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1C86P4c7wPtSU4xugfnCgA8AadvvE0SGf?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring zircons from images](https://colab.research.google.com/drive/1n4fCN-NnfVQmvZN7iMKsKuBSvL94Odz9?usp=sharing)
 
 [A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
