@@ -25,7 +25,7 @@ def check_loadable(run_dir_for_load, verbose=False):
     """
     success_bool = False
     loadable_dir = None
-    full_load_path = os.path.join(run_dir_for_load, 'zircon_dimensions',
+    full_load_path = os.path.join(run_dir_for_load,
                                   'saved_polygons')
     if os.path.isdir(full_load_path):
         test_files = os.listdir(full_load_path)
@@ -77,7 +77,7 @@ def save_sample_json(run_dir, sample_name, spot_names, spot_polys,
     None.
 
     """
-    json_dir = os.path.join(run_dir, 'zircon_dimensions', 'saved_polygons')
+    json_dir = os.path.join(run_dir, 'saved_polygons')
     os.makedirs(json_dir, exist_ok=True)
     sample_json_path = os.path.join(json_dir, str(sample_name) + '.json')
     if not spots_auto_human:
@@ -195,8 +195,7 @@ def transfer_json_files(curr_sample_list, curr_run_dir, load_dir, verbose=False)
         were transferred to.
 
     """
-    curr_json_dir = os.path.join(curr_run_dir, 'zircon_dimensions',
-                                   'saved_polygons')
+    curr_json_dir = os.path.join(curr_run_dir, 'saved_polygons')
     os.makedirs(curr_json_dir, exist_ok = True)
     if verbose:
         print('Copying .json files from load directory to current run directory')

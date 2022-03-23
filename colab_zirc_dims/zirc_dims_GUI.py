@@ -596,9 +596,13 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             img_save_root_dir = os.path.join(outputs_path, 'mask_images')
             each_img_save_dir = os.path.join(img_save_root_dir, str(sample_name))
             csv_save_dir = os.path.join(outputs_path, 'zircon_dimensions')
+            #poly_save_dir = os.path.join(outputs_path, 'saved_polys')
 
             #directory for saving images for each sample
             os.makedirs(each_img_save_dir, exist_ok=True)
+            
+            ##directory for saving polygons for current sample
+            #os.makedirs(poly_save_dir, exist_ok=True)
             
             
             for eachindex, eachpoly in enumerate(poly_storage_pointer):
@@ -636,6 +640,9 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             csv_filename = str(sample_name) + '_zircon_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
+            
+            save_load.save_sample_json(outputs_path, str(sample_name), spot_names,
+                                       annotations, human_auto_list, tags_for_export)
 
             
             # output the annotations to the errorlog
