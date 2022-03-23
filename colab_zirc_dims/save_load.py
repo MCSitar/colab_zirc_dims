@@ -200,7 +200,7 @@ def transfer_json_files(curr_sample_list, curr_run_dir, load_dir, verbose=False)
     os.makedirs(curr_json_dir, exist_ok = True)
     if verbose:
         print('Copying .json files from load directory to current run directory')
-    for each_json in [file for file in os.listdir(load_dir) if file.endwith('.json')]:
+    for each_json in [file for file in os.listdir(load_dir) if file.endswith('.json')]:
         if each_json.strip('.json') in curr_sample_list:
             if verbose:
                 print('Copying:', str(each_json))
