@@ -118,11 +118,14 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
 
     def draw_polygons(image_urls, spot_names, track_list, original_polys,
+                      auto_human_list_input, tag_list_input1,
                       sample_name, sample_scale_factor, callbackId1, callbackId2):  # pylint: disable=invalid-name
         """Open polygon annotation UI and send the results to a callback function.
         """
         js = Javascript('''
-                    async function load_image(imgs, spot_nms, trck_list, orig_polys, sample_nm, sample_scl,  callbackId1, callbackId2) {
+                    async function load_image(imgs, spot_nms, trck_list, orig_polys,
+                                              inpt_auto_human, inpt_tag_list, sample_nm,
+                                              sample_scl,  callbackId1, callbackId2) {
                         
                         //init current sample number displays (index + 1)
                         var curr_sample_idx = trck_list[0] + 1;
@@ -190,11 +193,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                         var im_height = 0;
                         var im_width = 0;
                         var aspect_ratio = 0.0;
-                        //initialize polygons
+                        //initialize polygons, human_auto tags, user tags
                         for (var i = 0; i < imgs.length; i++) {
                           allPolygons[i] = [...orig_polys[i]];
-                          all_human_auto[i] = 'auto';
-                          all_tags[i] = 'False';
+                          all_human_auto[i] = inpt_auto_human[i];
+                          all_tags[i] = inpt_tag_list[i];
                         }
                         //initialize image view
                         errorlog.id = 'errorlog';
@@ -264,7 +267,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                             resetcanvas();
                         }
 
-                        // on delete, deletes the last polygon
+                        // on undo (modified delete buttun), deletes the last polygon vertex
                         deleteButton.textContent = "undo last pt";
                         deleteButton.onclick = function(){
                           if (poly.length > 0) {
@@ -293,11 +296,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                           };
                         }
 
-                        // on reset, reverts to original (auto) polygon
-                        resetButton.textContent = "restore auto polygon"
+                        // on reset, reverts to original (auto or user) polygon
+                        resetButton.textContent = "restore orig. polygon"
                         resetButton.onclick = function(){
                           poly.splice(0, poly.length, ...orig_polys[curr_image]);
-                          all_human_auto[curr_image] = 'auto';
+                          all_human_auto[curr_image] = inpt_auto_human[curr_image];
                           ctx.clearRect(0, 0, canvas_img.width, canvas_img.height);
                           image.src = "data:image/png;base64," + img;
                           image.onload = function() {
@@ -541,6 +544,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                   track_list: List[int],
                   outputs_path: str,
                   predictor_input,
+                  auto_human_list_input: List[str],
+                  tag_list_input: List[str],
                   sample_name: str = None,
                   sample_scale_factor: float = 0.0):
         """Open the polygon annotation UI and prompt the user for input.
@@ -675,7 +680,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
         output.register_callback(callbackId1, savecallbackFunction)
         output.register_callback(callbackId2, changesamplecallbackFunction)
-        draw_polygons(imgs, spot_names, track_list, auto_polygons, sample_name, sample_scale_factor, callbackId1, callbackId2)
+        draw_polygons(imgs, spot_names, track_list, auto_polygons, auto_human_list_input,
+                      tag_list_input, sample_name, sample_scale_factor, callbackId1, callbackId2)
 
 ### END MODIFIED CODE
 # ====================================================================================================
@@ -771,6 +777,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                 outputs = Predictor(each_mosaic.sub_img)
                 central_mask = mos_proc.get_central_mask(outputs)
                 curr_auto_human_list.append('auto')
+                curr_spot_tags.append('')
     
                 #if a central zircon is found, does initial processing and adds polygon 
                 if central_mask[0] == True:
@@ -784,6 +791,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                                                                    each_mosaic.scale_factor))
                 else:
                     curr_auto_polys.append([])
+            #saves polygons on initial processing so that processing does not have to repeat if navigating back to sample
+            run_load_dir = os.path.join(run_dir, 'saved_polys')
+            save_load.save_sample_json(run_dir, index_tracker.curr_sample,
+                                       curr_scan_names, curr_auto_polys)
         else:
             #simply load polygons from .json if possible
             curr_auto_polys, curr_auto_human_list, curr_spot_tags = load_outputs[1:]
@@ -798,7 +809,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         #starts annotator GUI for current sample
         output.clear()
         annotate(curr_subimage_list, curr_poly_pointer, curr_auto_polys, curr_scan_names, index_tracker.track_list,
-                 run_dir, Predictor, str(index_tracker.curr_sample), curr_scale_factor)
+                 run_dir, Predictor, curr_auto_human_list, curr_spot_tags, str(index_tracker.curr_sample), curr_scale_factor)
 
 
     ##code below runs upon initial startup
