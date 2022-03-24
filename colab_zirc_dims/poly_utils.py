@@ -88,8 +88,8 @@ def poly_to_mask(poly_for_conversion, original_image):
 
     Parameters
     ----------
-    poly_for_conversion : list of dicts
-        An ordered list of dicts {x:, y:} representing vertices in a polygon.
+    poly_for_conversion : list of np 2d arrays
+        An ordered list of arrays [x, y] representing vertices in a polygon.
     original_image : np array
         Numpy array representing the original image from which polygon was derived.
 

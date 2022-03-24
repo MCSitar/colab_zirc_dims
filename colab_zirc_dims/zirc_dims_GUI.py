@@ -757,6 +757,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         each_mosaic = mos_proc.MosImg(curr_dict_copy['Mosaic'], curr_dict_copy['Align_file'],
                                       curr_dict_copy['Max_zircon_size'], curr_dict_copy['Offsets'])
         curr_scan_names = list(curr_dict_copy['Scan_dict'].keys())
+        print('Sample:', index_tracker.curr_sample)
         print('Scale factor:', each_mosaic.scale_factor, 'µm/pixel')
         print(2 * "\n")
         curr_scale_factor = each_mosaic.scale_factor
