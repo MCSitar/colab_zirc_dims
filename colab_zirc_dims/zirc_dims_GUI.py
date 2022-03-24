@@ -791,7 +791,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                 else:
                     curr_auto_polys.append([])
             #saves polygons on initial processing so that processing does not have to repeat if navigating back to sample
-            run_load_dir = os.path.join(run_dir, 'saved_polys')
+            run_load_dir = os.path.join(run_dir, 'saved_polygons')
             save_load.save_sample_json(run_dir, index_tracker.curr_sample,
                                        curr_scan_names, curr_auto_polys)
         else:

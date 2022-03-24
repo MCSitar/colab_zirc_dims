@@ -239,7 +239,7 @@ def find_load_json_polys(load_dir, sample_name, sample_shot_list):
     """
     ret_dict = {}
     json_src_name = str(sample_name) + '.json'
-    if json_src_name in os.listdir(load_dir):
+    if json_src_name in os.listdir(load_dir) and os.path.exists(load_dir):
         loaded_json_dict = czd_utils.read_json(os.path.join(load_dir, json_src_name))
         if all(len(each_item) == len(sample_shot_list) for
                each_item in loaded_json_dict.values()):
