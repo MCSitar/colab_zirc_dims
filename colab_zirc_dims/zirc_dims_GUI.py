@@ -528,9 +528,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         # call java script function pass string byte array(image_data) as input
         display(js)
 
-        eval_js('load_image({}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
-                                                                                    sample_name, str(sample_scale_factor),
-                                                                                    callbackId1, callbackId2))
+        eval_js('load_image({}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
+                                                                                            auto_human_list_input, tag_list_input1,
+                                                                                            sample_name, str(sample_scale_factor),
+                                                                                            callbackId1, callbackId2))
 
         return
 
