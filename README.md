@@ -4,7 +4,7 @@ This repository contains code for dimensional analysis of zircons in LA-ICP-MS a
 ## Features
 The code in this repo enables organization (e.g., matching zircon mosaic images to .scancsv scanlists), data extraction (e.g., mapping shots to subimages of mosaics), and post-segmentation processing (e.g., extracting accurate zircon dimensions from segmentation masks) of mosaic-scanlist datasets. Said code currently only supports processing of images and scanlists from the [UA LaserChron Center](https://sites.google.com/laserchron.org/arizonalaserchroncenter/home), but may be updated in the ~near future to support processing of datasets from other LA-ICP-MS geochronology facilities. RCNN instance segmentation of zircons is handled by Detectron2 and implemented in ready-to-run Google Colab Notebooks (see 'Links').
 
-In datasets with good image quality and well-exposed zircons (i.e., with full cross-sections visible above puck(s)), automated processing achieves measurements comparable to those produced by humans (with net error along long and short axes < .5 μm vs. humans in several tested datasets) in a fraction of the time. See below for an example analysis of a single spot.
+In datasets with good image quality and well-exposed zircons (i.e., with full cross-sections visible above puck(s)), automated processing achieves measurements comparable to those produced by humans (with net error along long and short axes < .5 μm vs. humans in some tested samples) in a fraction of the time. See below for an example analysis of a single spot.
 
 ![Spot 315_cropped](https://user-images.githubusercontent.com/74220513/139790689-a68c5cf8-7c6b-4158-b555-76b6718673b8.png)
 
@@ -20,17 +20,18 @@ Various functions for processing mosaic image datasets are available in modules 
 
 ## Links
 Colab Notebooks are available for:
-- [Matching mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1cMf5IraQjqt2L6rWR8iwOAq0UhnMTnvI?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from images](https://colab.research.google.com/drive/1EqrM03toyRO_2jTSlvhQyvDsbGieNzg2?usp=sharing)
+- [Matching mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1C86P4c7wPtSU4xugfnCgA8AadvvE0SGf?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring zircons from images](https://colab.research.google.com/drive/1n4fCN-NnfVQmvZN7iMKsKuBSvL94Odz9?usp=sharing)
 
 [A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
-## Project Status (updated 03/21/2022)
+## Project Status (updated 03/23/2022)
 - All features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks.
 - New models are now available.  Models are also now downloaded directly (from AWS) in the automated processing notebook and do not need to be included in project folder(s).
+- Saving and loading of automatically- and user-produced zircon segmentation polygons into the Colab GUI has been implemented. This is (I think) big for user convenience - you can automatically process a dataset, disconnect, and then view/edit segmentations in later session(s).
 - Modules **czd_utils**, **pointgen**, **mos_match**, **segment**, **poly_utils**, and **mos_proc** have full docstring documentation.
 - Module **zirc_dims_GUI** is a functional but messy bit of code. Some additional improvements/cleanup to come.
-- An Otsu threshholding function for segmentation is available, but probably needs some fixes.
+- An Otsu threshholding function for non-RCNN segmentation is available, but probably needs some tuning.
 
 ## Additional Notes
 - Training and large-n zircon measurement datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.

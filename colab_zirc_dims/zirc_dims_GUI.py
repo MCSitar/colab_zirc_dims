@@ -24,6 +24,7 @@ from google.colab.output import eval_js
 from . import czd_utils
 from . import mos_proc
 from . import poly_utils
+from . import save_load
 
 ### This is a function to automatically segment all selected samples in a dataset and allow \
 ### users to inspect and/or replace all automatically-produced segmentations via a Javascript-based \
@@ -42,7 +43,42 @@ from . import poly_utils
 ###                     If =None, defaults to all keys in 'sample_data_dict'. \
 ###	  root_dir_path = string path to root project directory \
 ###       Predictor = Detectron 2 predictor for automatic segmentation of zircon images. Should be initialized before running this fxn.
-def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
+def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = None):
+    """Run the colab-based GUI for automated / manual zircon segmentation and
+       segmentation inspection.
+
+    Parameters
+    ----------
+    sample_data_dict : dict
+        A dict of dicts containing data from project folder w/ format:
+
+        {'SAMPLE NAME': {'Scanlist': SCANLIST (.SCANCSV) PATH,
+                         'Mosaic': MOSAIC .BMP PATH,
+                         'Align_file': MOSAIC ALIGN FILE PATH,
+                         'Max_zircon_size': MAX USER-INPUT ZIRCON SIZE,
+                         'Offsets': [USER X OFFSET, USER Y OFFSET],
+                         'Scan_dict': DICT LOADED FROM .SCANCSV FILE},
+         ...}.
+    sample_list : list of str
+        A list of sample names (selected by user while running Colab notebook)
+        indicating which samples they will actually be working with.
+    root_dir_path : str
+        Full path to project directory.
+    Predictor : Detectron2 Predictor class instance
+        A Detectron2 Predictor; should be initialized before running this fxn.
+    load_dir : str, optional
+        User-selected directory with .json files for loading polygons. The default is None.
+
+    Raises
+    ------
+    TypeError
+        Raised if image type is not supported (np array or array-like).
+
+    Returns
+    -------
+    None
+
+    """
 
     if len(sample_list) == 0:
         print('ERROR: NO SAMPLES SELECTED')
@@ -82,11 +118,12 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
 
 
     def draw_polygons(image_urls, spot_names, track_list, original_polys,
+                      auto_human_list_input, tag_list_input1,
                       sample_name, sample_scale_factor, callbackId1, callbackId2):  # pylint: disable=invalid-name
         """Open polygon annotation UI and send the results to a callback function.
         """
         js = Javascript('''
-                    async function load_image(imgs, spot_nms, trck_list, orig_polys, sample_nm, sample_scl,  callbackId1, callbackId2) {
+                    async function load_image(imgs, spot_nms, trck_list, orig_polys, inpt_auto_human, inpt_tag_list, sample_nm, sample_scl,  callbackId1, callbackId2) {
                         
                         //init current sample number displays (index + 1)
                         var curr_sample_idx = trck_list[0] + 1;
@@ -154,11 +191,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                         var im_height = 0;
                         var im_width = 0;
                         var aspect_ratio = 0.0;
-                        //initialize polygons
+                        //initialize polygons, human_auto tags, user tags
                         for (var i = 0; i < imgs.length; i++) {
                           allPolygons[i] = [...orig_polys[i]];
-                          all_human_auto[i] = 'auto';
-                          all_tags[i] = 'False';
+                          all_human_auto[i] = inpt_auto_human[i];
+                          all_tags[i] = inpt_tag_list[i];
                         }
                         //initialize image view
                         errorlog.id = 'errorlog';
@@ -228,7 +265,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                             resetcanvas();
                         }
 
-                        // on delete, deletes the last polygon
+                        // on undo (modified delete buttun), deletes the last polygon vertex
                         deleteButton.textContent = "undo last pt";
                         deleteButton.onclick = function(){
                           if (poly.length > 0) {
@@ -257,11 +294,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                           };
                         }
 
-                        // on reset, reverts to original (auto) polygon
-                        resetButton.textContent = "restore auto polygon"
+                        // on reset, reverts to original (auto or user) polygon
+                        resetButton.textContent = "restore orig. polygon"
                         resetButton.onclick = function(){
                           poly.splice(0, poly.length, ...orig_polys[curr_image]);
-                          all_human_auto[curr_image] = 'auto';
+                          all_human_auto[curr_image] = inpt_auto_human[curr_image];
                           ctx.clearRect(0, 0, canvas_img.width, canvas_img.height);
                           image.src = "data:image/png;base64," + img;
                           image.onload = function() {
@@ -491,9 +528,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         # call java script function pass string byte array(image_data) as input
         display(js)
 
-        eval_js('load_image({}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
-                                                                                    sample_name, str(sample_scale_factor),
-                                                                                    callbackId1, callbackId2))
+        eval_js('load_image({}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
+                                                                                            auto_human_list_input, tag_list_input1,
+                                                                                            sample_name, str(sample_scale_factor),
+                                                                                            callbackId1, callbackId2))
 
         return
 
@@ -505,6 +543,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
                   track_list: List[int],
                   outputs_path: str,
                   predictor_input,
+                  auto_human_list_input: List[str],
+                  tag_list_input: List[str],
                   sample_name: str = None,
                   sample_scale_factor: float = 0.0):
         """Open the polygon annotation UI and prompt the user for input.
@@ -560,9 +600,13 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
             img_save_root_dir = os.path.join(outputs_path, 'mask_images')
             each_img_save_dir = os.path.join(img_save_root_dir, str(sample_name))
             csv_save_dir = os.path.join(outputs_path, 'zircon_dimensions')
+            #poly_save_dir = os.path.join(outputs_path, 'saved_polys')
 
             #directory for saving images for each sample
             os.makedirs(each_img_save_dir, exist_ok=True)
+            
+            ##directory for saving polygons for current sample
+            #os.makedirs(poly_save_dir, exist_ok=True)
             
             
             for eachindex, eachpoly in enumerate(poly_storage_pointer):
@@ -600,6 +644,9 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
             csv_filename = str(sample_name) + '_zircon_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
+            
+            save_load.save_sample_json(outputs_path, str(sample_name), spot_names,
+                                       annotations, human_auto_list, tags_for_export)
 
             
             # output the annotations to the errorlog
@@ -632,7 +679,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
 
         output.register_callback(callbackId1, savecallbackFunction)
         output.register_callback(callbackId2, changesamplecallbackFunction)
-        draw_polygons(imgs, spot_names, track_list, auto_polygons, sample_name, sample_scale_factor, callbackId1, callbackId2)
+        draw_polygons(imgs, spot_names, track_list, auto_polygons, auto_human_list_input,
+                      tag_list_input, sample_name, sample_scale_factor, callbackId1, callbackId2)
 
 ### END MODIFIED CODE
 # ====================================================================================================
@@ -690,6 +738,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         nonlocal index_tracker
         nonlocal sample_data_dict
         nonlocal run_dir
+        nonlocal run_load_dir
 
         #lists, variables that will be called in function for loading new samples
         curr_auto_polys = [] #list of polygons from automatically generated masks (as np (N, 2) arrays)
@@ -698,48 +747,69 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
         #curr_scan_name_list = [] #list of spot names corresponding to each subimage
         curr_auto_human_list = [] #list of strings indicating whether segmentation \
                                   # (or lack therof) of spot was done automatically or by a human
+        curr_spot_tags = [] #list of strings indicating whether user has 'tagged' each spot
         curr_scale_factor = 1.0 #current scale factor
 
 
-        print('Auto-processing:', index_tracker.curr_sample)
         curr_dict_copy = copy.deepcopy(sample_data_dict[index_tracker.curr_sample])
 
         #loads sample mosaic
         each_mosaic = mos_proc.MosImg(curr_dict_copy['Mosaic'], curr_dict_copy['Align_file'],
                                       curr_dict_copy['Max_zircon_size'], curr_dict_copy['Offsets'])
         curr_scan_names = list(curr_dict_copy['Scan_dict'].keys())
+        print('Sample:', index_tracker.curr_sample)
         print('Scale factor:', each_mosaic.scale_factor, 'µm/pixel')
         print(2 * "\n")
         curr_scale_factor = each_mosaic.scale_factor
-        for eachscan in curr_scan_names:
+        load_outputs = [False]
+        if run_load_dir is not None:
+            load_outputs = save_load.find_load_json_polys(run_load_dir,
+                                                          index_tracker.curr_sample,
+                                                          curr_scan_names)
+        if load_outputs[0] is False:
+            #use predictor to automatically segment images if loadable polys unavailable
+            print('Auto-processing:', index_tracker.curr_sample)
+            for eachscan in curr_scan_names:
+                #gets subimage, processes it, and appends subimage and results (or empty values if unsuccessful) to various lists
+                each_mosaic.set_subimg(*curr_dict_copy['Scan_dict'][eachscan])
+                curr_subimage_list.append(each_mosaic.sub_img)
+                print(str(eachscan) + ':')
+                outputs = Predictor(each_mosaic.sub_img)
+                central_mask = mos_proc.get_central_mask(outputs)
+                curr_auto_human_list.append('auto')
+                curr_spot_tags.append('')
+    
+                #if a central zircon is found, does initial processing and adds polygon 
+                if central_mask[0] == True:
+                    print('Successful')
+    
+                    ## uncomment below to produce and print initial (auto) zircon measurements while samples are loading
+                    #each_props = mos_proc.overlay_mask_and_get_props(central_mask[1], each_mosaic.sub_img, eachscan, display_bool = False)
+                    #props_list = mos_proc.parse_properties(each_props, each_mosaic.scale_factor, eachscan, verbose = True)
+                    
+                    curr_auto_polys.append(poly_utils.mask_to_poly(central_mask[1], 1, 
+                                                                   each_mosaic.scale_factor))
+                else:
+                    curr_auto_polys.append([])
+            #saves polygons on initial processing so that processing does not have to repeat if navigating back to sample
+            run_load_dir = os.path.join(run_dir, 'saved_polygons')
+            save_load.save_sample_json(run_dir, index_tracker.curr_sample,
+                                       curr_scan_names, curr_auto_polys)
+        else:
+            #simply load polygons from .json if possible
+            curr_auto_polys, curr_auto_human_list, curr_spot_tags = load_outputs[1:]
+            print('Preparing grain subimages')
+            for eachscan in curr_scan_names:
+                #gets subimage, processes it, and appends subimage and results (or empty values if unsuccessful) to various lists
+                each_mosaic.set_subimg(*curr_dict_copy['Scan_dict'][eachscan])
+                curr_subimage_list.append(each_mosaic.sub_img)
             
-            #gets subimage, processes it, and appends subimage and results (or empty values if unsuccessful) to various lists
-            each_mosaic.set_subimg(*curr_dict_copy['Scan_dict'][eachscan])
-            curr_subimage_list.append(each_mosaic.sub_img)
-            print(str(eachscan) + ':')
-            outputs = Predictor(each_mosaic.sub_img)
-            central_mask = mos_proc.get_central_mask(outputs)
-            curr_auto_human_list.append('auto')
-
-            #if a central zircon is found, does initial processing and adds polygon 
-            if central_mask[0] == True:
-                print('Successful')
-
-                ## uncomment below to produce and print initial (auto) zircon measurements while samples are loading
-                #each_props = mos_proc.overlay_mask_and_get_props(central_mask[1], each_mosaic.sub_img, eachscan, display_bool = False)
-                #props_list = mos_proc.parse_properties(each_props, each_mosaic.scale_factor, eachscan, verbose = True)
-                
-                curr_auto_polys.append(poly_utils.mask_to_poly(central_mask[1], 1, 
-                                                               each_mosaic.scale_factor))
-            else:
-                curr_auto_polys.append([])
-                
-            print('')
+        print('')
 
         #starts annotator GUI for current sample
         output.clear()
         annotate(curr_subimage_list, curr_poly_pointer, curr_auto_polys, curr_scan_names, index_tracker.track_list,
-                 run_dir, Predictor, str(index_tracker.curr_sample), curr_scale_factor)
+                 run_dir, Predictor, curr_auto_human_list, curr_spot_tags, str(index_tracker.curr_sample), curr_scale_factor)
 
 
     ##code below runs upon initial startup
@@ -763,6 +833,13 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor):
     #creates a directory for zircon dimension .csv files
     csv_save_dir = os.path.join(run_dir, 'zircon_dimensions')
     os.makedirs(csv_save_dir)
+    
+    if load_dir is not None:
+        run_load_dir = save_load.transfer_json_files(sample_list, run_dir, load_dir,
+                                           verbose=True)
+    else:
+        run_load_dir = None
 
     #starts annotator for first time/sample
     load_and_annotate(Predictor)
+
