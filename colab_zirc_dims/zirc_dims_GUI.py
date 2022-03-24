@@ -123,9 +123,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         """Open polygon annotation UI and send the results to a callback function.
         """
         js = Javascript('''
-                    async function load_image(imgs, spot_nms, trck_list, orig_polys,
-                                              inpt_auto_human, inpt_tag_list, sample_nm,
-                                              sample_scl,  callbackId1, callbackId2) {
+                    async function load_image(imgs, spot_nms, trck_list, orig_polys, inpt_auto_human, inpt_tag_list, sample_nm, sample_scl,  callbackId1, callbackId2) {
                         
                         //init current sample number displays (index + 1)
                         var curr_sample_idx = trck_list[0] + 1;
