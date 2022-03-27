@@ -7,3 +7,4 @@ from . import segment
 from . import zirc_dims_GUI
 from . import poly_utils
 from . import save_load
+from . import ALC_notebook_fxns
