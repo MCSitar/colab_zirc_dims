@@ -4,11 +4,19 @@
    itself.
    """
 
-import os, random, gc, datetime
+import os
+import random
+import gc
+import datetime
 import urllib.request
 from IPython.display import display
 from google.colab.patches import cv2_imshow
-from detectron2.utils.visualizer import Visualizer
+try:
+    from detectron2.utils.visualizer import Visualizer
+except ModuleNotFoundError:
+    print('WARNING: Detectron2 not installed on (virtual?) machine;',
+          'colab_zirc_dims image segmentation functions unavailable')
+    pass
 import ipywidgets as widgets
 import skimage.io as skio
 import pandas as pd
@@ -20,7 +28,7 @@ from . import segment
 
 
 def select_samples_fxn(inpt_mos_data_dict, mutable_list):
-    """Open an array of checkboxes with sample names from a dataset info dict 
+    """Open an array of checkboxes with sample names from a dataset info dict
        and modify a global list so that it contains ordered sample names
        selected by a user.
 
@@ -37,10 +45,11 @@ def select_samples_fxn(inpt_mos_data_dict, mutable_list):
     None.
 
     """
-    #dynamically created checkboxes with automatically-updated output; partially based on https://stackoverflow.com/a/57230942
-    checkboxes = [widgets.Checkbox(value=True, description=sample) 
+    #dynamically created checkboxes with automatically-updated output; \
+    # partially based on https://stackoverflow.com/a/57230942
+    checkboxes = [widgets.Checkbox(value=True, description=sample)
                   for sample in list(inpt_mos_data_dict.keys())]
-    args_dict = {list(inpt_mos_data_dict.keys())[i]: checkbox for i, 
+    args_dict = {list(inpt_mos_data_dict.keys())[i]: checkbox for i,
                  checkbox in enumerate(checkboxes)}
     ui = widgets.GridBox(checkboxes,
                          layout=widgets.Layout(grid_template_columns="repeat(5, 200px)"))
@@ -84,7 +93,7 @@ def inspect_data(inpt_mos_data_dict, inpt_selected_samples, n_scans_sample = 3):
                                       inpt_mos_data_dict[eachsample]['Offsets'])
         scan_sample = random.sample(inpt_mos_data_dict[eachsample]['Scan_dict'].keys(),
                                     n_scans_sample)
-        
+
         print(str(eachsample) + ':')
         print('Scale factor:', each_mosaic.scale_factor, 'µm/pixel')
         for eachscan in scan_sample:
@@ -108,10 +117,10 @@ def select_download_model_interface(model_lib_path, mut_curr_model_d):
         If users want to use their own model library (with valid download links
         and formatting matching colab_zirc_dims model_library.json), they can do
         so then upload the file to their Google Drive and input its path here.
-        
+
     mut_curr_model_d : dict
         A dict with global scope that will contain info copied from model library
-        json for the user-selected model.
+        json for the user-selected model. Modified in place.
 
     Returns
     -------
@@ -121,25 +130,28 @@ def select_download_model_interface(model_lib_path, mut_curr_model_d):
     model_lib_list = czd_utils.read_json(model_lib_path)
     model_labels = [each_dict['desc'] for each_dict in model_lib_list]
     model_picker = widgets.Dropdown(options=model_labels, value=model_labels[0],
-                                    description='Model:', layout={'width': 'max-content'})
+                                    description='Model:',
+                                    layout={'width': 'max-content'})
     #current_model_dict = {}
     def select_download_model(selection):
         if selection is not None:
-          mut_curr_model_d.update(model_lib_list[model_labels.index(selection)])
-          print('Selected:', mut_curr_model_d['name'])
-          if os.path.exists(os.path.join('/content', mut_curr_model_d['name'])):
-            print('Model already downloaded')
-          else:
-            print('Downloading:', mut_curr_model_d['name'])
-            print('...')
-            urllib.request.urlretrieve(mut_curr_model_d['model_url'], 
-                                      os.path.join('/content',
-                                                    mut_curr_model_d['name']))
-            print('Download finished')
-    model_out = widgets.interactive_output(select_download_model, {'selection': model_picker})
+            mut_curr_model_d.update(model_lib_list[model_labels.index(selection)])
+            print('Selected:', mut_curr_model_d['name'])
+            if os.path.exists(os.path.join('/content', mut_curr_model_d['name'])):
+                print('Model already downloaded')
+            else:
+                print('Downloading:', mut_curr_model_d['name'])
+                print('...')
+                urllib.request.urlretrieve(mut_curr_model_d['model_url'],
+                                          os.path.join('/content',
+                                                        mut_curr_model_d['name']))
+                print('Download finished')
+    model_out = widgets.interactive_output(select_download_model,
+                                           {'selection': model_picker})
     display(model_picker, model_out)
-    
-def test_eval_data(inpt_selected_samples, inpt_mos_data_dict, Predictor, d2_metadata, n_scans_sample =3):
+
+def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
+              d2_metadata, n_scans_sample =3):
     """Plot predictions and extract grain measurements for n randomly-selected
        scans from each selected sample in an ALC dataset.
 
@@ -150,7 +162,7 @@ def test_eval_data(inpt_selected_samples, inpt_mos_data_dict, Predictor, d2_meta
     inpt_mos_data_dict : dict
         A dict (as returned by czd_utils.load_data_dict()) with all sample data
         for an ALC dataset.
-    Predictor : Detectron2 Predictor class instance
+    inpt_predictor : Detectron2 Predictor class instance
         A D2 instance segmentation predictor to apply to images.
     d2_metadata : Detectron2 catalog metadata instance
         Metadata matching predictor training for segmentation results visualization.
@@ -176,10 +188,10 @@ def test_eval_data(inpt_selected_samples, inpt_mos_data_dict, Predictor, d2_meta
         for eachscan in scan_sample:
             each_mosaic.set_subimg(*inpt_mos_data_dict[eachsample]['Scan_dict'][eachscan])
             print(str(eachscan), 'processed subimage:')
-            outputs = Predictor(each_mosaic.sub_img)
+            outputs = inpt_predictor(each_mosaic.sub_img)
             central_mask = mos_proc.get_central_mask(outputs)
             v = Visualizer(each_mosaic.sub_img[:, :, ::-1],
-                      metadata=d2_metadata, 
+                      metadata=d2_metadata,
                       scale=2
             )
             out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
@@ -187,7 +199,7 @@ def test_eval_data(inpt_selected_samples, inpt_mos_data_dict, Predictor, d2_meta
             if central_mask[0]:
                 print(str(eachscan), 'analyzed (scanned) zircon image:')
                 each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
-                                                                each_mosaic.sub_img, 
+                                                                each_mosaic.sub_img,
                                                                 eachscan,
                                                                 display_bool = True,
                                                                 scale_factor=each_mosaic.scale_factor)
@@ -199,9 +211,9 @@ def test_eval_data(inpt_selected_samples, inpt_mos_data_dict, Predictor, d2_meta
                 mos_proc.save_show_results_img(each_mosaic.sub_img, eachscan,
                                                display_bool = True,
                                                scale_factor = each_mosaic.scale_factor)
-                
+
 def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
-                     inpt_save_polys_bool, inpt_mos_data_dict, Predictor,
+                     inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
                      inpt_alt_methods):
     """Automatically process and save results from a single sample in an ALC
        dataset.
@@ -223,7 +235,7 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     inpt_mos_data_dict : dict
         A dict (as returned by czd_utils.load_data_dict()) with all sample data
         for an ALC dataset.
-    Predictor : Detectron2 Predictor class instance
+    inpt_predictor : Detectron2 Predictor class instance
         A D2 instance segmentation predictor to apply to images.
     inpt_alt_methods : list[bool]
         A list of bools corresponding to alternate methods (scale jittering,
@@ -242,7 +254,8 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     each_img_save_dir = os.path.join(img_save_root_dir, str(eachsample))
     os.makedirs(each_img_save_dir)
 
-    # a list of lists, later converted to a Pandas dataframe, which is in turn saved as a .csv file
+    # a list of lists, later converted to a Pandas dataframe, \
+    # which is in turn saved as a .csv file
     output_data_list = []
 
     #if mask polygons are being saved, creates a holder for polygons and other data
@@ -254,26 +267,30 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                   inpt_mos_data_dict[eachsample]['Align_file'],
                                   inpt_mos_data_dict[eachsample]['Max_zircon_size'],
                                   inpt_mos_data_dict[eachsample]['Offsets'])
-    
+
     #extracts zircon subimage and runs predictor for each scan
     for eachscan in inpt_mos_data_dict[eachsample]['Scan_dict'].keys():
         print('Processing:', eachsample, eachscan)
         each_mosaic.set_subimg(*inpt_mos_data_dict[eachsample]['Scan_dict'][eachscan])
-        central_mask = segment.segment(each_mosaic, Predictor, inpt_alt_methods)
+        central_mask = segment.segment(each_mosaic, inpt_predictor, inpt_alt_methods)
         if central_mask[0]:
             print('Success')
 
             #saves mask image and gets properties
-            each_props = mos_proc.overlay_mask_and_get_props(central_mask[1], each_mosaic.sub_img,\
-                                                              str(eachscan), display_bool = False, \
-                                                              save_dir = each_img_save_dir,
-                                                              scale_factor = each_mosaic.scale_factor)
-            
+            each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
+                                                             each_mosaic.sub_img,
+                                                             str(eachscan),
+                                                             display_bool = False,
+                                                             save_dir=each_img_save_dir,
+                                                             scale_factor=each_mosaic.scale_factor)
+
             #adds properties to output list
-            temp_props_list = mos_proc.parse_properties(each_props, each_mosaic.scale_factor,
-                                                        str(eachscan), verbose = False)
+            temp_props_list = mos_proc.parse_properties(each_props,
+                                                        each_mosaic.scale_factor,
+                                                        str(eachscan),
+                                                        verbose = False)
             output_data_list.append(temp_props_list)
-            
+
             #optionally converts mask to polygon and adds it to json_dict for saving
             if inpt_save_polys_bool:
                 save_load.auto_append_json_dict(each_json_dict, str(eachscan),
@@ -281,21 +298,33 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
 
         #gives empty outputs if no mask image
         else:
-            null_properties = mos_proc.parse_properties([], each_mosaic.scale_factor, str(eachscan))
+            null_properties = mos_proc.parse_properties([],
+                                                        each_mosaic.scale_factor,
+                                                        str(eachscan))
             output_data_list.append(null_properties)
-            mos_proc.save_show_results_img(each_mosaic.sub_img, str(eachscan), display_bool = False,
-                                          save_dir = each_img_save_dir, scale_factor = each_mosaic.scale_factor)
+            mos_proc.save_show_results_img(each_mosaic.sub_img, str(eachscan),
+                                           display_bool = False,
+                                           save_dir = each_img_save_dir,
+                                           scale_factor = each_mosaic.scale_factor)
             #optionally adds empty polygons to json_dict for saving
             if inpt_save_polys_bool:
                 save_load.null_append_json_dict(each_json_dict, str(eachscan))
 
-    del each_mosaic #deletes mosaic class instance after processing (prevents RAM crash with large datasets)
+    #deletes mosaic class instance after processing. \
+    # May or may not reduce RAM during automated processing; probably best practice.
+    del each_mosaic
 
     #converts collected data to pandas DataFrame, saves as .csv
-    output_dataframe = pd.DataFrame(output_data_list, \
-                                            columns=['Analysis', 'Area (µm^2)', 'Convex area (µm^2)', 'Eccentricity', \
-                                                    'Equivalent diameter (µm)', 'Perimeter (µm)', 'Major axis length (µm)', \
-                                                    'Minor axis length (µm)', 'Circularity', 'Scale factor (µm/pixel)'])
+    output_dataframe = pd.DataFrame(output_data_list,
+                                    columns=['Analysis', 'Area (µm^2)',
+                                             'Convex area (µm^2)',
+                                             'Eccentricity',
+                                             'Equivalent diameter (µm)',
+                                             'Perimeter (µm)',
+                                             'Major axis length (µm)',
+                                             'Minor axis length (µm)',
+                                             'Circularity',
+                                             'Scale factor (µm/pixel)'])
     csv_filename = str(eachsample) + '_zircon_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)
@@ -304,9 +333,9 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     if inpt_save_polys_bool:
         save_load.save_sample_json(run_dir, str(eachsample),
                                   **each_json_dict)
-        
+
 def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
-                   Predictor, inpt_save_polys_bool, inpt_alt_methods):
+                   inpt_predictor, inpt_save_polys_bool, inpt_alt_methods):
     """Automatically segment, measure, and save results for every selected
     sample in an ALC dataset.
 
@@ -319,7 +348,7 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     inpt_mos_data_dict : dict
         A dict (as returned by czd_utils.load_data_dict()) with all sample data
         for an ALC dataset.
-    Predictor : Detectron2 Predictor class instance
+    inpt_predictor : Detectron2 Predictor class instance
         A D2 instance segmentation predictor to apply to images.
     inpt_save_polys_bool : bool
         Bool indicating whether polygon approximations of central grain masks
@@ -340,7 +369,8 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
         files into GUI.
 
     """
-    root_output_dir = os.path.join(inpt_root_dir, 'outputs') #main output directory path, can be modified if necessary
+    #main output directory path
+    root_output_dir = os.path.join(inpt_root_dir, 'outputs')
 
 
     #creates output directory if it does not already exist
@@ -348,7 +378,8 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
         os.makedirs(root_output_dir)
 
     #creates a main directory (with datetime stamp) for this processing run
-    run_dir_str = 'auto_zirc_proccessing_run_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    curr_datetime = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    run_dir_str = 'auto_zirc_proccessing_run_' + curr_datetime
     run_dir = os.path.join(root_output_dir, run_dir_str)
     os.makedirs(run_dir)
 
@@ -363,7 +394,7 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     #starts loop through dataset dictionary
     for eachsample in inpt_selected_samples:
         auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
-                         inpt_save_polys_bool, inpt_mos_data_dict, Predictor,
+                         inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
                          inpt_alt_methods)
         gc.collect()
 

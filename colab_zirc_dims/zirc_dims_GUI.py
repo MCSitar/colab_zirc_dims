@@ -119,11 +119,12 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
     def draw_polygons(image_urls, spot_names, track_list, original_polys,
                       auto_human_list_input, tag_list_input1,
-                      sample_name, sample_scale_factor, callbackId1, callbackId2):  # pylint: disable=invalid-name
+                      sample_name, sample_scale_factor, callbackId1, 
+                      callbackId2, callbackId3):  # pylint: disable=invalid-name
         """Open polygon annotation UI and send the results to a callback function.
         """
         js = Javascript('''
-                    async function load_image(imgs, spot_nms, trck_list, orig_polys, inpt_auto_human, inpt_tag_list, sample_nm, sample_scl,  callbackId1, callbackId2) {
+                    async function load_image(imgs, spot_nms, trck_list, orig_polys, inpt_auto_human, inpt_tag_list, sample_nm, sample_scl,  callbackId1, callbackId2, callbackId3) {
                         
                         //init current sample number displays (index + 1)
                         var curr_sample_idx = trck_list[0] + 1;
@@ -166,7 +167,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                         //init control elements
                         var next = document.createElement('button');
                         var prev = document.createElement('button');
-                        var submit = document.createElement('button');
+                        var MeasureSample = document.createElement('button');
+                        var savepolys = document.createElement('button');
                         var deleteButton = document.createElement('button');
                         var deleteAllbutton = document.createElement('button');
                         var resetButton = document.createElement('button');
@@ -306,12 +308,19 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                               drawPoly(poly);
                           };
                         }
-                        // on submit, send the polygon to display
-                        submit.textContent = "Analyze sample zircon dimensions and export to Drive";
-                        submit.onclick = function(){
+                        // on analyze and save (MeasureSample), send polygons for saving, conversion, size analysis
+                        MeasureSample.textContent = "Analyze sample zircon dimensions and export to Drive";
+                        MeasureSample.onclick = function(){
                           errorlog.innerHTML = "Segmentations sent for processing";
                           // send polygon data to callback function
                           google.colab.kernel.invokeFunction(callbackId1, [allPolygons, all_human_auto, all_tags], {});
+                        }
+                        // on savepolys, send polygons for saving
+                        savepolys.textContent = "Save changes to sample polygons";
+                        savepolys.onclick = function(){
+                          errorlog.innerHTML = "Saving sample polygons";
+                          // send polygon data to callback function
+                          google.colab.kernel.invokeFunction(callbackId3, [allPolygons, all_human_auto, all_tags], {});
                         }
                         // on next sample, moves to next sample (will not work if at last sample)
                         nextSamplebutton.textContent = "Next sample";
@@ -503,7 +512,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                       buttondiv.appendChild(tagImagebutton)
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(document.createElement('br'))
-                      buttondiv.appendChild(submit)
+                      buttondiv.appendChild(savepolys)
+                      buttondiv.appendChild(MeasureSample)
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(brdiv)
                       buttondiv.appendChild(prevSamplebutton)
@@ -528,10 +538,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         # call java script function pass string byte array(image_data) as input
         display(js)
 
-        eval_js('load_image({}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
+        eval_js('load_image({}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
                                                                                             auto_human_list_input, tag_list_input1,
                                                                                             sample_name, str(sample_scale_factor),
-                                                                                            callbackId1, callbackId2))
+                                                                                            callbackId1, callbackId2, callbackId3))
 
         return
 
@@ -553,6 +563,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         # Set random IDs for the callback functions
         callbackId1 = str(uuid.uuid1()).replace('-', '')
         callbackId2 = str(uuid.uuid1()).replace('-', '')
+        callbackId3 = str(uuid.uuid1()).replace('-', '')
 
         def dictToList(input_poly):  # pylint: disable=invalid-name
             """Convert polygons.
@@ -561,13 +572,31 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             ([x, y])
             """
             return (input_poly['y'], input_poly['x'])
+        
+        def save_polys_callbackFunction(annotations, human_auto_list, tags_list):
+            """Callback function to export poly annotations for the current sample
+               to .json files in a linked Google Drive folder. ALlows persistance
+               of user changes to polygons between samples.
+            """
+            tags_for_export = []
+            for tag in tags_list:
+                if str(tag) == 'True':
+                    tags_for_export.append('True')
+                else:
+                    tags_for_export.append('')
+            save_load.save_sample_json(outputs_path, str(sample_name), spot_names,
+                                       annotations, human_auto_list, tags_for_export)
+            
+            # output message to the errorlog
+            with output.redirect_to_element('#errorlog'):
+                display('--Polygon_export_completed')
 
-        #def callbackFunction(annotations: List[List[Dict[str, float]]]):  # pylint: disable=invalid-name
-        def savecallbackFunction(annotations, human_auto_list, tags_list):  # pylint: disable=invalid-name
+
+        def savecallbackFunction(annotations, human_auto_list, tags_list):
             #print('callback started')
-            """Callback function.
-            This is the call back function to capture the data from the frontend,
-            convert the data into a numpy array, and export it to linked Google Drive folders.
+            """Callback function to save polygons for current sample and measure
+               actual grain dimensions, exporting results to a linked Google Drive
+               folder.
             """
             tags_for_export = []
             for tag in tags_list:
@@ -649,9 +678,9 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                                        annotations, human_auto_list, tags_for_export)
 
             
-            # output the annotations to the errorlog
+            # output message to the errorlog
             with output.redirect_to_element('#errorlog'):
-                display('--Export_completed')
+                display('--Mesurement_and_polygon_export_completed')
 
       
         #a callback function to change samples; including 
@@ -679,8 +708,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
         output.register_callback(callbackId1, savecallbackFunction)
         output.register_callback(callbackId2, changesamplecallbackFunction)
+        output.register_callback(callbackId3, save_polys_callbackFunction)
         draw_polygons(imgs, spot_names, track_list, auto_polygons, auto_human_list_input,
-                      tag_list_input, sample_name, sample_scale_factor, callbackId1, callbackId2)
+                      tag_list_input, sample_name, sample_scale_factor, callbackId1,
+                      callbackId2, callbackId3)
 
 ### END MODIFIED CODE
 # ====================================================================================================
