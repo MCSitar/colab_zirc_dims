@@ -320,6 +320,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                         savepolys.textContent = "Save changes to sample polygons";
                         savepolys.onclick = function(){
                           errorlog.innerHTML = "Saving sample polygons";
+                          //orig polygons = new polygons
+                          for (var i = 0; i < imgs.length; i++) {
+                          orig_polys[i] = [...allPolygons[i]];
+                          }
                           // send polygon data to callback function
                           google.colab.kernel.invokeFunction(callbackId3, [allPolygons, all_human_auto, all_tags], {});
                         }
@@ -350,7 +354,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                           }
                         }
                         // on analyzeall, save current polys, clear GUI, and start callback
-                        analyzeAllbutton.textContent = "Analyze, export zircon dimensions for full dataset from saved polygons";
+                        analyzeAllbutton.textContent = "Analyze, export zircon dimensions from polygons for all selected samples";
                         analyzeAllbutton.onclick = function(){
                           errorlog.innerHTML = "";
                           // close GUI
@@ -521,17 +525,17 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                       buttondiv.appendChild(tagImagebutton)
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(document.createElement('br'))
-                      buttondiv.appendChild(savepolys)
-                      buttondiv.appendChild(document.createElement('br'))
-                      buttondiv.appendChild(MeasureSample)
-                      buttondiv.appendChild(document.createElement('br'))
-                      buttondiv.appendChild(document.createElement('br'))
-                      buttondiv.appendChild(brdiv)
                       buttondiv.appendChild(prevSamplebutton)
                       buttondiv.appendChild(nextSamplebutton)
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(document.createElement('br'))
+                      buttondiv.appendChild(savepolys)
+                      buttondiv.appendChild(document.createElement('br'))
+                      buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(brdiv)
+                      buttondiv.appendChild(MeasureSample)
+                      buttondiv.appendChild(document.createElement('br'))
+                      buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(analyzeAllbutton)
                       div.appendChild(buttondiv)
                       document.querySelector("#output-area").appendChild(div);
