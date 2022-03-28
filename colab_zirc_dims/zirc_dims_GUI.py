@@ -120,11 +120,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
     def draw_polygons(image_urls, spot_names, track_list, original_polys,
                       auto_human_list_input, tag_list_input1,
                       sample_name, sample_scale_factor, callbackId1, 
-                      callbackId2, callbackId3):  # pylint: disable=invalid-name
+                      callbackId2, callbackId3, callbackId4):  # pylint: disable=invalid-name
         """Open polygon annotation UI and send the results to a callback function.
         """
         js = Javascript('''
-                    async function load_image(imgs, spot_nms, trck_list, orig_polys, inpt_auto_human, inpt_tag_list, sample_nm, sample_scl,  callbackId1, callbackId2, callbackId3) {
+                    async function load_image(imgs, spot_nms, trck_list, orig_polys, inpt_auto_human, inpt_tag_list, sample_nm, sample_scl,  callbackId1, callbackId2, callbackId3, callbackId4) {
                         
                         //init current sample number displays (index + 1)
                         var curr_sample_idx = trck_list[0] + 1;
@@ -175,6 +175,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                         var tagImagebutton = document.createElement('button');
                         var prevSamplebutton = document.createElement('button');
                         var nextSamplebutton = document.createElement('button');
+                        var analyzeAllbutton = document.createElement('button');
                         //init image containers
                         var image = new Image();
                         var canvas_img = document.createElement('canvas');
@@ -348,7 +349,17 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                               errorlog.innerHTML = "Already at first sample";
                           }
                         }
-
+                        // on analyzeall, save current polys, clear GUI, and start callback
+                        analyzeAllbutton.textContent = "Analyze, export zircon dimensions for full dataset from saved polygons";
+                        analyzeAllbutton.onclick = function(){
+                          errorlog.innerHTML = "Saving current sample polygons";
+                          // send current polygon data to callback function
+                          google.colab.kernel.invokeFunction(callbackId3, [allPolygons, all_human_auto, all_tags], {});
+                          // close GUI
+                          div.remove();
+                          // start analyze all callback (no args, runs outside of GUI space)
+                          google.colab.kernel.invokeFunction(callbackId4, [], {});
+                        }
                       // init template for annotations
                       const annotation = {
                             x: 0,
@@ -513,11 +524,15 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(savepolys)
+                      buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(MeasureSample)
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(brdiv)
                       buttondiv.appendChild(prevSamplebutton)
                       buttondiv.appendChild(nextSamplebutton)
+                      buttondiv.appendChild(document.createElement('br'))
+                      buttondiv.appendChild(brdiv)
+                      buttondiv.appendChild(analyzeAllbutton)
                       div.appendChild(buttondiv)
                       document.querySelector("#output-area").appendChild(div);
                       return
@@ -538,10 +553,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         # call java script function pass string byte array(image_data) as input
         display(js)
 
-        eval_js('load_image({}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
-                                                                                            auto_human_list_input, tag_list_input1,
-                                                                                            sample_name, str(sample_scale_factor),
-                                                                                            callbackId1, callbackId2, callbackId3))
+        eval_js('load_image({}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list, original_polys,
+                                                                                                            auto_human_list_input, tag_list_input1,
+                                                                                                            sample_name, str(sample_scale_factor),
+                                                                                                            callbackId1, callbackId2, callbackId3,
+                                                                                                            callbackId4))
 
         return
 
@@ -564,6 +580,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         callbackId1 = str(uuid.uuid1()).replace('-', '')
         callbackId2 = str(uuid.uuid1()).replace('-', '')
         callbackId3 = str(uuid.uuid1()).replace('-', '')
+        callbackId4 = str(uuid.uuid1()).replace('-', '')
 
         def dictToList(input_poly):  # pylint: disable=invalid-name
             """Convert polygons.
@@ -572,25 +589,6 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             ([x, y])
             """
             return (input_poly['y'], input_poly['x'])
-        
-        def save_polys_callbackFunction(annotations, human_auto_list, tags_list):
-            """Callback function to export poly annotations for the current sample
-               to .json files in a linked Google Drive folder. ALlows persistance
-               of user changes to polygons between samples.
-            """
-            tags_for_export = []
-            for tag in tags_list:
-                if str(tag) == 'True':
-                    tags_for_export.append('True')
-                else:
-                    tags_for_export.append('')
-            save_load.save_sample_json(outputs_path, str(sample_name), spot_names,
-                                       annotations, human_auto_list, tags_for_export)
-            
-            # output message to the errorlog
-            with output.redirect_to_element('#errorlog'):
-                display('--Polygon_export_completed')
-
 
         def savecallbackFunction(annotations, human_auto_list, tags_list):
             #print('callback started')
@@ -633,6 +631,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
             #directory for saving images for each sample
             os.makedirs(each_img_save_dir, exist_ok=True)
+            #os.makedirs(csv_save_dir, exist_ok=True)
             
             ##directory for saving polygons for current sample
             #os.makedirs(poly_save_dir, exist_ok=True)
@@ -648,11 +647,19 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
                 #if polygon sucessfully converted into a mask w/ area >0:
                 if poly_mask[0] == True:
-                    each_props = mos_proc.overlay_mask_and_get_props(poly_mask[1], imgs[eachindex], spot_names[eachindex],
-                                                                     display_bool = False, save_dir=each_img_save_dir,
-                                                                     tag_bool = tag_Bool, scale_factor=sample_scale_factor)
-                    each_props_list = mos_proc.parse_properties(each_props, sample_scale_factor,
-                                                                spot_names[eachindex], verbose = False)
+                    each_props = mos_proc.overlay_mask_and_get_props(poly_mask[1],
+                                                                     imgs[eachindex],
+                                                                     spot_names[eachindex],
+                                                                     display_bool = False,
+                                                                     save_dir=each_img_save_dir,
+                                                                     tag_bool = tag_Bool,
+                                                                     scale_factor=sample_scale_factor)
+
+                    each_props_list = mos_proc.parse_properties(each_props,
+                                                                sample_scale_factor,
+                                                                spot_names[eachindex],
+                                                                verbose = False)
+
                     each_props_list.extend([human_auto_list[eachindex], tags_for_export[eachindex]])
                     output_data_list.append(each_props_list)
                 else:
@@ -682,7 +689,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             with output.redirect_to_element('#errorlog'):
                 display('--Mesurement_and_polygon_export_completed')
 
-      
+
         #a callback function to change samples; including 
         def changesamplecallbackFunction(next_prev_str):
 
@@ -706,12 +713,38 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                 #eval_js(remove_prev_GUI_js) #should clear previous GUI
                 load_and_annotate(Predictor)
 
+        def save_polys_callbackFunction(annotations, human_auto_list, tags_list):
+            """Callback function to export poly annotations for the current sample
+               to .json files in a linked Google Drive folder. ALlows persistance
+               of user changes to polygons between samples.
+            """
+            tags_for_export = []
+            for tag in tags_list:
+                if str(tag) == 'True':
+                    tags_for_export.append('True')
+                else:
+                    tags_for_export.append('')
+            save_load.save_sample_json(outputs_path, str(sample_name), spot_names,
+                                       annotations, human_auto_list, tags_for_export)
+            
+            # output message to the errorlog
+            with output.redirect_to_element('#errorlog'):
+                display('--Polygon_export_completed')
+
+        def analyze_all_polys_callbackFunction():
+            """Callback to analyze, export dimensions, etc. from polygons for
+               all selected samples. Restarts annotation GUI when done.
+            """
+            dataset_dimensions_from_polys()
+            load_and_annotate(Predictor)
+
         output.register_callback(callbackId1, savecallbackFunction)
         output.register_callback(callbackId2, changesamplecallbackFunction)
         output.register_callback(callbackId3, save_polys_callbackFunction)
+        output.register_callback(callbackId4, analyze_all_polys_callbackFunction)
         draw_polygons(imgs, spot_names, track_list, auto_polygons, auto_human_list_input,
                       tag_list_input, sample_name, sample_scale_factor, callbackId1,
-                      callbackId2, callbackId3)
+                      callbackId2, callbackId3, callbackId4)
 
 ### END MODIFIED CODE
 # ====================================================================================================
@@ -762,8 +795,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
     
 
 
-    # segments all zircons in a sample automatically and opens annotation GUI to inspect, modify, and/or save segmentations
-
+    # segments all zircons in a sample automatically and opens annotation GUI to \
+    # inspect, modify, and/or save segmentations.
     def load_and_annotate(Predictor):
 
         nonlocal index_tracker
@@ -785,8 +818,10 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         curr_dict_copy = copy.deepcopy(sample_data_dict[index_tracker.curr_sample])
 
         #loads sample mosaic
-        each_mosaic = mos_proc.MosImg(curr_dict_copy['Mosaic'], curr_dict_copy['Align_file'],
-                                      curr_dict_copy['Max_zircon_size'], curr_dict_copy['Offsets'])
+        each_mosaic = mos_proc.MosImg(curr_dict_copy['Mosaic'],
+                                      curr_dict_copy['Align_file'],
+                                      curr_dict_copy['Max_zircon_size'],
+                                      curr_dict_copy['Offsets'])
         curr_scan_names = list(curr_dict_copy['Scan_dict'].keys())
         print('Sample:', index_tracker.curr_sample)
         print('Scale factor:', each_mosaic.scale_factor, 'µm/pixel')
@@ -801,7 +836,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             #use predictor to automatically segment images if loadable polys unavailable
             print('Auto-processing:', index_tracker.curr_sample)
             for eachscan in curr_scan_names:
-                #gets subimage, processes it, and appends subimage and results (or empty values if unsuccessful) to various lists
+                #gets subimage, processes it, and appends subimage and results \
+                # (or empty values if unsuccessful) to various lists
                 each_mosaic.set_subimg(*curr_dict_copy['Scan_dict'][eachscan])
                 curr_subimage_list.append(each_mosaic.sub_img)
                 print(str(eachscan) + ':')
@@ -809,20 +845,17 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                 central_mask = mos_proc.get_central_mask(outputs)
                 curr_auto_human_list.append('auto')
                 curr_spot_tags.append('')
-    
+
                 #if a central zircon is found, does initial processing and adds polygon 
                 if central_mask[0] == True:
                     print('Successful')
-    
-                    ## uncomment below to produce and print initial (auto) zircon measurements while samples are loading
-                    #each_props = mos_proc.overlay_mask_and_get_props(central_mask[1], each_mosaic.sub_img, eachscan, display_bool = False)
-                    #props_list = mos_proc.parse_properties(each_props, each_mosaic.scale_factor, eachscan, verbose = True)
                     
                     curr_auto_polys.append(poly_utils.mask_to_poly(central_mask[1], 1, 
                                                                    each_mosaic.scale_factor))
                 else:
                     curr_auto_polys.append([])
-            #saves polygons on initial processing so that processing does not have to repeat if navigating back to sample
+            #saves polygons on initial processing so that processing \
+            # does not have to repeat if navigating back to sample
             run_load_dir = os.path.join(run_dir, 'saved_polygons')
             save_load.save_sample_json(run_dir, index_tracker.curr_sample,
                                        curr_scan_names, curr_auto_polys)
@@ -831,7 +864,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             curr_auto_polys, curr_auto_human_list, curr_spot_tags = load_outputs[1:]
             print('Preparing grain subimages')
             for eachscan in curr_scan_names:
-                #gets subimage, processes it, and appends subimage and results (or empty values if unsuccessful) to various lists
+                #gets subimage, processes it, and appends subimage and results \
+                # (or empty values if unsuccessful) to various lists
                 each_mosaic.set_subimg(*curr_dict_copy['Scan_dict'][eachscan])
                 curr_subimage_list.append(each_mosaic.sub_img)
             
@@ -839,8 +873,118 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
         #starts annotator GUI for current sample
         output.clear()
-        annotate(curr_subimage_list, curr_poly_pointer, curr_auto_polys, curr_scan_names, index_tracker.track_list,
-                 run_dir, Predictor, curr_auto_human_list, curr_spot_tags, str(index_tracker.curr_sample), curr_scale_factor)
+        annotate(curr_subimage_list, curr_poly_pointer, curr_auto_polys,
+                 curr_scan_names, index_tracker.track_list,
+                 run_dir, Predictor, curr_auto_human_list, curr_spot_tags,
+                 str(index_tracker.curr_sample), curr_scale_factor)
+
+    def dataset_dimensions_from_polys():
+        nonlocal run_dir
+        nonlocal sample_data_dict
+        nonlocal run_load_dir
+        nonlocal sample_list
+        nonlocal img_save_root_dir
+        nonlocal csv_save_dir
+        
+        # Get dimensions from saved polygons for an individual sample
+        def sample_dimensions_from_polys(indiv_sample_dict, curr_mos_img,
+                                         indiv_sample_json_data, sample_scan_names,
+                                         sample_name):
+
+            #unpack saved .json polygon data
+            sample_polys, sample_auto_human, sample_tags = indiv_sample_json_data[1:]
+
+            #convert tags to export format
+            tags_for_export = []
+            for tag in sample_tags:
+                if str(tag) == 'True':
+                    tags_for_export.append('True')
+                else:
+                    tags_for_export.append('')
+
+            #empty list for output data
+            output_data_list = []
+            #path for saving
+            each_img_save_dir = os.path.join(img_save_root_dir, str(sample_name))
+            os.makedirs(each_img_save_dir, exist_ok=True)
+
+            scale_fact = curr_mos_img.scale_factor
+            #loop through scans, saving 
+            for each_scan_idx, each_scan in enumerate(sample_scan_names):
+                eachpoly = sample_polys[each_scan_idx]
+                curr_mos_img.set_subimg(*indiv_sample_dict['Scan_dict'][each_scan])
+                poly_mask = poly_utils.poly_to_mask(eachpoly, curr_mos_img.sub_img)
+
+                #tag bool needs to persist into saved img filename; hence tag_Bool
+                tag_Bool = False
+                if sample_tags[each_scan_idx] == 'True':
+                    tag_Bool = True
+
+                #if polygon sucessfully converted into a mask w/ area >0:
+                if poly_mask[0] == True:
+                    each_props = mos_proc.overlay_mask_and_get_props(poly_mask[1],
+                                                                     curr_mos_img.sub_img,
+                                                                     each_scan,
+                                                                     display_bool = False,
+                                                                     save_dir=each_img_save_dir,
+                                                                     tag_bool = tag_Bool,
+                                                                     scale_factor=scale_fact)
+
+                    each_props_list = mos_proc.parse_properties(each_props,
+                                                                scale_fact,
+                                                                sample_scan_names[each_scan_idx],
+                                                                verbose = False)
+                    each_props_list.extend([sample_auto_human[each_scan_idx],
+                                            tags_for_export[each_scan_idx]])
+                    output_data_list.append(each_props_list)
+                else:
+                    null_properties = mos_proc.parse_properties([], scale_fact,
+                                                                each_scan,
+                                                                verbose = False)
+                    
+                    null_properties.extend([sample_auto_human[each_scan_idx],
+                                            tags_for_export[each_scan_idx]])
+                    
+                    output_data_list.append(null_properties)
+                    
+                    mos_proc.save_show_results_img(curr_mos_img.sub_img,
+                                                   each_scan,
+                                                   display_bool=False,
+                                                   save_dir=each_img_save_dir,
+                                                   tag_bool=tag_Bool,
+                                                   scale_factor=scale_fact)
+
+            output_dataframe = pd.DataFrame(output_data_list,
+                                columns=['Analysis', 'Area (µm^2)',
+                                         'Convex area (µm^2)', 'Eccentricity',
+                                         'Equivalent diameter (µm)',
+                                         'Perimeter (µm)', 'Major axis length (µm)',
+                                         'Minor axis length (µm)', 'Circularity',
+                                         'Scale factor (µm/pixel)',
+                                         'Human_or_auto', 'tagged?'])
+            csv_filename = str(sample_name) + '_zircon_dimensions.csv'
+            output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
+            czd_utils.save_csv(output_csv_filepath, output_dataframe)
+            print('Analysis & export complete')
+
+        #start loop through samples
+        for each_sample in sample_list:
+            each_dict_copy = copy.deepcopy(sample_data_dict[each_sample])
+            sample_scan_names = list(each_dict_copy['Scan_dict'].keys())
+            loadable_polys = save_load.find_load_json_polys(run_load_dir,
+                                                            each_sample,
+                                                            sample_scan_names)
+            #only analyze if loadable polygons presents
+            if loadable_polys[0]:
+                print('Analyzing dimensions from saved polygons:', each_sample)
+                sample_mosaic = mos_proc.MosImg(each_dict_copy['Mosaic'],
+                                                each_dict_copy['Align_file'],
+                                                each_dict_copy['Max_zircon_size'],
+                                                each_dict_copy['Offsets'])
+                sample_dimensions_from_polys(each_dict_copy, sample_mosaic,
+                                             loadable_polys, sample_scan_names,
+                                             each_sample)
+        output.clear()
 
 
     ##code below runs upon initial startup
