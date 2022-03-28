@@ -330,7 +330,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                           if (trck_list[0] < trck_list[1]) {
                               // quit and move to next sample
                               div.remove();
-                              google.colab.kernel.invokeFunction(callbackId2, ['next'], {});
+                              google.colab.kernel.invokeFunction(callbackId2, ['next', allPolygons, all_human_auto, all_tags], {});
                           }
                           if (trck_list[0] === trck_list[1]) {
                               errorlog.innerHTML = "Already at last sample!";
@@ -343,7 +343,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                           if (trck_list[0] > 0) {
                               // quit and move to prev sample
                               div.remove();
-                              google.colab.kernel.invokeFunction(callbackId2, ['prev'], {});
+                              google.colab.kernel.invokeFunction(callbackId2, ['prev', allPolygons, all_human_auto, all_tags], {});
                           }
                           if (trck_list[0] === 0) {
                               errorlog.innerHTML = "Already at first sample";
@@ -352,13 +352,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                         // on analyzeall, save current polys, clear GUI, and start callback
                         analyzeAllbutton.textContent = "Analyze, export zircon dimensions for full dataset from saved polygons";
                         analyzeAllbutton.onclick = function(){
-                          errorlog.innerHTML = "Saving current sample polygons";
-                          // send current polygon data to callback function
-                          google.colab.kernel.invokeFunction(callbackId3, [allPolygons, all_human_auto, all_tags], {});
+                          errorlog.innerHTML = "";
                           // close GUI
                           div.remove();
-                          // start analyze all callback (no args, runs outside of GUI space)
-                          google.colab.kernel.invokeFunction(callbackId4, [], {});
+                          // start analyze all callback (saves current sample polygons)
+                          google.colab.kernel.invokeFunction(callbackId4, [allPolygons, all_human_auto, all_tags], {});
                         }
                       // init template for annotations
                       const annotation = {
@@ -527,9 +525,11 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(MeasureSample)
                       buttondiv.appendChild(document.createElement('br'))
+                      buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(brdiv)
                       buttondiv.appendChild(prevSamplebutton)
                       buttondiv.appendChild(nextSamplebutton)
+                      buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(document.createElement('br'))
                       buttondiv.appendChild(brdiv)
                       buttondiv.appendChild(analyzeAllbutton)
@@ -612,8 +612,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
             # load the new annotations into the polygon list
             for annotations_per_img in annotations:
-                polys_as_arrays = [dictToList(annotation)
-                                        for annotation in annotations_per_img]
+                polys_as_arrays = [poly_utils.vertex_dict_to_list(annotation)
+                                   for annotation in annotations_per_img]
                 if polys_as_arrays:
                     polys.append(np.stack(polys_as_arrays))
                 else:
@@ -687,11 +687,12 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             
             # output message to the errorlog
             with output.redirect_to_element('#errorlog'):
-                display('--Mesurement_and_polygon_export_completed')
+                display('Measurement and export for current sample complete')
 
 
-        #a callback function to change samples; including 
-        def changesamplecallbackFunction(next_prev_str):
+        #a callback function to change samples; saves polygons before moving samples
+        def changesamplecallbackFunction(next_prev_str, annotations,
+                                         human_auto_list, tags_list):
 
             nonlocal index_tracker
             nonlocal predictor_input
@@ -711,9 +712,12 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             if proceed_bool:
                 #output.clear()
                 #eval_js(remove_prev_GUI_js) #should clear previous GUI
+                save_polys_callbackFunction(annotations, human_auto_list,
+                                            tags_list, disp_bool=False)
                 load_and_annotate(Predictor)
 
-        def save_polys_callbackFunction(annotations, human_auto_list, tags_list):
+        def save_polys_callbackFunction(annotations, human_auto_list, tags_list,
+                                        disp_bool=True):
             """Callback function to export poly annotations for the current sample
                to .json files in a linked Google Drive folder. ALlows persistance
                of user changes to polygons between samples.
@@ -727,14 +731,17 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
             save_load.save_sample_json(outputs_path, str(sample_name), spot_names,
                                        annotations, human_auto_list, tags_for_export)
             
-            # output message to the errorlog
-            with output.redirect_to_element('#errorlog'):
-                display('--Polygon_export_completed')
+            if disp_bool:
+                # output message to the errorlog
+                with output.redirect_to_element('#errorlog'):
+                    display('Polygon export complete')
 
-        def analyze_all_polys_callbackFunction():
+        def analyze_all_polys_callbackFunction(annotations, human_auto_list, tags_list):
             """Callback to analyze, export dimensions, etc. from polygons for
                all selected samples. Restarts annotation GUI when done.
             """
+            save_polys_callbackFunction(annotations, human_auto_list,
+                                        tags_list, disp_bool=False)
             dataset_dimensions_from_polys()
             load_and_annotate(Predictor)
 
@@ -892,7 +899,8 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                                          sample_name):
 
             #unpack saved .json polygon data
-            sample_polys, sample_auto_human, sample_tags = indiv_sample_json_data[1:]
+            sample_auto_human, sample_tags = indiv_sample_json_data[2:]
+            sample_polys = poly_utils.poly_dicts_to_arrays(indiv_sample_json_data[1])
 
             #convert tags to export format
             tags_for_export = []

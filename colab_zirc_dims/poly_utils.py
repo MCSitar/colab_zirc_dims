@@ -126,3 +126,48 @@ def poly_to_mask(poly_for_conversion, original_image):
     success_bool = True
 
     return success_bool, mask_output
+
+def vertex_dict_to_list(input_poly):
+    """Convert polygon vertices from {x:, y:} to [x, y].
+
+    Parameters
+    ----------
+    input_poly : dict
+        Dict with position of x, y polygon vertex {x:, y:}.
+
+    Returns
+    -------
+    Type: any
+        X coordinate of vertex.
+    Type: any
+        Y coordinate of vertex.
+
+    """
+    
+    return (input_poly['y'], input_poly['x'])
+
+def poly_dicts_to_arrays(input_list):
+    """Convert a list of lists of dicts {x:, y:} with polygon vertices to a list
+       of arrays for same vertices.
+
+    Parameters
+    ----------
+    input_list : list of lists of dicts
+        List of lists (1 per polygon, 1 polygon per image) of dicts containing
+        polygon vertex locations.
+
+    Returns
+    -------
+    arr_list : list[arr]
+        List of np arrays representing polygon vertices (1 per image).
+
+    """
+    arr_list = []
+    for vertices_per_img in input_list:
+        poly_as_array = [vertex_dict_to_list(vertex)
+                         for vertex in vertices_per_img]
+        if poly_as_array:
+            arr_list.append(np.stack(poly_as_array))
+        else:
+            arr_list.append(None)
+    return arr_list
