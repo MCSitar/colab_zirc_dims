@@ -1010,8 +1010,12 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
         os.makedirs(root_output_dir)
 
     #creates a main directory for this processing run
-    run_dir = os.path.join(root_output_dir, 'semi-auto_proccessing_run_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+    run_dir_name_str = 'semi-auto_proccessing_run_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    run_dir = os.path.join(root_output_dir, run_dir_name_str)
     os.makedirs(run_dir)
+
+    #copy mosaic info csv (for reloading at later point in case original changed)
+    save_load.save_mosaic_info_copy(root_dir_path, run_dir, run_dir_name_str)
 
     #creates a root directory for saved images
     img_save_root_dir = os.path.join(run_dir, 'mask_images')

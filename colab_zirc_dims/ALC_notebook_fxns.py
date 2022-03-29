@@ -382,6 +382,9 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     run_dir_str = 'auto_zirc_proccessing_run_' + curr_datetime
     run_dir = os.path.join(root_output_dir, run_dir_str)
     os.makedirs(run_dir)
+    
+    #copy mosaic info csv (for reloading at later point in case original changed)
+    save_load.save_mosaic_info_copy(inpt_root_dir, run_dir, run_dir_str)
 
     #creates a root directory for saved images
     img_save_root_dir = os.path.join(run_dir, 'mask_images')
