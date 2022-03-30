@@ -562,18 +562,16 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                   auto_polygons: List[List[dict]],
                   spot_names: List[str],
                   track_list: List[int],
-                  sample_scale_factors: List(float),
-                  scales_from: List(str),
-                  img_filenames: List(str),
+                  sample_scale_factors: List[float],
+                  scales_from: List[str],
+                  img_filenames: List[str],
                   outputs_path: str,
                   predictor_input,
                   auto_human_list_input: List[str],
                   tag_list_input: List[str],
-                  sample_name: str = None
-                  ):
+                  sample_name: str = None):
         """Open the polygon annotation UI and prompt the user for input.
         """
-
         # Set random IDs for the callback functions
         callbackId1 = str(uuid.uuid1()).replace('-', '')
         callbackId2 = str(uuid.uuid1()).replace('-', '')
@@ -940,7 +938,7 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
 
             #loop through scans, saving 
             for each_scan_idx, each_scan in enumerate(sample_scan_names):
-                scale_fact = indiv_sample_dict['scale_factor']
+                scale_fact = indiv_sample_dict[each_scan]['scale_factor']
                 scale_from = indiv_sample_dict[each_scan]['scale_from']
                 file_name = indiv_sample_dict[each_scan]['rel_file']
                 eachpoly = sample_polys[each_scan_idx]

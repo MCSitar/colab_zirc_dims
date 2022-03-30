@@ -280,5 +280,5 @@ def save_mosaic_info_copy(project_dir, run_dir, run_name):
         new_csv_name = run_name + '_' + csv_type.strip('.csv') + '_copy.csv'
         new_csv_path = os.path.join(run_dir, new_csv_name)
         if csv_type in os.listdir(project_dir):
-            shutil.copy(os.path.join(run_dir, csv_type),
+            shutil.copy(os.path.join(project_dir, csv_type),
                         new_csv_path)

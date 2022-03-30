@@ -385,7 +385,7 @@ def load_gen_data_dict(proj_dir, folder_struct = 'A', splitting_fxn = None,
     if folder_struct == 'A':
         loaded_dict = load_gen_opt_A(scans_dir, splitting_fxn, file_type)
     else:
-        loaded_dict = load_gen_opt_B(scans_dir, file_type)
+        loaded_dict = load_gen_opt_B(scans_dir, splitting_fxn, file_type)
     print('Samples loaded:', list(loaded_dict.keys()))
     print('Getting scale factors...')
     check_sample = [False, {}]
@@ -396,6 +396,7 @@ def load_gen_data_dict(proj_dir, folder_struct = 'A', splitting_fxn = None,
             scale_bools[1] = False
         else:
             check_unused_samples(check_sample[1], loaded_dict)
-    output_dict = gen_img_scale_factors(loaded_dict, scale_bools, check_sample[1])
+    output_dict = gen_img_scale_factors(loaded_dict, scale_bools,
+                                        check_sample[1], verbose=True)
     print('Done')
     return output_dict
