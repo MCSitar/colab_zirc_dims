@@ -470,7 +470,6 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                               // draw polygons
                               poly = allPolygons[curr_image];
                               drawPoly(poly);
-                              //errorlog.innerHTML = "reset_run";
                           };
                       }
                       function drawPoly(polyarray){

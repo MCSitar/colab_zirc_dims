@@ -15,7 +15,7 @@ try:
     from detectron2.utils.visualizer import Visualizer
 except ModuleNotFoundError:
     print('WARNING: Detectron2 not installed on (virtual?) machine;',
-          'colab_zirc_dims image segmentation functions unavailable')
+          'colab_zirc_dims ALC image segmentation functions unavailable')
     pass
 import ipywidgets as widgets
 import skimage.io as skio

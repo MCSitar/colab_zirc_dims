@@ -51,7 +51,7 @@ def otsu_masks(input_image):
 def segment(curr_mosaic_img, curr_predictor,
             try_bools = [False, False, False, False]):
     """Apply different methods (see try_bools) iteratively to try to segment
-       an image.
+       an ALC image.
 
     Parameters
     ----------
@@ -104,4 +104,47 @@ def segment(curr_mosaic_img, curr_predictor,
     if try_bools[3] and not central_mask[0]:
         print('Trying Otsu threshholding')
         central_mask = mos_proc.get_central_mask(otsu_masks(curr_mosaic_img.sub_img))
+    return central_mask
+
+def gen_segment(curr_img, curr_predictor,
+                try_bools = [False, False]):
+    """Apply different methods (see try_bools) iteratively to try to segment
+       a single shot (non-ALC) image. Because image source is not a mosaic,
+       extent jittering (zooming in and out) is not available.
+
+    Parameters
+    ----------
+    curr_img : np array
+        An array representing an image for segmentation.
+    curr_predictor : Detectron2 Predictor class instance
+        A predictor to apply to the subimage extracted.
+    try_bools : list[bool], optional
+        A list of bools determining what alternate segmentation methods will be
+        applied if Detectron2 segmentation of the original image is unsuccesful.
+        In order, these are:
+        [apply predictor to histogram-equalized (contrast-enhanced) subimg,
+         Otsu threshholding]
+        The default is [False, False].
+
+    Returns
+    -------
+    mask_found_bool : Boolean
+        True or False, depending on whether a central mask was found.
+    array or list
+        np array for the central mask found. Empty list if none found.
+
+    """
+
+    #apply predictor to given subimg
+    central_mask = mos_proc.get_central_mask(curr_predictor(curr_img))
+
+    #try increasing contrast
+    if try_bools[0] and not central_mask[0]:
+        print('Trying segmentation of contrast-enhanced subimage')
+        cont_enhanced = exposure.equalize_hist(curr_img)
+        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced))
+    #try otsu threshholding
+    if try_bools[1] and not central_mask[0]:
+        print('Trying Otsu threshholding')
+        central_mask = mos_proc.get_central_mask(otsu_masks(curr_img))
     return central_mask
