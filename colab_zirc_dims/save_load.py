@@ -255,3 +255,30 @@ def find_load_json_polys(load_dir, sample_name, sample_shot_list):
                 ret_dict['spot_tags']]
     else:
         return [False, [], [], []]
+
+def save_mosaic_info_copy(project_dir, run_dir, run_name):
+    """Copy mosaic_info.csv and/or sample_info.csv from project dir to run 
+       outputs dir to avoid permanent loss of info for shots, polygons if
+       original mosaic/sample info csv is ever overwritten/deleted.
+
+    Parameters
+    ----------
+    project_dir : str
+        Path to project directory.
+    run_dir : str
+        Path to outputs directory created during automatic or semi-automatic
+        processing.
+    run_name : str
+        Unique run name (includes date-time).
+
+    Returns
+    -------
+    None.
+
+    """
+    for csv_type in ['mosaic_info.csv', 'sample_info.csv']:
+        new_csv_name = run_name + '_' + csv_type.strip('.csv') + '_copy.csv'
+        new_csv_path = os.path.join(run_dir, new_csv_name)
+        if csv_type in os.listdir(project_dir):
+            shutil.copy(os.path.join(project_dir, csv_type),
+                        new_csv_path)

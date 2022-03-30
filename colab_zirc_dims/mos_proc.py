@@ -324,7 +324,8 @@ def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
 
     return main_region
 
-def parse_properties(props, img_scale_factor, analys_name, verbose = False):
+def parse_properties(props, img_scale_factor, analys_name, verbose = False,
+                     addit_props = []):
     """Parses a skimage RegionProperties instance and scales image
        measurements to real-world measurments (microns).
 
@@ -339,6 +340,8 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False):
         A name for the analysis being parsed (e.g., 'Spot-210'). Added to output.
     verbose : Boolean, optional
         If True, some calculated measurments are printed. The default is False.
+    addit_props : list, optional
+        Additonal values to append to output props list. The default is [].
 
     Returns
     -------
@@ -346,15 +349,18 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False):
         A list of calculated properties. Added to export dict in
         main colab_zirc_dims Colab Notebook. Format:
             [analys_name, area, convex_area, eccent, eq_diam, perim,
-             major_leng, minor_leng, roundness, scale_factor]
+             major_leng, minor_leng, roundness, scale_factor, *addit_props]
 
     """
-
-    #if no region found, skip
+    #initialize empty (null values) props list
+    props_list = [analys_name, 0, 0, 0, 0, 0, 0, 0, 0, img_scale_factor]
+    #if no region found, skip and return null properties
     if props == []:
         if verbose:
             print('null properties entered')
-        return [analys_name, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        for addit_prop in addit_props:
+            props_list.append(addit_prop)
+        return props_list
 
     area = props.area * img_scale_factor**2
     convex_area = props.convex_area * img_scale_factor**2
@@ -368,6 +374,8 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False):
 
     props_list = [analys_name, area, convex_area, eccent, eq_diam, perim,
                   major_leng, minor_leng, roundness, scale_factor]
+    for addit_prop in addit_props:
+        props_list.append(addit_prop)
 
     if verbose:
         print('Major axis length =', round(major_leng, 1), 'µm,',
