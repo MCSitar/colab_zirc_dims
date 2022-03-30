@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[7]:
+"""
+Module with functions for matching scanlists with mosaic images and exporting
+user modifications to matches, metadata to a mosaic_info.csv file. Implemented
+in Colab Notebook (see 'Links' in readme.md).
+"""
 
 import os
 
@@ -173,7 +177,7 @@ def matches_to_mos_info(input_matches_dict, def_sample_name = '',
     for each_column in headers:
         new_mos_info_dict[each_column] = []
         if each_column not in ['Scanlist', 'Mosaic']:
-            for i in range(0, len(list(act_matches_dict.keys()))):
+            for _ in range(0, len(list(act_matches_dict.keys()))):
                 new_mos_info_dict[each_column].append(def_exp_vals[each_column])
         if each_column == 'Scanlist':
             for each_scanlist in act_matches_dict:

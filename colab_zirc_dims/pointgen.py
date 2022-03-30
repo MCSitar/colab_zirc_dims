@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  4 20:21:23 2021
-
-@author: 6600K-PC
+Module with class PointGenerator; used to search the central portion of a
+segmented image for zircon grain masks.
 """
 import numpy as np
 

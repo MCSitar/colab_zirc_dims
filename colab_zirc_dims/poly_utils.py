@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+
+"""
+Functions for converting RCNN-derived zircon segmentation masks to polygons
+viewable and editable in GUI and vice-versa.
+"""
+
 import numpy as np
 from skimage import draw
 import skimage.measure as measure
@@ -143,7 +149,7 @@ def vertex_dict_to_list(input_poly):
         Y coordinate of vertex.
 
     """
-    
+
     return (input_poly['y'], input_poly['x'])
 
 def poly_dicts_to_arrays(input_list):

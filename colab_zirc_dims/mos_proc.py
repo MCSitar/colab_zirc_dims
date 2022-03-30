@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+"""
+Module with functions, class for extracting spot subimages from DZ mosaics
+(only used for ALC datasets) and for finding a 'central' grain and getting
+measurements from segmented images (dataset type irrelevant).
+"""
+
 import os
 import math
 import random

@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Mar 28 11:09:49 2022
-
-@author: 6600K-PC
+Utility functions (e.g., loading datasets, calculating scale factors) for single
+image-per-shot datasets (non-ALC).
 """
 import os
 import copy
 import skimage.io as skio
 import pandas as pd
 
-#sys.path.append('D:/python/repos/colab_zirc_dims/colab_zirc_dims')
 
 from . import czd_utils
 

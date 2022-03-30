@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+
+"""
+Module with functions for saving and loading GUI-compatible polygons as .json
+files.
+"""
+
 import os
 import shutil
 
@@ -67,8 +73,8 @@ def save_sample_json(run_dir, sample_name, spot_names, spot_polys,
         ('auto') or human ('human') segmentation. The default is None; in this
         case it is assumed that all polygons are auto-generated.
     spot_tags : list of str or None, optional
-        List of strings indicating whether a spot was tagged by a user 
-        ('True') or not (''). The default is None; in this case it is assumed 
+        List of strings indicating whether a spot was tagged by a user
+        ('True') or not (''). The default is None; in this case it is assumed
         that all spots have no tag.
 
 
@@ -257,7 +263,7 @@ def find_load_json_polys(load_dir, sample_name, sample_shot_list):
         return [False, [], [], []]
 
 def save_mosaic_info_copy(project_dir, run_dir, run_name):
-    """Copy mosaic_info.csv and/or sample_info.csv from project dir to run 
+    """Copy mosaic_info.csv and/or sample_info.csv from project dir to run
        outputs dir to avoid permanent loss of info for shots, polygons if
        original mosaic/sample info csv is ever overwritten/deleted.
 

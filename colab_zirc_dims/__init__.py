@@ -1,3 +1,8 @@
+"""
+Code for scaling, organizing, and segmenting RL images of detrital zircon grains
+with help from deep learning models, in datasets from various sources. Designed
+for implementation in Google Colab Notebooks (see 'Links' in readme.md).
+"""
 
 from . import czd_utils
 from . import pointgen

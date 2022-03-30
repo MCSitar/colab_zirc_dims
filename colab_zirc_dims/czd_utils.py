@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+"""
+Utilities and functions for working with ALC, other datasets. Includes functions
+for reading .Align xml scaling files saved during LA-ICP-MS analysis and
+calculating scale factors for images from .Align data.
+"""
 
 import os
 import operator
@@ -194,7 +198,7 @@ def list_of_val(val_for_list, list_len, num_lists = 1):
     """
     output_list = []
     temp_list = []
-    for i in range(0, int(list_len)):
+    for _ in range(0, int(list_len)):
         temp_list.append(val_for_list)
     if num_lists <= 1:
         return temp_list

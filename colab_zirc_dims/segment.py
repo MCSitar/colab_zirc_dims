@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  4 20:15:35 2021
-
-@author: 6600K-PC
+Module with functions for iteratively attempting segmentation of DZ images from
+ALC/mosaic and single shot-per-image ('gen') datasets.
 """
 
 import numpy as np
