@@ -269,7 +269,8 @@ def load_gen_opt_B(scans_dir, split_fxn = None, file_type = '.png'):
                                                    'rel_file': each_file}
     return output_dict
 
-def gen_img_scale_factors(loaded_img_dict, scale_bools, sample_csv_dict ={}):
+def gen_img_scale_factors(loaded_img_dict, scale_bools, sample_csv_dict ={},
+                          verbose = False):
     """Add scale factors to an project dict with per-scan RL zircon images.
 
     Parameters
@@ -290,6 +291,10 @@ def gen_img_scale_factors(loaded_img_dict, scale_bools, sample_csv_dict ={}):
         A dict with values from sample_info.csv if available:
             {SAMPLE_NAME1: SCALE_FACTOR1, ...}.
         Otherwise, default of {} (will not be used for scaling).
+    verbose : bool, optional
+        A bool indicating whether fxn will print sample names as it loads/
+        calculates scale factors. This can take a while, so may be good
+        to indicate that process is still running.
 
     Returns
     -------
@@ -308,6 +313,8 @@ def gen_img_scale_factors(loaded_img_dict, scale_bools, sample_csv_dict ={}):
     if not csv_keys:
         scale_bools[1] = False
     for each_sample_name, each_sample in output_dict.items():
+        if verbose:
+            print(str(each_sample_name))
         for each_scan in each_sample.values():
 
             found_any_scale = False

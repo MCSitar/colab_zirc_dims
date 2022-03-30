@@ -212,7 +212,7 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
             central_mask = mos_proc.get_central_mask(outputs)
             v = Visualizer(each_img[:, :, ::-1],
                            metadata=d2_metadata,
-                           scale=1
+                           scale=500/each_img.shape[1]
             )
             out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
             cv2_imshow(out.get_image()[:, :, ::-1])
