@@ -207,6 +207,9 @@ def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = 
                         //im_width = img.length;
                         //aspect_ratio = (im_width / im_height); //width curr image / height
                         spot_name.innerHTML = spot_nms[curr_image] + " (" + (curr_image + 1) + "/" + imgs.length + ")";
+                        if (all_tags[curr_image] === 'True') {
+                                spot_name.innerHTML = spot_nms[curr_image] + " (tagged) " + (curr_image + 1) + "/" + imgs.length + ")";
+                        }
                         image.src = "data:image/png;base64," + img;
                         image.onload = function() {
                             // normalize display height and canvas
