@@ -19,11 +19,16 @@ import ipywidgets as widgets
 import skimage.io as skio
 import pandas as pd
 
-from . import czd_utils
-from . import gen_czd_utils
-from . import mos_proc
-from . import save_load
-from . import segment
+from .. import czd_utils
+from .. import mos_proc
+from .. import save_load
+from .. import segment
+
+__all__ = ['gen_data_load_interface',
+           'gen_inspect_data',
+           'gen_test_eval',
+           'gen_auto_proc_sample',
+           'full_auto_proc']
 
 def gen_data_load_interface(root_proj_dir, mutable_list,
                             mutable_output_data_dict,
@@ -113,7 +118,7 @@ def gen_data_load_interface(root_proj_dir, mutable_list,
         with out_button:
             print('Starting dataset loading')
             #pass mutable list as some args to load_gen_data_dict
-            out_dict = gen_czd_utils.load_gen_data_dict(root_proj_dir,
+            out_dict = czd_utils.load_gen_data_dict(root_proj_dir,
                                                         *mutable_list)
             mutable_output_data_dict.update(out_dict)
             print('Move to next cell to select samples for processing')
@@ -136,7 +141,7 @@ def gen_inspect_data(inpt_loaded_data_dict, inpt_selected_samples,
     Parameters
     ----------
     inpt_loaded_data_dict : dict
-        A dict (as returned by gen_czd_utils.load_gen_data_dict()) with all
+        A dict (as returned by czd_utils.load_gen_data_dict()) with all
         sample data for a non-ALC dataset.
     inpt_selected_samples : list[str]
         A list of strings matching user-selected sample names in inpt_mos_data_dict.
@@ -178,7 +183,7 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
     inpt_selected_samples : list[str]
         A list of strings matching user-selected sample names in inpt_mos_data_dict.
     inpt_loaded_data_dict : dict
-        A dict (as returned by gen_czd_utils.load_gen_data_dict()) with all
+        A dict (as returned by czd_utils.load_gen_data_dict()) with all
         sample data for a non-ALC dataset.
     inpt_predictor : Detectron2 Predictor class instance
         A D2 instance segmentation predictor to apply to images.
@@ -253,7 +258,7 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
         Bool indicating whether polygon approximations of central grain masks
         should be saved for future inspection/editing.
     inpt_loaded_data_dict : dict
-        A dict (as returned by gen_czd_utils.load_gen_data_dict()) with all
+        A dict (as returned by czd_utils.load_gen_data_dict()) with all
         sample data for a non-ALC dataset.
     inpt_predictor : Detectron2 Predictor class instance
         A D2 instance segmentation predictor to apply to images.
@@ -370,7 +375,7 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_loaded_data_dict,
     inpt_selected_samples : list[str]
         A list of strings matching user-selected sample names in inpt_mos_data_dict
     inpt_loaded_data_dict : dict
-        A dict (as returned by gen_czd_utils.load_gen_data_dict()) with all
+        A dict (as returned by czd_utils.load_gen_data_dict()) with all
         sample data for a non-ALC dataset.
     inpt_predictor : Detectron2 Predictor class instance
         A D2 instance segmentation predictor to apply to images.

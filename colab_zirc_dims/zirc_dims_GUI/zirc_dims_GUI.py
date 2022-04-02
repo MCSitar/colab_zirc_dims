@@ -24,10 +24,10 @@ import pandas as pd
 from google.colab import output
 from google.colab.output import eval_js
 
-from . import czd_utils
-from . import mos_proc
-from . import poly_utils
-from . import save_load
+from .. import czd_utils
+from .. import mos_proc
+from .. import poly_utils
+from .. import save_load
 
 # NOTE: Despite strong points of Google Colab as a platform for a deep-learning-\
 # based image processing toolset (e.g., free high-end hardware), it is not an \
@@ -38,7 +38,9 @@ from . import save_load
 # best way to implement the colab_zirc_dims project entirely in Google Colab \
 # Notebooks.
 
-def run_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = None):
+__all__ = ['run_alc_GUI']
+
+def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = None):
     """Run a colab-based GUI for automated / manual zircon segmentation and
        segmentation inspection of ALC datasets.
 

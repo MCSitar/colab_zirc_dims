@@ -22,10 +22,17 @@ import ipywidgets as widgets
 import skimage.io as skio
 import pandas as pd
 
-from . import czd_utils
-from . import mos_proc
-from . import save_load
-from . import segment
+from .. import czd_utils
+from .. import mos_proc
+from .. import save_load
+from .. import segment
+
+__all__ = ['select_samples_fxn',
+           'inspect_data',
+           'select_download_model_interface',
+           'test_eval',
+           'auto_proc_sample',
+           'full_auto_proc']
 
 
 def select_samples_fxn(inpt_mos_data_dict, mutable_list):
@@ -106,45 +113,50 @@ def inspect_data(inpt_mos_data_dict, inpt_selected_samples, n_scans_sample = 3):
             skio.show()
 
 
-def select_download_model_interface(model_lib_path, mut_curr_model_d):
+def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default'):
     """Open user interface (dynamically-populated dropdown menu) for selection
        and download of RCNN models available through the colab_zirc_dims model
        library.
 
     Parameters
     ----------
-    model_lib_path : str
-        Path to model library json file (downloaded or mounted to virtual machine).
-        If users want to use their own model library (with valid download links
-        and formatting matching colab_zirc_dims model_library.json), they can do
-        so then upload the file to their Google Drive and input its path here.
-
     mut_curr_model_d : dict
         A dict with global scope that will contain info copied from model library
         json for the user-selected model. Modified in place.
+    model_lib_loc : str, optional
+        url or path (if downloaded or mounted to virtual machine) to model library
+        json file. The default is 'default', which gets the current model lib
+        from the colab_zirc_dims GitHub repo.
+        If users want to use their own model library (with valid download links
+        and formatting matching colab_zirc_dims model_library.json), they can
+        create one then upload the file to their Google Drive and input its path
+        here.
+
 
     Returns
     -------
     None.
 
     """
-    model_lib_list = czd_utils.read_json(model_lib_path)
+    if model_lib_loc == 'default':
+        model_lib_loc = 'https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/czd_model_library.json'
+    model_lib_list = czd_utils.read_json(model_lib_loc)
     model_labels = [each_dict['desc'] for each_dict in model_lib_list]
     model_picker = widgets.Dropdown(options=model_labels, value=model_labels[0],
                                     description='Model:',
                                     layout={'width': 'max-content'})
-    #current_model_dict = {}
     def select_download_model(selection):
+        cwd = os.getcwd()
         if selection is not None:
             mut_curr_model_d.update(model_lib_list[model_labels.index(selection)])
             print('Selected:', mut_curr_model_d['name'])
-            if os.path.exists(os.path.join('/content', mut_curr_model_d['name'])):
+            if os.path.exists(os.path.join(cwd, mut_curr_model_d['name'])):
                 print('Model already downloaded')
             else:
                 print('Downloading:', mut_curr_model_d['name'])
                 print('...')
                 urllib.request.urlretrieve(mut_curr_model_d['model_url'],
-                                          os.path.join('/content',
+                                          os.path.join(cwd,
                                                         mut_curr_model_d['name']))
                 print('Download finished')
     model_out = widgets.interactive_output(select_download_model,

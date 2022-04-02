@@ -19,14 +19,22 @@ import skimage
 import skimage.measure as measure
 import skimage.io as skio
 
-from . import czd_utils
-from . import pointgen
+from .. import czd_utils
+from .. import pointgen
+
+__all__ = ['mask_size_at_pt',
+           'get_central_mask',
+           'get_main_region_props',
+           'save_show_results_img',
+           'overlay_mask_and_get_props',
+           'parse_properties',
+           'auto_inc_contrast',
+           'random_subimg_sample',
+           'MosImg']
 
 # Various small functions that simplify larger functions below
 
-# gets the size of the contiguous region of a mask at pt [coords]. \
-# This is useful for PointRend models, which often produce instances \
-# with small, noncontiguous patches at bounding box margins
+
 def mask_size_at_pt(input_mask, coords):
     """Gets the contiguous area of a mask at a point. This is useful for
         PointRend models, which often produce instances

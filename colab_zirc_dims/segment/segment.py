@@ -12,7 +12,11 @@ from skimage import filters
 from skimage import exposure
 from skimage.morphology import binary_closing
 
-from . import mos_proc
+from .. import mos_proc
+
+__all__ = ['otsu_masks',
+           'segment',
+           'gen_segment']
 
 # Get regionated masks from an image via Otsu threshholding
 def otsu_masks(input_image):

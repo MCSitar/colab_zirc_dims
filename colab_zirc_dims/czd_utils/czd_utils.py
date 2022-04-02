@@ -11,13 +11,52 @@ import os
 import operator
 import json
 
+from urllib.request import urlopen
+
 import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 
 
+__all__ = ['read_json',
+           'save_json',
+           'json_from_path_or_url',
+           'save_csv',
+           'list_if_endswith',
+           'list_if_in',
+           'check_any_str',
+           'join_1st_match',
+           'round_to_even',
+           'list_of_val',
+           'check_mos_csv_keys',
+           'prediction_to_np',
+           'mask_list_to_np',
+           'rescale_2d_arr',
+           'crop_nd_arr',
+           'mask_to_3D_arr_size',
+           'scancsv_to_dict',
+           'get_Align_center_size',
+           'calc_scale_factor',
+           'load_data_dict']
+
 ### Various functions and classes for file processing and code simplification
 ### in other modules below.
+
+def check_url(input_str):
+    """Check if a string is a 'https' url.
+
+    Parameters
+    ----------
+    input_str : str
+        An input string or path.
+
+    Returns
+    -------
+    bool
+        True if input_string is url, else False.
+
+    """
+    return 'https' in str(input_str)
 
 def read_json(json_path):
     """Read a .json file.
@@ -36,6 +75,50 @@ def read_json(json_path):
     with open(json_path, 'r') as f:
         js = json.load(f)
     return js
+
+def read_json_url(json_url):
+    """Read a .json file from a url.
+
+    Parameters
+    ----------
+    json_url : str
+        url to .json file for loading; if from Github should be 'raw' link.
+
+    Returns
+    -------
+    Type: any
+        Whatever data was retrieved from the .json file at the url (probably a
+        list or dict for purposes of this package).
+
+    """
+    #get url data response
+    url_data = urlopen(json_url)
+    #return loaded json
+    return json.loads(url_data.read())
+
+def json_from_path_or_url(path_or_url_str):
+    """Check if input str is a url and load .json from url if so. Else,
+       assume that input str is a path and load a .json from that path.
+
+    Parameters
+    ----------
+    path_or_url_str : str
+        A url (with 'https') or a path to a .json file.
+
+    Returns
+    -------
+    Type: any
+        Whatever data was retrieved from the .json file at the url/path; likely
+        a dict or list if called in this project.
+
+
+    """
+    if check_url(path_or_url_str):
+        return read_json_url(path_or_url_str)
+    #if not url, assumes path
+    else:
+        return read_json(path_or_url_str)
+
 
 def save_json(json_path, item_for_save):
     """Save an item to a json file (will overwrite existing file with same path).
@@ -203,7 +286,7 @@ def list_of_val(val_for_list, list_len, num_lists = 1):
     if num_lists <= 1:
         return temp_list
     else:
-        for i in range(0, int(num_lists)):
+        for _ in range(0, int(num_lists)):
             output_list.append(temp_list)
     return output_list
 

@@ -1,0 +1,2 @@
+#detectron2 is required to actually segment images, but utils will work without.
+detectron2==0.6+cu111

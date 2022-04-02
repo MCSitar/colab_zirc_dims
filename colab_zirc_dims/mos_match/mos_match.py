@@ -9,7 +9,12 @@ in Colab Notebook (see 'Links' in readme.md).
 
 import os
 
-from . import czd_utils
+from .. import czd_utils
+
+__all__ = ['get_mos_bounds',
+           'check_shots_vs_bounds',
+           'check_scan_mos_matches',
+           'matches_to_mos_info']
 
 def get_mos_bounds(align_file_path):
     """Get bounding coordinates for a mosaic image from .Align file

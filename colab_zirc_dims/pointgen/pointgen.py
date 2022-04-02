@@ -5,6 +5,7 @@ segmented image for zircon grain masks.
 """
 import numpy as np
 
+__all__ = ['PointGenerator']
 
 # class for generating points, moving ~radially outwards from center of image, \
 # to find central mask if not at actual center

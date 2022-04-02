@@ -9,6 +9,11 @@ import numpy as np
 from skimage import draw
 import skimage.measure as measure
 
+__all__ = ['mask_to_poly',
+           'poly_to_mask',
+           'vertex_dict_to_list',
+           'poly_dicts_to_arrays']
+
 # code for fxn below significantly modified from: \
 # https://github.com/waspinator/pycococreator (covered by Apache-2.0 License)
 def mask_to_poly(mask_for_conversion, tolerance = 1, scale_factor = 1.0):
