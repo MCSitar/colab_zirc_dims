@@ -40,7 +40,8 @@ from .. import save_load
 
 __all__ = ['run_alc_GUI']
 
-def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_dir = None):
+def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
+                load_dir = None, id_string = ''):
     """Run a colab-based GUI for automated / manual zircon segmentation and
        segmentation inspection of ALC datasets.
 
@@ -67,6 +68,10 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_di
     load_dir : str, optional
         User-selected directory with .json files for loading polygons.
         The default is None.
+    id_string : str, optional
+        A string to add to front of default (date-time) output folder name.
+        The default is ''.
+
 
     Raises
     ------
@@ -1022,6 +1027,8 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor, load_di
 
     #creates a main directory for this processing run
     run_dir_name_str = 'semi-auto_proccessing_run_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    if str(id_string):
+        run_dir_name_str = id_string + run_dir_name_str
     run_dir = os.path.join(root_output_dir, run_dir_name_str)
     os.makedirs(run_dir)
 

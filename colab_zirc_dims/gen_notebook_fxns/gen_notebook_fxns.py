@@ -364,7 +364,8 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                   **each_json_dict)
 
 def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_loaded_data_dict,
-                   inpt_predictor, inpt_save_polys_bool, inpt_alt_methods):
+                   inpt_predictor, inpt_save_polys_bool, inpt_alt_methods,
+                   id_string = ''):
     """Automatically segment, measure, and save results for every selected
     sample in an ALC dataset.
 
@@ -389,6 +390,10 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_loaded_data_dict,
         Format: [Try_zoomed_out_subimage, Try_zoomed_in_subimage,
                  Try_contrast_enhanced_subimage,
                  Try_Otsu_thresholding]
+    id_string : str, optional
+        A string to add to front of default (date-time) output folder name.
+        The default is ''.
+
 
     Returns
     -------
@@ -409,6 +414,8 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_loaded_data_dict,
     #creates a main directory (with datetime stamp) for this processing run
     curr_datetime = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     run_dir_str = 'auto_zirc_proccessing_run_' + curr_datetime
+    if str(id_string):
+        run_dir_str = str(id_string) + '_' + run_dir_str
     run_dir = os.path.join(root_output_dir, run_dir_str)
     os.makedirs(run_dir)
 

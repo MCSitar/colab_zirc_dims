@@ -140,7 +140,7 @@ def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default')
     """
     if model_lib_loc == 'default':
         model_lib_loc = 'https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/czd_model_library.json'
-    model_lib_list = czd_utils.read_json(model_lib_loc)
+    model_lib_list = czd_utils.json_from_path_or_url(model_lib_loc)
     model_labels = [each_dict['desc'] for each_dict in model_lib_list]
     model_picker = widgets.Dropdown(options=model_labels, value=model_labels[0],
                                     description='Model:',
@@ -348,7 +348,8 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                   **each_json_dict)
 
 def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
-                   inpt_predictor, inpt_save_polys_bool, inpt_alt_methods):
+                   inpt_predictor, inpt_save_polys_bool, inpt_alt_methods,
+                   id_string = ''):
     """Automatically segment, measure, and save results for every selected
     sample in an ALC dataset.
 
@@ -373,6 +374,9 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
         Format: [Try_zoomed_out_subimage, Try_zoomed_in_subimage,
                  Try_contrast_enhanced_subimage,
                  Try_Otsu_thresholding]
+    id_string : str, optional
+        A string to add to front of default (date-time) output folder name.
+        The default is ''.
 
     Returns
     -------
@@ -393,6 +397,8 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     #creates a main directory (with datetime stamp) for this processing run
     curr_datetime = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     run_dir_str = 'auto_zirc_proccessing_run_' + curr_datetime
+    if str(id_string):
+        run_dir_str = str(id_string) + '_' + run_dir_str
     run_dir = os.path.join(root_output_dir, run_dir_str)
     os.makedirs(run_dir)
 

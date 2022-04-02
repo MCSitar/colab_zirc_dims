@@ -21,13 +21,13 @@ Various functions for processing mosaic image datasets are available in (among o
 ## Links
 #### ALC datasets (per-sample mosaic images):
 Colab Notebooks are available for:
-- [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1gUn6dzvWYKiYH0Ss-TVlpVJls5e_4H1g?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from ALC mosaics](https://colab.research.google.com/drive/1kYDWkJPKDBE4SFbm_OR54MQAVEdlGwSZ?usp=sharing)
+- [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1aPMjSF2uGOP4Xy2dssjhk--TFQ7_hWuu?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring zircons from ALC mosaics](https://colab.research.google.com/drive/1Y-5Z0Gf9SWZXDAh-3yH3GyyQkeoT8rv_?usp=sharing)
 
 [A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
 #### Single image-per-shot datasets (e.g., from UCSB):
-- [A Colab Notebook for automatically and/or semi-automatically segmenting, measuring zircon is available here](https://colab.research.google.com/drive/17krdiXq-4cFdjgiLJ_fI-Mt8KyyM8UwF?usp=sharing)
+- [A Colab Notebook for automatically and/or semi-automatically segmenting, measuring zircon is available here](https://colab.research.google.com/drive/1REt2hA2TD1yp8f972XHcbK6ILI2Z7cby?usp=sharing)
 
 Template project folders are available for:
 - [Datasets where sample, shot information can be extracted from image filenames (e.g., from UCSB)](https://drive.google.com/drive/folders/1MkWh9PRArbV1m1eVbSTbb9C5PKC95Re3?usp=sharing)
