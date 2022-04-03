@@ -7,14 +7,19 @@ import os
 import random
 import gc
 import datetime
+from IPython.display import display
 try:
     from detectron2.utils.visualizer import Visualizer
 except ModuleNotFoundError:
     print('WARNING: Detectron2 not installed on (virtual?) machine;',
           'colab_zirc_dims generalized image segmentation functions unavailable')
     pass
-from IPython.display import display
-from google.colab.patches import cv2_imshow
+try:
+    from google.colab.patches import cv2_imshow
+except ModuleNotFoundError:
+    print('WARNING: google.colab.patches not found; (machine != Colab VM?).',
+          'Some colab_zirc_dims visualization functions will fail.')
+    pass
 import ipywidgets as widgets
 import skimage.io as skio
 import pandas as pd

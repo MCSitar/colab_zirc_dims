@@ -11,7 +11,12 @@ import gc
 import datetime
 import urllib.request
 from IPython.display import display
-from google.colab.patches import cv2_imshow
+try:
+    from google.colab.patches import cv2_imshow
+except ModuleNotFoundError:
+    print('WARNING: google.colab.patches not found; (machine != Colab VM?).',
+          'Some colab_zirc_dims visualization functions will fail.')
+    pass
 try:
     from detectron2.utils.visualizer import Visualizer
 except ModuleNotFoundError:
