@@ -36,16 +36,18 @@ Template project folders are available for:
 ## Installation outside of provided Notebooks:
 [A distribution of this package is available through the Python Package Index](https://pypi.org/project/colab-zirc-dims/). It is recommended that this package only be used within Google Colab, but some functions could be useful to users working with mosaic or .Align files on local machines.
 To install outside of Google Colab, open command line and enter:
-'''
+
+```
 pip install colab_zirc_dims
-'''
+```
+
 then press enter.
 
-To install inside of Google Colab, enter:
-'''
+To install inside of Google Colab, add:
+```
 !pip install colab_zirc_dims
-'''
-then run the cell.
+```
+to a cell, then run the cell.
 
 
 ## Project Status (updated 04/02/2022)
