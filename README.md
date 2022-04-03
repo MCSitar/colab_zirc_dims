@@ -21,23 +21,40 @@ Various functions for processing mosaic image datasets are available in (among o
 ## Links
 #### ALC datasets (per-sample mosaic images):
 Colab Notebooks are available for:
-- [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1gUn6dzvWYKiYH0Ss-TVlpVJls5e_4H1g?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from ALC mosaics](https://colab.research.google.com/drive/1kYDWkJPKDBE4SFbm_OR54MQAVEdlGwSZ?usp=sharing)
+- [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1aPMjSF2uGOP4Xy2dssjhk--TFQ7_hWuu?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring zircons from ALC mosaics](https://colab.research.google.com/drive/1Y-5Z0Gf9SWZXDAh-3yH3GyyQkeoT8rv_?usp=sharing)
 
 [A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
 #### Single image-per-shot datasets (e.g., from UCSB):
-- [A Colab Notebook for automatically and/or semi-automatically segmenting, measuring zircon is available here](https://colab.research.google.com/drive/17krdiXq-4cFdjgiLJ_fI-Mt8KyyM8UwF?usp=sharing)
+- [A Colab Notebook for automatically and/or semi-automatically segmenting, measuring zircon is available here](https://colab.research.google.com/drive/1REt2hA2TD1yp8f972XHcbK6ILI2Z7cby?usp=sharing)
 
 Template project folders are available for:
 - [Datasets where sample, shot information can be extracted from image filenames (e.g., from UCSB)](https://drive.google.com/drive/folders/1MkWh9PRArbV1m1eVbSTbb9C5PKC95Re3?usp=sharing)
 - [Datasets where shot images have been manually organized by user(s)](https://drive.google.com/drive/folders/1VpYo5HwDUaAQ4lJ0waZJRDrWkzHv2QyM?usp=sharing)
 
-## Project Status (updated 03/30/2022)
+## Installation outside of provided Notebooks:
+[A distribution of this package is available through the Python Package Index](https://pypi.org/project/colab-zirc-dims/). It is recommended that this package only be used within Google Colab, but some functions could be useful to users working with mosaic or .Align files on local machines.
+To install outside of Google Colab, open command line and enter:
+'''
+pip install colab_zirc_dims
+'''
+then press enter.
+
+To install inside of Google Colab, enter:
+'''
+!pip install colab_zirc_dims
+'''
+then run the cell.
+
+
+## Project Status (updated 04/02/2022)
 - All features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks.
 - New models are now available.  Models are also now downloaded directly (from AWS) in the automated processing notebook and do not need to be included in project folder(s).
 - Saving and loading of automatically- and user-produced zircon segmentation polygons into the Colab GUI has been implemented. This is (I think) big for user convenience - you can automatically process a dataset, disconnect, and then view/edit segmentations in later session(s).
 - Generalized segmentation functions for non-ALC datasets now implemented, with full support for datasets from the UCSB LA-ICP-MS facility.
+- An example ALC dataset with two mosaics has been added to the repo.
+- Package now available through PyPI (though probably of limited utility outside of Colab).
 
 ## Additional Notes
 - Training and large-n zircon measurement datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
