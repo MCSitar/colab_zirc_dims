@@ -1,0 +1,1 @@
+To demo colab_zirc_dims with this (2 mosaic) example dataset: download this folder, then re-upload it to your Google Drive, then open the ALC mosaic processing notebook and follow user directions.
