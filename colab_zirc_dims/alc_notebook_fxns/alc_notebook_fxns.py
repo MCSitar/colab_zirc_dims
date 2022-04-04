@@ -10,6 +10,7 @@ import random
 import gc
 import datetime
 import urllib.request
+import shutil
 from IPython.display import display
 try:
     from google.colab.patches import cv2_imshow
@@ -120,8 +121,8 @@ def inspect_data(inpt_mos_data_dict, inpt_selected_samples, n_scans_sample = 3):
 
 def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default'):
     """Open user interface (dynamically-populated dropdown menu) for selection
-       and download of RCNN models available through the colab_zirc_dims model
-       library.
+       and download/copying of RCNN models available through either the
+       colab_zirc_dims model library or a user-provided model library.
 
     Parameters
     ----------
@@ -133,9 +134,9 @@ def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default')
         json file. The default is 'default', which gets the current model lib
         from the colab_zirc_dims GitHub repo.
         If users want to use their own model library (with valid download links
-        and formatting matching colab_zirc_dims model_library.json), they can
-        create one then upload the file to their Google Drive and input its path
-        here.
+        and/or paths to models on a mounted Google Drive and formatting
+        matching colab_zirc_dims model_library.json), they can create one then
+        upload the file to their Google Drive and input its path here.
 
 
     Returns
@@ -156,14 +157,25 @@ def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default')
             mut_curr_model_d.update(model_lib_list[model_labels.index(selection)])
             print('Selected:', mut_curr_model_d['name'])
             if os.path.exists(os.path.join(cwd, mut_curr_model_d['name'])):
-                print('Model already downloaded')
+                if czd_utils.check_url(mut_curr_model_d['model_url']):
+                    print('Model already downloaded')
+                else:
+                    print('Model already copied to current working directory')
             else:
-                print('Downloading:', mut_curr_model_d['name'])
-                print('...')
-                urllib.request.urlretrieve(mut_curr_model_d['model_url'],
-                                          os.path.join(cwd,
-                                                        mut_curr_model_d['name']))
-                print('Download finished')
+                #download weights if url; attempt to copy if not
+                if czd_utils.check_url(mut_curr_model_d['model_url']):
+                    print('Downloading:', mut_curr_model_d['name'])
+                    print('...')
+                    urllib.request.urlretrieve(mut_curr_model_d['model_url'],
+                                              os.path.join(cwd,
+                                                            mut_curr_model_d['name']))
+                    print('Download finished')
+                else:
+                    print('Copying:', mut_curr_model_d['name'])
+                    shutil.copy(mut_curr_model_d['model_url'],
+                                os.path.join(cwd,
+                                             mut_curr_model_d['name']))
+                    print('Done copying')
     model_out = widgets.interactive_output(select_download_model,
                                            {'selection': model_picker})
     display(model_picker, model_out)
