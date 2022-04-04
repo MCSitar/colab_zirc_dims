@@ -18,7 +18,8 @@ import numpy as np
 import pandas as pd
 
 
-__all__ = ['read_json',
+__all__ = ['check_url',
+           'read_json',
            'save_json',
            'json_from_path_or_url',
            'save_csv',
