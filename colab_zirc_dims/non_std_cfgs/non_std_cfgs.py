@@ -27,6 +27,7 @@ def get_czd_swint_cfg():
         Notebook.
 
     """
+    from detectron2.config import get_cfg
     try:
         import timm.utils as test_timm
     except ModuleNotFoundError:
@@ -82,6 +83,7 @@ def get_czd_centermask2_cfg():
             print(check)
         sys.path.insert(0, '/content/centermask')
         import centermask
-    out_cfg = centermask.config.get_cfg()
+    from centermask.config import get_cfg
+    out_cfg = get_cfg()
     out_cfg.merge_from_file('/content/centermask/configs/centermask/centermask_V_99_eSE_FPN_ms_3x.yaml')
     return out_cfg
