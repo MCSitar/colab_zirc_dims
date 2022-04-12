@@ -52,7 +52,8 @@ def otsu_masks(input_image):
 
 
 def segment(curr_mosaic_img, curr_predictor,
-            try_bools = [False, False, False, False]):
+            try_bools = [False, False, False, False],
+            out_trk = None):
     """Apply different methods (see try_bools) iteratively to try to segment
        an ALC image.
 
@@ -71,6 +72,10 @@ def segment(curr_mosaic_img, curr_predictor,
          apply predictor to histogram-equalized (contrast-enhanced) subimg,
          Otsu threshholding]
         The default is [False, False, False, False].
+    out_trk : colab_zirc_dims.eta.OutputTracker instance
+        Optionally (depending on initialization params) refreshes text output
+        for every scan instead of streaming all print() data to output box.
+        The default is None, in which case text will be streamed normally.
 
     Returns
     -------
@@ -88,29 +93,42 @@ def segment(curr_mosaic_img, curr_predictor,
 
     # try zooming out slightly
     if try_bools[0] and not central_mask[0]:
-        print('Trying segementation of zoomed-out subimage')
+        if out_trk is not None:
+            out_trk.print_txt('Trying segementation of zoomed-out subimage')
+        else:
+            print('Trying segementation of zoomed-out subimage')
         curr_mosaic_img.set_sub_img_size(round(orig_subimg_size * 1.1))
         central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img))
         curr_mosaic_img.set_sub_img_size(orig_subimg_size)
     #try zooming in slightly
     if try_bools[1] and not central_mask[0]:
-        print('Trying segementation of zoomed-in subimage')
+        if out_trk is not None:
+            out_trk.print_txt('Trying segementation of zoomed-in subimage')
+        else:
+            print('Trying segementation of zoomed-in subimage')
         curr_mosaic_img.set_sub_img_size(round(orig_subimg_size * 0.9))
         central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img))
         curr_mosaic_img.set_sub_img_size(orig_subimg_size)
     #try increasing contrast
     if try_bools[2] and not central_mask[0]:
-        print('Trying segmentation of contrast-enhanced subimage')
+        if out_trk is not None:
+            out_trk.print_txt('Trying segmentation of contrast-enhanced subimage')
+        else:
+            print('Trying segmentation of contrast-enhanced subimage')
         cont_enhanced = exposure.equalize_hist(curr_mosaic_img.sub_img)
         central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced))
     #try otsu threshholding
     if try_bools[3] and not central_mask[0]:
-        print('Trying Otsu threshholding')
+        if out_trk is not None:
+            out_trk.print_txt('Trying Otsu threshholding')
+        else:
+            print('Trying Otsu threshholding')
         central_mask = mos_proc.get_central_mask(otsu_masks(curr_mosaic_img.sub_img))
     return central_mask
 
 def gen_segment(curr_img, curr_predictor,
-                try_bools = [False, False]):
+                try_bools = [False, False],
+                out_trk = None):
     """Apply different methods (see try_bools) iteratively to try to segment
        a single shot (non-ALC) image. Because image source is not a mosaic,
        extent jittering (zooming in and out) is not available.
@@ -128,6 +146,10 @@ def gen_segment(curr_img, curr_predictor,
         [apply predictor to histogram-equalized (contrast-enhanced) subimg,
          Otsu threshholding]
         The default is [False, False].
+    out_trk : colab_zirc_dims.eta.OutputTracker instance
+        Optionally (depending on initialization params) refreshes text output
+        for every scan instead of streaming all print() data to output box.
+        The default is None, in which case text will be streamed normally.
 
     Returns
     -------
@@ -143,11 +165,17 @@ def gen_segment(curr_img, curr_predictor,
 
     #try increasing contrast
     if try_bools[0] and not central_mask[0]:
-        print('Trying segmentation of contrast-enhanced subimage')
+        if out_trk is not None:
+            out_trk.print_txt('Trying segmentation of contrast-enhanced subimage')
+        else:
+            print('Trying segmentation of contrast-enhanced subimage')
         cont_enhanced = exposure.equalize_hist(curr_img)
         central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced))
     #try otsu threshholding
     if try_bools[1] and not central_mask[0]:
-        print('Trying Otsu threshholding')
+        if out_trk is not None:
+            out_trk.print_txt('Trying Otsu threshholding')
+        else:
+            print('Trying Otsu threshholding')
         central_mask = mos_proc.get_central_mask(otsu_masks(curr_img))
     return central_mask

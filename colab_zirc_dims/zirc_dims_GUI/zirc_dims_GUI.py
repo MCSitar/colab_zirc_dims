@@ -21,8 +21,11 @@ import numpy as np
 from PIL import Image
 import pandas as pd
 
-from google.colab import output
-from google.colab.output import eval_js
+try:
+    from google.colab import output
+    from google.colab.output import eval_js
+except ModuleNotFoundError:
+    pass
 
 from .. import czd_utils
 from .. import mos_proc

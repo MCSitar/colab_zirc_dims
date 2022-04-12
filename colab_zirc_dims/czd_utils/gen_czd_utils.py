@@ -15,7 +15,8 @@ __all__ = ['find_Align',
            'check_load_sample_info',
            'check_unused_samples',
            'unique_scan_name',
-           'load_gen_data_dict']
+           'load_gen_data_dict',
+           'gen_calc_scans_n']
 
 def find_Align(name, all_files_list, img_suffix = '.png'):
     """Find a .Align file matching (same except for file type) an image file.
@@ -403,3 +404,39 @@ def load_gen_data_dict(proj_dir, folder_struct = 'A', splitting_fxn = None,
                                         check_sample[1], verbose=True)
     print('Done')
     return output_dict
+
+def gen_calc_scans_n(inpt_data_dict, inpt_selected_samples):
+    """Get the total number of scans that will be run (i.e., represented in
+       both the Notebook data dict and in list[selected samples]). For single
+       shot-per-image (non-ALC) datasets/Notebooks.
+
+    Parameters
+    ----------
+    inpt_data_dict : dict
+        A standardized dict containing info that will be passed to automated
+        and/or semi-automated segmentation functions, loaded from project dir.
+        Format:
+                {EACH_SAMPLE: {EACH_SPOT: {'img_file': FULL_IMG_PATH,
+                               'Align_file': FULL_ALIGN_PATH or '',
+                               'rel_file': IMG_FILENAME
+                               'scale_factor': float(scale factor for each scan),
+                               'scale_from': str(method used get scale factor)},
+                               ...},
+                 ...}
+    inpt_selected_samples : list(str)
+        A list of samples selected by a user for running; these should be keys
+        in the input data dict.
+
+    Returns
+    -------
+    n : int
+        Total number of scans/images that will be processed.
+
+    """
+    n=0
+    avl_samples = list(inpt_data_dict.keys())
+    for sample in [sample for sample in inpt_selected_samples
+                   if sample in avl_samples]:
+        for _ in inpt_data_dict[sample].keys():
+            n += 1
+    return n

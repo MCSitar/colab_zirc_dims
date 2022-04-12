@@ -624,3 +624,38 @@ def load_data_dict(project_dir_string):
             temp_output_dict[eachsample]['Scan_dict'] = coords_dict
 
     return temp_output_dict
+
+def alc_calc_scans_n(inpt_mos_data_dict, inpt_selected_samples):
+    """Get the total number of scans that will be run (i.e., represented in
+       both the Notebook data dict and in list[selected samples]). For ALC/
+       mosaic datasets/Notebooks.
+
+    Parameters
+    ----------
+    inpt_mos_data_dict : dict
+        A dict of dicts containing data from project folder w/ format:
+
+        {'SAMPLE NAME': {'Scanlist': SCANLIST (.SCANCSV) PATH,
+                         'Mosaic': MOSAIC .BMP PATH,
+                         'Align_file': MOSAIC ALIGN FILE PATH,
+                         'Max_zircon_size': MAX USER-INPUT ZIRCON SIZE,
+                         'Offsets': [USER X OFFSET, USER Y OFFSET],
+                         'Scan_dict': DICT LOADED FROM .SCANCSV FILE},
+         ...}.
+    inpt_selected_samples : list(str)
+        A list of samples selected by a user for running; these should be keys
+        in the input data dict.
+
+    Returns
+    -------
+    n : int
+        Total number of scans/sub-images that will be processed.
+
+    """
+    n = 0
+    avl_samples = list(inpt_mos_data_dict.keys())
+    for sample in [sample for sample in inpt_selected_samples
+                   if sample in avl_samples]:
+        for _ in inpt_mos_data_dict[sample]['Scan_dict'].keys():
+            n += 1
+    return n
