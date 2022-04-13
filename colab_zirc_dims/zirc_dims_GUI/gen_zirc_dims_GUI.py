@@ -1056,7 +1056,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
     #creates a main directory for this processing run
     run_dir_name_str = 'semi-auto_proccessing_run_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     if str(id_string):
-        run_dir_name_str = id_string + run_dir_name_str
+        run_dir_name_str = id_string + '_' + run_dir_name_str
     run_dir = os.path.join(root_output_dir, run_dir_name_str)
     os.makedirs(run_dir)
 
