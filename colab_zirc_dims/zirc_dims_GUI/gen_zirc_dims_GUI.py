@@ -234,7 +234,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                             draw();
                         };
                         // move to next image in array
-                        next.textContent = "next scan";
+                        next.textContent = "next scan [d]";
                         next.onclick = function(){
                             if (curr_image < imgs.length - 1){
                                 // clear canvas and load new image
@@ -247,7 +247,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                             resetcanvas();
                         }
                         //move forward through list of images
-                        prev.textContent = "prev scan"
+                        prev.textContent = "prev scan [a]"
                         prev.onclick = function(){
                             if (curr_image > 0){
                                 // clear canvas and load new image
@@ -260,7 +260,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                             resetcanvas();
                         }
                         //tag image on press
-                        tagImagebutton.textContent = "tag scan"
+                        tagImagebutton.textContent = "tag scan [t]"
                         tagImagebutton.onclick = function(){
                             var orig_tagged = false;
                             if (all_tags[curr_image] === 'True') {
@@ -277,7 +277,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                         }
 
                         // on undo (modified delete buttun), deletes the last polygon vertex
-                        deleteButton.textContent = "undo last pt";
+                        deleteButton.textContent = "undo last pt [z]";
                         deleteButton.onclick = function(){
                           if (poly.length > 0) {
                             all_human_auto[curr_image] = 'human'; //tags polygon as drawn by human
@@ -291,7 +291,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                           };
                         }
                         // on all delete, deletes all of the polygons
-                        deleteAllbutton.textContent = "clear polygon"
+                        deleteAllbutton.textContent = "clear polygon [c]"
                         deleteAllbutton.onclick = function(){
                           if (poly.length > 0) {
                             all_human_auto[curr_image] = 'human'; //tags polygon as drawn by human
@@ -306,7 +306,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                         }
 
                         // on reset, reverts to original (auto or user) polygon
-                        resetButton.textContent = "restore orig. polygon"
+                        resetButton.textContent = "restore orig. polygon [r]"
                         resetButton.onclick = function(){
                           poly.splice(0, poly.length, ...orig_polys[curr_image]);
                           all_human_auto[curr_image] = inpt_auto_human[curr_image];
@@ -456,6 +456,39 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                       crosshair_v.addEventListener("click", handleClick);
                       document.addEventListener("mousemove", handleMouseMove);
                       document.addEventListener("dblclick", handleDblClick);
+
+                      //register hotkey shortcuts
+                      document.addEventListener('keydown', function (event) {
+                          //hotkey e to push polygon (same as double click)
+                          if (event.key === 'e'){
+                                  handleDblClick(event);
+                          }
+                          //hotkey d for next scan
+                          if (event.key === 'd'){
+                                  next.click();
+                          }
+                          //hotkey a for previous scan
+                          if (event.key === 'a'){
+                                  prev.click();
+                          }
+                          //hotkey r for revert to original polygon
+                          if (event.key === 'r'){
+                                  resetButton.click();
+                          }
+                          //hotkey t for tag scan
+                          if (event.key === 't'){
+                                  tagImagebutton.click();
+                          }
+                          //hotkey z for undo last pt
+                          if (event.key === 'z'){
+                                  deleteButton.click();
+                          }
+                          //hotkey c for clear current polygon
+                          if (event.key === 'c'){
+                                  deleteAllbutton.click();
+                          }
+                      });
+
                       function resetcanvas(){
                           // clear canvas
                           ctx.clearRect(0, 0, canvas_img.width, canvas_img.height);
