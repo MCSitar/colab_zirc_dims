@@ -458,6 +458,38 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                       crosshair_v.addEventListener("click", handleClick);
                       document.addEventListener("mousemove", handleMouseMove);
                       document.addEventListener("dblclick", handleDblClick);
+                      
+                      //register hotkey shortcuts
+                      document.addEventListener('keydown', function (event) {
+                          //hotkey e to push polygon (same as double click)
+                          if (event.key === 'e'){
+                                  handleDblClick(event);
+                          }
+                          //hotkey d for next scan
+                          if (event.key === 'd'){
+                                  next.click();
+                          }
+                          //hotkey a for previous scan
+                          if (event.key === 'a'){
+                                  prev.click();
+                          }
+                          //hotkey r for revert to original polygon
+                          if (event.key === 'r'){
+                                  resetButton.click();
+                          }
+                          //hotkey t for tag scan
+                          if (event.key === 't'){
+                                  tagImagebutton.click();
+                          }
+                          //hotkey z for undo last pt
+                          if (event.key === 'z'){
+                                  deleteButton.click();
+                          }
+                          //hotkey c for clear current polygon
+                          if (event.key === 'c'){
+                                  deleteAllbutton.click();
+                          }
+                      });
                       function resetcanvas(){
                           // clear canvas
                           ctx.clearRect(0, 0, canvas_img.width, canvas_img.height);
