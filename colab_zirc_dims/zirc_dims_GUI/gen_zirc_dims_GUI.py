@@ -308,6 +308,11 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                         // on reset, reverts to original (auto or user) polygon
                         resetButton.textContent = "restore orig. polygon [r]"
                         resetButton.onclick = function(){
+                          if (isDrawing) {
+                              // on reset, stop drawing poly
+                              isDrawing = false;
+                              draw();
+                          }
                           poly.splice(0, poly.length, ...orig_polys[curr_image]);
                           all_human_auto[curr_image] = inpt_auto_human[curr_image];
                           ctx.clearRect(0, 0, canvas_img.width, canvas_img.height);
@@ -437,7 +442,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                           if (isDrawing) {
                               // on double click, push current annotation to poly
                               isDrawing = false;
-                              draw()
+                              draw();
                           }
                       }
                       function draw() {
