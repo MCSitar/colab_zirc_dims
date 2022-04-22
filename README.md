@@ -33,6 +33,10 @@ Template project folders are available for:
 - [Datasets where sample, shot information can be extracted from image filenames (e.g., from UCSB)](https://drive.google.com/drive/folders/1MkWh9PRArbV1m1eVbSTbb9C5PKC95Re3?usp=sharing)
 - [Datasets where shot images have been manually organized by user(s)](https://drive.google.com/drive/folders/1VpYo5HwDUaAQ4lJ0waZJRDrWkzHv2QyM?usp=sharing)
 
+
+#### Other links:
+- [Video tutorial and demo.](https://youtu.be/WM7qEjaJdgo)
+
 ## Installation outside of provided Notebooks:
 [A distribution of this package is available through the Python Package Index](https://pypi.org/project/colab-zirc-dims/). It is recommended that this package only be used within Google Colab, but some functions could be useful to users working with mosaic or .Align files on local machines.
 To install outside of Google Colab, open command line and enter:
