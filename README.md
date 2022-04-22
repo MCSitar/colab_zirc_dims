@@ -19,15 +19,15 @@ In sub-optimal datasets, automated processing is less successful and can produce
 Various functions for processing mosaic image datasets are available in (among others) modules **czd_utils**, **mos_match**, and **mos_proc**.
 
 ## Links
-#### ALC datasets (per-sample mosaic images):
-Colab Notebooks are available for:
+#### Per-sample mosaic image datasets (e.g., from ALC):
+Colab notebooks are available for:
 - [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1dz_oLo81kmxA9avHN75KR7SYxNvml3e7?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from ALC mosaics](https://colab.research.google.com/drive/1ujPeumUGHi5_ZtwliOVA2W2gjPljW0XV?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring zircons from mosaics](https://colab.research.google.com/drive/1ujPeumUGHi5_ZtwliOVA2W2gjPljW0XV?usp=sharing)
 
 [A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
 #### Single image-per-shot datasets (e.g., from UCSB):
-- [A Colab Notebook for automatically and/or semi-automatically segmenting, measuring zircons is available here](https://colab.research.google.com/drive/11wy3Rl8vRKOJN-xvmvh9ILMRPIdmbFcN?usp=sharing)
+- [A Colab notebook for automatically and/or semi-automatically segmenting, measuring zircons is available here](https://colab.research.google.com/drive/11wy3Rl8vRKOJN-xvmvh9ILMRPIdmbFcN?usp=sharing)
 
 Template project folders are available for:
 - [Datasets where sample, shot information can be extracted from image filenames (e.g., from UCSB)](https://drive.google.com/drive/folders/1MkWh9PRArbV1m1eVbSTbb9C5PKC95Re3?usp=sharing)
@@ -35,9 +35,9 @@ Template project folders are available for:
 
 
 #### Other links:
-- [Video tutorial and demo.](https://youtu.be/WM7qEjaJdgo)
+- [Video tutorial and demo - intro to Colab notebooks at 4:50](https://youtu.be/WM7qEjaJdgo)
 
-## Installation outside of provided Notebooks:
+## Installation outside of provided notebooks:
 [A distribution of this package is available through the Python Package Index](https://pypi.org/project/colab-zirc-dims/). It is recommended that this package only be used within Google Colab, but some functions could be useful to users working with mosaic or .Align files on local machines.
 To install outside of Google Colab, open command line and enter:
 
@@ -54,14 +54,14 @@ To install inside of Google Colab, add:
 to a cell, then run the cell.
 
 
-## Project Status (updated 04/19/2022)
-- All features are functional. Bugs surely exist, and are most likely to be encountered when using the package outside of the provided Notebooks.
+## Project Status (updated 04/22/2022)
+- All features are functional. Bugs may exist, and are most likely to be encountered when using the package outside of the provided notebooks.
 - New models are now available.  Models are also now downloaded directly (from AWS) in the automated processing notebook and do not need to be included in project folder(s).
 - Saving and loading of automatically- and user-produced zircon segmentation polygons into the Colab GUI has been implemented. This is (I think) big for user convenience - you can automatically process a dataset, disconnect, and then view/edit segmentations in later session(s).
 - Generalized segmentation functions for non-ALC datasets now implemented, with full support for datasets from the UCSB LA-ICP-MS facility.
 - Example ALC and UCSB datasets have been added to the repo.
 - Model training dataset and training notebook (should be uploaded to Colab by user(s)) added to repo.
-- Package now available through PyPI (though probably of limited utility outside of Colab).
+- Package available through PyPI (though probably of limited utility outside of Colab).
 
 ## Additional Notes
 - Training and large-n zircon measurement datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
