@@ -15,3 +15,5 @@ from . import save_load
 from . import alc_notebook_fxns
 from . import gen_filename_fxns
 from . import gen_notebook_fxns
+from . import non_std_cfgs
+from . import eta

@@ -12,10 +12,11 @@ import datetime
 import urllib.request
 import shutil
 from IPython.display import display
+
 try:
     from google.colab.patches import cv2_imshow
 except ModuleNotFoundError:
-    print('WARNING: google.colab.patches not found; (machine != Colab VM?).',
+    print('WARNING: google.colab not found; (machine != Colab VM?).',
           'Some colab_zirc_dims visualization functions will fail.')
     pass
 try:
@@ -32,6 +33,7 @@ from .. import czd_utils
 from .. import mos_proc
 from .. import save_load
 from .. import segment
+from .. import eta
 
 __all__ = ['select_samples_fxn',
            'inspect_data',
@@ -244,7 +246,7 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
 
 def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                      inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
-                     inpt_alt_methods):
+                     inpt_alt_methods, eta_trk, out_trk):
     """Automatically process and save results from a single sample in an ALC
        dataset.
 
@@ -274,6 +276,11 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
         Format: [Try_zoomed_out_subimage, Try_zoomed_in_subimage,
                  Try_contrast_enhanced_subimage,
                  Try_Otsu_thresholding]
+    eta_trk : colab_zirc_dims.eta.EtaTracker instance
+        A timer/rate calculator that calculates a running eta.
+    out_trk : colab_zirc_dims.eta.OutputTracker instance
+        Optionally (depending on initialization params) refreshes text output
+        for every scan instead of streaming all print() data to output box.
 
     Returns
     -------
@@ -300,11 +307,20 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
 
     #extracts zircon subimage and runs predictor for each scan
     for eachscan in inpt_mos_data_dict[eachsample]['Scan_dict'].keys():
-        print('Processing:', eachsample, eachscan)
+        #start timing for spot
+        eta_trk.start()
+
+        #reset output text display
+        out_trk.reset()
+        out_trk.print_txt(eta_trk.str_eta)
+        out_trk.print_txt(' '.join(['Processing:',
+                                    str(eachsample),
+                                    str(eachscan)]))
         each_mosaic.set_subimg(*inpt_mos_data_dict[eachsample]['Scan_dict'][eachscan])
-        central_mask = segment.segment(each_mosaic, inpt_predictor, inpt_alt_methods)
+        central_mask = segment.segment(each_mosaic, inpt_predictor,
+                                       inpt_alt_methods, out_trk)
         if central_mask[0]:
-            print('Success')
+            out_trk.print_txt('Success')
 
             #saves mask image and gets properties
             each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
@@ -340,6 +356,8 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
             if inpt_save_polys_bool:
                 save_load.null_append_json_dict(each_json_dict, str(eachscan))
 
+        #get total time for spot
+        eta_trk.stop_update_eta()
     #deletes mosaic class instance after processing. \
     # May or may not reduce RAM during automated processing; probably best practice.
     del each_mosaic
@@ -366,7 +384,7 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
 
 def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
                    inpt_predictor, inpt_save_polys_bool, inpt_alt_methods,
-                   id_string = ''):
+                   id_string = '', stream_output=False):
     """Automatically segment, measure, and save results for every selected
     sample in an ALC dataset.
 
@@ -394,6 +412,11 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     id_string : str, optional
         A string to add to front of default (date-time) output folder name.
         The default is ''.
+    stream_output : bool, optional
+        A bool indicating whether output text will be 'streamed' (all text goes
+        straight to output, no clearing or refreshing) or displayed in an
+        automatically-refreshing block at the top of cell outputs.
+        The default is False.
 
     Returns
     -------
@@ -430,11 +453,16 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     csv_save_dir = os.path.join(run_dir, 'zircon_dimensions')
     os.makedirs(csv_save_dir)
 
+    #initialize class instances for ETA, other output display
+    eta_trk = eta.EtaTracker(czd_utils.alc_calc_scans_n(inpt_mos_data_dict,
+                                                        inpt_selected_samples))
+    out_trk = eta.OutputTracker(n_blank_lines=10, stream_outputs=stream_output)
+
     #starts loop through dataset dictionary
     for eachsample in inpt_selected_samples:
         auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                          inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
-                         inpt_alt_methods)
+                         inpt_alt_methods, eta_trk, out_trk)
         gc.collect()
 
     return run_dir

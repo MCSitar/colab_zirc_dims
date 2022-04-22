@@ -21,8 +21,11 @@ import numpy as np
 from PIL import Image
 import pandas as pd
 
-from google.colab import output
-from google.colab.output import eval_js
+try:
+    from google.colab import output
+    from google.colab.output import eval_js
+except ModuleNotFoundError:
+    pass
 
 from .. import czd_utils
 from .. import mos_proc
@@ -215,7 +218,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                         //aspect_ratio = (im_width / im_height); //width curr image / height
                         spot_name.innerHTML = spot_nms[curr_image] + " (" + (curr_image + 1) + "/" + imgs.length + ")";
                         if (all_tags[curr_image] === 'True') {
-                                spot_name.innerHTML = spot_nms[curr_image] + " (tagged) " + (curr_image + 1) + "/" + imgs.length + ")";
+                                spot_name.innerHTML = spot_nms[curr_image] + " (tagged) (" + (curr_image + 1) + "/" + imgs.length + ")";
                         }
                         image.src = "data:image/png;base64," + img;
                         image.onload = function() {
@@ -233,7 +236,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                             draw();
                         };
                         // move to next image in array
-                        next.textContent = "next scan";
+                        next.textContent = "next scan [d]";
                         next.onclick = function(){
                             if (curr_image < imgs.length - 1){
                                 // clear canvas and load new image
@@ -246,7 +249,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                             resetcanvas();
                         }
                         //move forward through list of images
-                        prev.textContent = "prev scan"
+                        prev.textContent = "prev scan [a]"
                         prev.onclick = function(){
                             if (curr_image > 0){
                                 // clear canvas and load new image
@@ -259,7 +262,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                             resetcanvas();
                         }
                         //tag image on press
-                        tagImagebutton.textContent = "tag scan"
+                        tagImagebutton.textContent = "tag scan [t]"
                         tagImagebutton.onclick = function(){
                             var orig_tagged = false;
                             if (all_tags[curr_image] === 'True') {
@@ -276,7 +279,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                         }
 
                         // on undo (modified delete buttun), deletes the last polygon vertex
-                        deleteButton.textContent = "undo last pt";
+                        deleteButton.textContent = "undo last pt [z]";
                         deleteButton.onclick = function(){
                           if (poly.length > 0) {
                             all_human_auto[curr_image] = 'human'; //tags polygon as drawn by human
@@ -290,7 +293,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                           };
                         }
                         // on all delete, deletes all of the polygons
-                        deleteAllbutton.textContent = "clear polygon"
+                        deleteAllbutton.textContent = "clear polygon [c]"
                         deleteAllbutton.onclick = function(){
                           if (poly.length > 0) {
                             all_human_auto[curr_image] = 'human'; //tags polygon as drawn by human
@@ -305,8 +308,13 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                         }
 
                         // on reset, reverts to original (auto or user) polygon
-                        resetButton.textContent = "restore orig. polygon"
+                        resetButton.textContent = "restore orig. polygon [r]"
                         resetButton.onclick = function(){
+                          if (isDrawing) {
+                              // on reset, stop drawing
+                              isDrawing = false;
+                              draw();
+                          }
                           poly.splice(0, poly.length, ...orig_polys[curr_image]);
                           all_human_auto[curr_image] = inpt_auto_human[curr_image];
                           ctx.clearRect(0, 0, canvas_img.width, canvas_img.height);
@@ -436,7 +444,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                           if (isDrawing) {
                               // on double click, push current annotation to poly
                               isDrawing = false;
-                              draw()
+                              draw();
                           }
                       }
                       function draw() {
@@ -455,13 +463,45 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                       crosshair_v.addEventListener("click", handleClick);
                       document.addEventListener("mousemove", handleMouseMove);
                       document.addEventListener("dblclick", handleDblClick);
+                      
+                      //register hotkey shortcuts
+                      document.addEventListener('keydown', function (event) {
+                          //hotkey e to push polygon (same as double click)
+                          if (event.key === 'e'){
+                                  handleDblClick(event);
+                          }
+                          //hotkey d for next scan
+                          if (event.key === 'd'){
+                                  next.click();
+                          }
+                          //hotkey a for previous scan
+                          if (event.key === 'a'){
+                                  prev.click();
+                          }
+                          //hotkey r for revert to original polygon
+                          if (event.key === 'r'){
+                                  resetButton.click();
+                          }
+                          //hotkey t for tag scan
+                          if (event.key === 't'){
+                                  tagImagebutton.click();
+                          }
+                          //hotkey z for undo last pt
+                          if (event.key === 'z'){
+                                  deleteButton.click();
+                          }
+                          //hotkey c for clear current polygon
+                          if (event.key === 'c'){
+                                  deleteAllbutton.click();
+                          }
+                      });
                       function resetcanvas(){
                           // clear canvas
                           ctx.clearRect(0, 0, canvas_img.width, canvas_img.height);
                           img = imgs[curr_image]
                           spot_name.innerHTML = spot_nms[curr_image] + " (" + (curr_image + 1) + "/" + imgs.length + ")";
                           if (all_tags[curr_image] === 'True') {
-                            spot_name.innerHTML = spot_nms[curr_image] + " (tagged) " + (curr_image + 1) + "/" + imgs.length + ")";
+                            spot_name.innerHTML = spot_nms[curr_image] + " (tagged) (" + (curr_image + 1) + "/" + imgs.length + ")";
                           }
                           image.src = "data:image/png;base64," + img;
                           // on load init new canvas and display image
@@ -1028,7 +1068,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
     #creates a main directory for this processing run
     run_dir_name_str = 'semi-auto_proccessing_run_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     if str(id_string):
-        run_dir_name_str = id_string + run_dir_name_str
+        run_dir_name_str = id_string + '_' + run_dir_name_str
     run_dir = os.path.join(root_output_dir, run_dir_name_str)
     os.makedirs(run_dir)
 
