@@ -216,7 +216,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                         sample_scale.innerHTML = 'Scale: ' + sample_scls[curr_image] + ' µm/pixel';
                         spot_name.innerHTML = spot_nms[curr_image] + " (" + (curr_image + 1) + "/" + imgs.length + ")";
                         if (all_tags[curr_image] === 'True') {
-                                spot_name.innerHTML = spot_nms[curr_image] + " (tagged) " + (curr_image + 1) + "/" + imgs.length + ")";
+                                spot_name.innerHTML = spot_nms[curr_image] + " (tagged) (" + (curr_image + 1) + "/" + imgs.length + ")";
                         }
                         image.src = "data:image/png;base64," + img;
                         image.onload = function() {
@@ -500,7 +500,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                           img = imgs[curr_image]
                           spot_name.innerHTML = spot_nms[curr_image] + " (" + (curr_image + 1) + "/" + imgs.length + ")";
                           if (all_tags[curr_image] === 'True') {
-                            spot_name.innerHTML = spot_nms[curr_image] + " (tagged) " + (curr_image + 1) + "/" + imgs.length + ")";
+                            spot_name.innerHTML = spot_nms[curr_image] + " (tagged) (" + (curr_image + 1) + "/" + imgs.length + ")";
                           }
                           image.src = "data:image/png;base64," + img;
                           // on load init new canvas and display image
