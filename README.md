@@ -67,8 +67,14 @@ to a cell, then run the cell.
 - Training and large-n zircon measurement datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
 - Some additional training data are from the [UCSB Petrochronology Center](https://www.petrochronology.com/).
 - Although models were trained on (and tests have only been performed on) detrital zircon mosaic images, I think that this method could probably be applied to LA-ICP-MS mosaics/samples of other minerals (e.g., monazite) without further model training.
-- I do plan to write this project up into some sort of publication (journal article, conference paper, conference poster, vanity license plate, etc). At that point, I will post citation info here. If you submit a manuscript utilizing this code in the meantime, please reach out to me.
 - Any suggestions, comments, or questions about this project are also welcome.
+
+## Citation
+This project has been written up in as a technical note in collaboration with Dr. Ryan Leary and is currently in review at Geochronology. You can find the preprint (along with associated links to additional datasets and replication code) [here](https://gchron.copernicus.org/preprints/gchron-2022-12). If you use colab_zirc_dims in your work prior to (hopeful(!)) full publication, please use the following preprint citation:
+
+```
+Sitar, M. C. and Leary, R. J.: Technical Note: colab_zirc_dims: a Google-Colab-based Toolset for Automated and Semi-automated Measurement of Mineral Grains in LA-ICP-MS Images Using Deep Learning Models, Geochronology Discuss. [preprint], https://doi.org/10.5194/gchron-2022-12, in review, 2022.
+```
 
 ## Author
 Michael Cole Sitar
