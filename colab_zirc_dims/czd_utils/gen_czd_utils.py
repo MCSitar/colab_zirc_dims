@@ -61,7 +61,9 @@ def indiv_img_scale_factor(img_path, Align_path):
     """
     img = skio.imread(img_path)
     img_xy = img.shape[:2][::-1]
-    align_xy = czd_utils.get_Align_center_size(Align_path)[2:]
+    #No reason to expect rotation or that it will impact grain centeredness if \
+    # present; rotation field ignored from .Align file.
+    align_xy = czd_utils.get_Align_center_size(Align_path)[2:-1]
     return czd_utils.calc_scale_factor(align_xy, img_xy)
 
 def check_load_sample_info(project_dir):
@@ -265,7 +267,7 @@ def load_gen_opt_B(scans_dir, split_fxn = None, file_type = '.png'):
                 each_align_path = os.path.join(each_sample_dir, each_align_path)
             if each_sample not in output_dict.keys():
                 output_dict[each_sample] = {}
-            #makes sure that spots are unique to avoid losing data
+            #makes sure that spot names are unique to avoid overwriting data
             each_spot = unique_scan_name(each_spot,
                                          list(output_dict[each_sample].keys()))
             output_dict[each_sample][each_spot] = {'img_file': each_img_path,

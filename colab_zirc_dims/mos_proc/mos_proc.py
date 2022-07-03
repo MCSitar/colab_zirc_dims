@@ -543,9 +543,9 @@ class MosImg:
             #calculates a new scale factor (microns/pixel) from .Align file
             self.scale_factor = czd_utils.calc_scale_factor(self.align_data[2:],
                                                             self.mos_dims[1:])
-            #converts shifts to pixels from microns
-            self.pix_shift_list = [val/self.scale_factor
-                                   for val in x_y_shift_list]
+            #initialize shift list (in microns)
+            self.pix_shift_list = [val for val in x_y_shift_list]
+            
             #calculates origin based on new variables
             self.x_origin = float(self.align_data[0] - self.align_data[2]/2
                                   - self.pix_shift_list[0])
@@ -571,7 +571,7 @@ class MosImg:
         Parameters
         ----------
         new_sub_img_size : int
-            New size for subimages.
+            New size for subimages, in microns.
 
         Returns
         -------
@@ -598,9 +598,17 @@ class MosImg:
             A list of pixel coordinates [x pixel coord, y pixel coord].
 
         """
-
-        return [round(float((x_coord - self.x_origin) / self.scale_factor)),
-                round(float((y_coord - self.y_origin) / self.scale_factor))]
+        #unrotated mapping if no rotation in align file
+        if float(self.align_data[4]) == 0.0:
+            return [round(float((x_coord - self.x_origin) / self.scale_factor)),
+                    round(float((y_coord - self.y_origin) / self.scale_factor))]
+        else:
+            #back-rotate coordinates by rotation given in .Align file
+            x_coord, y_coord = czd_utils.rotate_pt((x_coord, y_coord),
+                                                   self.align_data[4],
+                                                   self.align_data[:2])
+            return [round(float((x_coord - self.x_origin) / self.scale_factor)),
+                    round(float((y_coord - self.y_origin) / self.scale_factor))]
 
     def set_subimg(self, x_coord, y_coord):
         """Set a clipped subimage centered on entered coordinates.

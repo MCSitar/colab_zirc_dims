@@ -33,7 +33,7 @@ def get_mos_bounds(align_file_path):
     """
     Align_data = czd_utils.get_Align_center_size(align_file_path)
 
-    align_x_center, align_y_center, align_x_size, align_y_size = Align_data
+    align_x_center, align_y_center, align_x_size, align_y_size = Align_data[:-1]
 
     min_x, max_x = align_x_center - align_x_size/2, align_x_center + align_x_size/2
     min_y, max_y = align_y_center - align_y_size/2, align_y_center + align_y_size/2
