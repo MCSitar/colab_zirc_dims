@@ -41,7 +41,7 @@ def otsu_masks(input_image):
 
     #removes very small regions, background class
     larger_region_vals = [val for val in region_vals
-                          if np.count_nonzero(label_mask == val) > 100
+                          if np.count_nonzero(label_mask == val) > 30
                           and val > 0]
 
     output_masks_list = []
