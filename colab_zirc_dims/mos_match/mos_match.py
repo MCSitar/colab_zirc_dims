@@ -126,7 +126,7 @@ def check_scan_mos_matches(scancsv_dir, mos_dir, max_out_of_bounds=1):
     return matches_dict
 
 def matches_to_mos_info(input_matches_dict, def_sample_name = '',
-                        def_zirc_size = 500, def_x_offset = 0,
+                        def_grain_size = 500, def_x_offset = 0,
                         def_y_offset = 0):
     """Converts a dict returned by check_scan_mos_matches() to a dict\
         with values and format {header: [data]} of a mos_info.csv file.
@@ -138,7 +138,7 @@ def matches_to_mos_info(input_matches_dict, def_sample_name = '',
         as returned by check_scan_mos_matches().
     def_sample_name : str, optional
         Default name for samples. The default is ''.
-    def_zirc_size : int, optional
+    def_grain_size : int, optional
         Default max size for zircon crystals (µm). The default is 500.
     def_x_offset : int, optional
         Default x offset correction (µm) for scancsv files. The default is 0.
@@ -170,10 +170,10 @@ def matches_to_mos_info(input_matches_dict, def_sample_name = '',
 
 
     headers = ['Sample', 'Scanlist', 'Mosaic',
-               'Max_zircon_size', 'X_offset', 'Y_offset']
+               'Max_grain_size', 'X_offset', 'Y_offset']
 
     def_exp_vals = {'Sample': def_sample_name,
-                    'Max_zircon_size': def_zirc_size,
+                    'Max_grain_size': def_grain_size,
                     'X_offset': def_x_offset,
                     'Y_offset': def_y_offset}
 

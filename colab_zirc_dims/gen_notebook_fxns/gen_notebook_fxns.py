@@ -375,7 +375,7 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                              'Scale factor (µm/pixel)',
                                              'Scale factor from:',
                                              'Image filename'])
-    csv_filename = str(eachsample) + '_zircon_dimensions.csv'
+    csv_filename = str(eachsample) + '_grain_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)
 
@@ -453,7 +453,7 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_loaded_data_dict,
     os.makedirs(img_save_root_dir)
 
     #creates a directory for zircon dimension .csv files
-    csv_save_dir = os.path.join(run_dir, 'zircon_dimensions')
+    csv_save_dir = os.path.join(run_dir, 'grain_dimensions')
     os.makedirs(csv_save_dir)
 
     #initialize class instances for ETA, other output display

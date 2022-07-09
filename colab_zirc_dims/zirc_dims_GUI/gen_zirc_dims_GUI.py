@@ -213,7 +213,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
             #paths for saving
             img_save_root_dir = os.path.join(outputs_path, 'mask_images')
             each_img_save_dir = os.path.join(img_save_root_dir, str(sample_name))
-            csv_save_dir = os.path.join(outputs_path, 'zircon_dimensions')
+            csv_save_dir = os.path.join(outputs_path, 'grain_dimensions')
             #poly_save_dir = os.path.join(outputs_path, 'saved_polys')
 
             #directory for saving images for each sample
@@ -288,7 +288,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                                                      'Scale factor from:',
                                                      'Image filename',
                                                      'Human_or_auto', 'tagged?'])
-            csv_filename = str(sample_name) + '_zircon_dimensions.csv'
+            csv_filename = str(sample_name) + '_grain_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
 
@@ -598,7 +598,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                                          'Scale factor from:',
                                          'Image filename',
                                          'Human_or_auto', 'tagged?'])
-            csv_filename = str(sample_name) + '_zircon_dimensions.csv'
+            csv_filename = str(sample_name) + '_grain_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
             print('Analysis & export complete')
@@ -647,7 +647,7 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
     os.makedirs(img_save_root_dir)
 
     #creates a directory for zircon dimension .csv files
-    csv_save_dir = os.path.join(run_dir, 'zircon_dimensions')
+    csv_save_dir = os.path.join(run_dir, 'grain_dimensions')
     os.makedirs(csv_save_dir)
 
     if load_dir is not None:

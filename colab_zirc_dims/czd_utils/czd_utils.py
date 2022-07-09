@@ -10,6 +10,7 @@ calculating scale factors for images from .Align data.
 import os
 import operator
 import json
+import copy
 
 from urllib.request import urlopen
 
@@ -309,10 +310,16 @@ def check_mos_csv_keys(input_mos_csv_dict):
 
     """
     req_keys = ['Sample', 'Scanlist', 'Mosaic',
-                'Max_zircon_size', 'X_offset', 'Y_offset']
+                'Max_grain_size', 'X_offset', 'Y_offset']
     input_keys = list(input_mos_csv_dict.keys())
 
-    return all(key in input_keys for key in req_keys)
+    if all(key in input_keys for key in req_keys):
+        return True
+    #backwards compatability with original header "Max_zircon_size"
+    else:
+        req_keys = ['Sample', 'Scanlist', 'Mosaic',
+                    'Max_zircon_size', 'X_offset', 'Y_offset']
+        return all(key in input_keys for key in req_keys)
 
 
 def prediction_to_np(input_results):
@@ -576,7 +583,7 @@ def load_data_dict(project_dir_string):
         {'SAMPLE NAME': {'Scanlist': SCANLIST (.SCANCSV) PATH,
                          'Mosaic': MOSAIC .BMP PATH,
                          'Align_file': MOSAIC ALIGN FILE PATH,
-                         'Max_zircon_size': MAX USER-INPUT ZIRCON SIZE,
+                         'Max_grain_size': MAX USER-INPUT GRAIN SIZE,
                          'Offsets': [USER X OFFSET, USER Y OFFSET],
                          'Scan_dict': DICT LOADED FROM .SCANCSV FILE},
          ...}.
@@ -598,6 +605,10 @@ def load_data_dict(project_dir_string):
     if not check_mos_csv_keys(mos_csv_dict):
         print('Incorrect mosaic_info.csv headers: correct and re-save')
         return {}
+
+    #backwards compatability with old "Max_zircon_size" mosaic_info header
+    if "Max_zircon_size" in list(mos_csv_dict.keys()):
+        mos_csv_dict['Max_grain_size'] = copy.deepcopy(mos_csv_dict['Max_zircon_size'])
 
     # lists of files in directories
     mosaic_bmp_filenames = list_if_endswith(os.listdir(mosaic_path),
@@ -646,7 +657,7 @@ def load_data_dict(project_dir_string):
             temp_output_dict[eachsample]['Scanlist'] = act_scn_file
             temp_output_dict[eachsample]['Mosaic'] = act_mos_file
             temp_output_dict[eachsample]['Align_file'] = act_align_file
-            temp_output_dict[eachsample]['Max_zircon_size'] = mos_csv_dict['Max_zircon_size'][eachindex]
+            temp_output_dict[eachsample]['Max_grain_size'] = mos_csv_dict['Max_grain_size'][eachindex]
             temp_output_dict[eachsample]['Offsets'] = [mos_csv_dict['X_offset'][eachindex],
                                                        mos_csv_dict['Y_offset'][eachindex]]
             temp_output_dict[eachsample]['Scan_dict'] = coords_dict
@@ -666,7 +677,7 @@ def alc_calc_scans_n(inpt_mos_data_dict, inpt_selected_samples):
         {'SAMPLE NAME': {'Scanlist': SCANLIST (.SCANCSV) PATH,
                          'Mosaic': MOSAIC .BMP PATH,
                          'Align_file': MOSAIC ALIGN FILE PATH,
-                         'Max_zircon_size': MAX USER-INPUT ZIRCON SIZE,
+                         'Max_grain_size': MAX USER-INPUT ZIRCON SIZE,
                          'Offsets': [USER X OFFSET, USER Y OFFSET],
                          'Scan_dict': DICT LOADED FROM .SCANCSV FILE},
          ...}.

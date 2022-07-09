@@ -58,7 +58,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
         {'SAMPLE NAME': {'Scanlist': SCANLIST (.SCANCSV) PATH,
                          'Mosaic': MOSAIC .BMP PATH,
                          'Align_file': MOSAIC ALIGN FILE PATH,
-                         'Max_zircon_size': MAX USER-INPUT ZIRCON SIZE,
+                         'Max_grain_size': MAX USER-INPUT ZIRCON SIZE,
                          'Offsets': [USER X OFFSET, USER Y OFFSET],
                          'Scan_dict': DICT LOADED FROM .SCANCSV FILE},
          ...}.
@@ -214,7 +214,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
             #paths for saving
             img_save_root_dir = os.path.join(outputs_path, 'mask_images')
             each_img_save_dir = os.path.join(img_save_root_dir, str(sample_name))
-            csv_save_dir = os.path.join(outputs_path, 'zircon_dimensions')
+            csv_save_dir = os.path.join(outputs_path, 'grain_dimensions')
             #poly_save_dir = os.path.join(outputs_path, 'saved_polys')
 
             #directory for saving images for each sample
@@ -279,7 +279,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                                                      'Circularity',
                                                      'Scale factor (µm/pixel)',
                                                      'Human_or_auto', 'tagged?'])
-            csv_filename = str(sample_name) + '_zircon_dimensions.csv'
+            csv_filename = str(sample_name) + '_grain_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
 
@@ -429,7 +429,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
         #loads sample mosaic
         each_mosaic = mos_proc.MosImg(curr_dict_copy['Mosaic'],
                                       curr_dict_copy['Align_file'],
-                                      curr_dict_copy['Max_zircon_size'],
+                                      curr_dict_copy['Max_grain_size'],
                                       curr_dict_copy['Offsets'])
         curr_scan_names = list(curr_dict_copy['Scan_dict'].keys())
         print('Sample:', index_tracker.curr_sample)
@@ -572,7 +572,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                                          'Minor axis length (µm)', 'Circularity',
                                          'Scale factor (µm/pixel)',
                                          'Human_or_auto', 'tagged?'])
-            csv_filename = str(sample_name) + '_zircon_dimensions.csv'
+            csv_filename = str(sample_name) + '_grain_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
             print('Analysis & export complete')
@@ -589,7 +589,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                 print('Analyzing dimensions from saved polygons:', each_sample)
                 sample_mosaic = mos_proc.MosImg(each_dict_copy['Mosaic'],
                                                 each_dict_copy['Align_file'],
-                                                each_dict_copy['Max_zircon_size'],
+                                                each_dict_copy['Max_grain_size'],
                                                 each_dict_copy['Offsets'])
                 sample_dimensions_from_polys(each_dict_copy, sample_mosaic,
                                              loadable_polys, sample_scan_names,
@@ -624,7 +624,7 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
     os.makedirs(img_save_root_dir)
 
     #creates a directory for zircon dimension .csv files
-    csv_save_dir = os.path.join(run_dir, 'zircon_dimensions')
+    csv_save_dir = os.path.join(run_dir, 'grain_dimensions')
     os.makedirs(csv_save_dir)
 
     if load_dir is not None:

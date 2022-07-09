@@ -105,7 +105,7 @@ def inspect_data(inpt_mos_data_dict, inpt_selected_samples, n_scans_sample = 3):
         print(3*'\n')
         each_mosaic = mos_proc.MosImg(inpt_mos_data_dict[eachsample]['Mosaic'],
                                       inpt_mos_data_dict[eachsample]['Align_file'],
-                                      inpt_mos_data_dict[eachsample]['Max_zircon_size'],
+                                      inpt_mos_data_dict[eachsample]['Max_grain_size'],
                                       inpt_mos_data_dict[eachsample]['Offsets'])
         scan_sample = random.sample(inpt_mos_data_dict[eachsample]['Scan_dict'].keys(),
                                     n_scans_sample)
@@ -210,7 +210,7 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
     for eachsample in inpt_selected_samples:
         each_mosaic = mos_proc.MosImg(inpt_mos_data_dict[eachsample]['Mosaic'],
                                       inpt_mos_data_dict[eachsample]['Align_file'],
-                                      inpt_mos_data_dict[eachsample]['Max_zircon_size'],
+                                      inpt_mos_data_dict[eachsample]['Max_grain_size'],
                                       inpt_mos_data_dict[eachsample]['Offsets'])
         scan_sample = random.sample(inpt_mos_data_dict[eachsample]['Scan_dict'].keys(),
                                     n_scans_sample)
@@ -302,7 +302,7 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     #loads mosaic file, automatically increasing contrast if needed
     each_mosaic = mos_proc.MosImg(inpt_mos_data_dict[eachsample]['Mosaic'],
                                   inpt_mos_data_dict[eachsample]['Align_file'],
-                                  inpt_mos_data_dict[eachsample]['Max_zircon_size'],
+                                  inpt_mos_data_dict[eachsample]['Max_grain_size'],
                                   inpt_mos_data_dict[eachsample]['Offsets'])
 
     #extracts zircon subimage and runs predictor for each scan
@@ -373,7 +373,7 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                              'Minor axis length (µm)',
                                              'Circularity',
                                              'Scale factor (µm/pixel)'])
-    csv_filename = str(eachsample) + '_zircon_dimensions.csv'
+    csv_filename = str(eachsample) + '_grain_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)
 
@@ -450,7 +450,7 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     os.makedirs(img_save_root_dir)
 
     #creates a directory for zircon dimension .csv files
-    csv_save_dir = os.path.join(run_dir, 'zircon_dimensions')
+    csv_save_dir = os.path.join(run_dir, 'grain_dimensions')
     os.makedirs(csv_save_dir)
 
     #initialize class instances for ETA, other output display
