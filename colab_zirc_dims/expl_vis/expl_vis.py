@@ -122,7 +122,7 @@ def filter_data(input_dict, input_sel_samples, filter_failed, str_chckbox,
                 for eachkey in each_sample_vals.keys():
                     add_val = each_sample_vals[eachkey][each_spot_idx]
                     output_dict[each_sample][eachkey].append(add_val)
-                    spots_included += 1
+                spots_included += 1
             else:
                 spots_excluded += 1
 
@@ -444,7 +444,8 @@ def filter_data_ui(mutable_full_dict, mutable_filtered_dict,
                                 " the sample selection UI near the top of the notebook",
                                 " (i.e., 'Data Loading') will be included for visualization. To",
                                 " change sample selection, modify the sample selection",
-                                " using the UI, then re-run this cell."])
+                                " using that UI then, re-click the 'Filter data'",
+                                " button."])
     ui = widgets.VBox([widgets.HTML(value = '''<br> <font size="+2"> <b>Dataset filtering</b> </font>'''),
                        widgets.HTML(value = filter_data_desc),
                        failed_chckbox,
