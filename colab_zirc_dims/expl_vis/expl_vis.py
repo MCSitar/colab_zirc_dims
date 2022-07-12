@@ -624,7 +624,7 @@ def exploratory_plot_ui(dataset_for_plot):
 
     #X-Y plotting UI
     XY_expl_str = ''.join(["Use the interface below to parameterize an X-Y plot",
-                           "of your dataset measurements."])
+                           " of your dataset measurements."])
     XY_x_param_dropdown = widgets.Dropdown(options=plottable_params,
                                           value='Major axis length (µm)',
                                          layout = {'width': 'max-content'})
