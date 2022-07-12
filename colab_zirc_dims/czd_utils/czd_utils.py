@@ -506,6 +506,37 @@ def scancsv_to_dict(scancsv_path):
             added_scans_unchanged.append(eachscan)
     return temp_coords_dict
 
+def czd_csvs_to_dict(input_path):
+    """Extract measurements in a colab_zirc_dims run directory to
+       a dictionary.
+
+    Parameters
+    ----------
+    input_path : str
+        Path to run directory
+        (e.g., "/content/drive/My Drive/example_dataset/outputs/myrun"
+         from which measurements will be extracted.
+
+    Returns
+    -------
+    output_dict : dict
+        Dict of format {sample1: {header1: [row1, row2,...],...}, ...}.
+
+    """
+    output_dict = {}
+    possible_dir_names = ['zircon_dimensions', 'grain_dimensions']
+    toplevel_dirs = [f for f in os.scandir(input_path)
+                     if f.is_dir() and f.name in possible_dir_names]
+    grain_zircon_str = toplevel_dirs[0].name
+    dimensions_files = [f for f in os.scandir(toplevel_dirs[0])
+                        if grain_zircon_str in f.name]
+    strip_len = len('_' + grain_zircon_str + '.csv')
+    sample_names = [f.name[:-strip_len] for f in dimensions_files]
+    for idx, each_sample_path in enumerate([f.path for f in dimensions_files]):
+        each_sample_name = sample_names[idx]
+        output_dict[each_sample_name] = pd.read_csv(each_sample_path, header=0,
+                                                    index_col=False).to_dict('list')
+    return output_dict
 
 def get_Align_center_size(align_file_path):
     """Gets the data tagged as 'Center', 'Size' (microns), and 'Rotation'
