@@ -658,3 +658,6 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
 
     #starts annotator for first time/sample
     load_and_annotate(Predictor)
+    
+    #return run dir for use in exploratory plotting
+    return run_dir

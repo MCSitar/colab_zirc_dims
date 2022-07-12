@@ -41,7 +41,8 @@ __all__ = ['check_url',
            'get_Align_center_size',
            'calc_scale_factor',
            'load_data_dict',
-           'alc_calc_scans_n']
+           'alc_calc_scans_n',
+           'czd_csvs_to_dict']
 
 ### Various functions and classes for file processing and code simplification
 ### in other modules below.
