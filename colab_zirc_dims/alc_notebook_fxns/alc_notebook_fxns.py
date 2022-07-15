@@ -340,7 +340,8 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
             #optionally converts mask to polygon and adds it to json_dict for saving
             if inpt_save_polys_bool:
                 save_load.auto_append_json_dict(each_json_dict, str(eachscan),
-                                                central_mask[1], each_mosaic.scale_factor)
+                                                central_mask[1], each_mosaic.scale_factor,
+                                                contour = each_props.contour)
 
         #gives empty outputs if no mask image
         else:
