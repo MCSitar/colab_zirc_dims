@@ -157,7 +157,7 @@ def auto_append_json_dict(json_dict, spot_name, spot_mask, curr_scale_factor = 1
 
     """
     new_poly = None
-    if isinstance(contour, None):
+    if isinstance(contour, type(None)):
         #convert mask to polygon
         new_poly = poly_utils.mask_to_poly(spot_mask, scale_factor = curr_scale_factor)
     else:
