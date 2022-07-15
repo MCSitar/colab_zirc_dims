@@ -161,7 +161,7 @@ def auto_append_json_dict(json_dict, spot_name, spot_mask, curr_scale_factor = 1
         #convert mask to polygon
         new_poly = poly_utils.mask_to_poly(spot_mask, scale_factor = curr_scale_factor)
     else:
-        new_poly = poly_utils.mask_to_poly(contour, spot_mask.shape,
+        new_poly = poly_utils.contour_to_poly(contour, spot_mask.shape,
                                            scale_factor = curr_scale_factor)
 
     #add spot name, polygon to input dictionary

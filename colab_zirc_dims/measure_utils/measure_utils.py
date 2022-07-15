@@ -82,8 +82,6 @@ def mask_to_min_rect(inpt_mask):
         Equivalent to skimage.measure.regionprops.orientation.
     box_points : tuple(list[float], list[float])
         X and Y points for 4 + 1 corners of box (lines return to starting point).
-    contours:  np array
-        An array (n, 2) with n (row, column) coordinates for contour of central mask.
 
     """
     contours = poly_utils.contours_from_mask(inpt_mask, convex=True)
@@ -96,7 +94,7 @@ def mask_to_min_rect(inpt_mask):
     else:
         angle = -np.radians(rect_rot + 90)
     box_points = min_rect_to_lines(minrect_out)
-    return (c_x, c_y), (min_ax, maj_ax), angle, box_points, contours
+    return (c_x, c_y), (min_ax, maj_ax), angle, box_points
     
 
 class box_main_region_props:
@@ -136,8 +134,6 @@ class box_main_region_props:
             Equivalent to skimage.measure.regionprops.orientation, but for rectangle.
         rect_points: tuple(list[float], list[float])
             X and Y points for 4 + 1 corners of box (lines return to starting point).
-        contour:  np array
-            An array (n, 2) with n (row, column) coordinates for contour of central mask.
         Other properties
             [centroid, minor_axis_length, major_axis_length,
             orientation, area, convex_area, perimeter,
@@ -150,7 +146,7 @@ class box_main_region_props:
         (
             self.rect_centroid,
             (self.rect_minor_axis_length, self.rect_major_axis_length),
-            self.rect_orientation, self.rect_points, self.contour
+            self.rect_orientation, self.rect_points
             ) = mask_to_min_rect(inpt_mask)
         self.centroid = self.basic_region_props.centroid
         self.minor_axis_length = self.basic_region_props.minor_axis_length
