@@ -19,7 +19,8 @@ __all__ = ['find_Align',
            'gen_calc_scans_n',
            'get_save_fields']
 
-def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = []):
+def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [],
+                    get_nulls=False):
     """A function to standardize saving colab_zirc_dims measurements to .csv
         files and make adding new measurements quicker. Returns a list of
         output .csv column headers, depending on inputs.
@@ -35,6 +36,9 @@ def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [])
     addit_fields : List[str], optional
         List with any additional fields that need to be added to headers list.
         The default is [].
+    get_nulls : Bool
+        If true, get a list of 0s with length of properties that won't have
+        any data input unless a measurement is made.
 
     Returns
     -------
@@ -56,7 +60,12 @@ def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [])
     
     addit_gen_save_fields = ['Scale factor from:', 'Image filename']
     addit_GUI_save_fields = ['Human_or_auto', 'tagged?']
-    
+    poss_invariate_fields = ['Analysis', 'Scale factor (µm/pixel)']
+
+    if get_nulls:
+        null_fields = [prop for prop in default_save_fields if prop not in poss_invariate_fields]
+        return [0 for _ in range(len(null_fields))]
+
     ret_save_fields = default_save_fields
     if proj_type == 'general':
         ret_save_fields = [*ret_save_fields, *addit_gen_save_fields]

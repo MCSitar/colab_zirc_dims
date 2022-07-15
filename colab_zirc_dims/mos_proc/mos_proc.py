@@ -371,7 +371,7 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False,
 
     """
     #initialize empty (null values) props list
-    props_list = [analys_name, 0, 0, 0, 0, 0, 0, 0, 0, img_scale_factor]
+    props_list = [analys_name, *czd_utils.get_save_fields(get_nulls=True), img_scale_factor]
     #if no region found, skip and return null properties
     if props == []:
         if verbose:
