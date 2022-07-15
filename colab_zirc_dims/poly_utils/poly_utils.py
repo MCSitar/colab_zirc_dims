@@ -113,11 +113,11 @@ def contours_from_mask(mask_for_conversion, convex = False):
 
     if convex:
         #convex area for contour finding
-        filled_binary, f_bbox = [(props.image_convex, props.bbox) for props in
+        filled_binary, f_bbox = [(props.convex_image, props.bbox) for props in
                                  regions if props.label == main_region_label][0]
     else:
         #filled area for better contour finding; only relevant for Otsu masks
-        filled_binary, f_bbox = [(props.image_filled, props.bbox) for props in
+        filled_binary, f_bbox = [(props.filled_image, props.bbox) for props in
                                  regions if props.label == main_region_label][0]
 
     mask_filled = mask_labels == main_region_label
