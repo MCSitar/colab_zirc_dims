@@ -12,7 +12,8 @@ import skimage.measure as measure
 __all__ = ['mask_to_poly',
            'poly_to_mask',
            'vertex_dict_to_list',
-           'poly_dicts_to_arrays']
+           'poly_dicts_to_arrays',
+           'contours_from_mask']
 
 # code for fxn below significantly modified from: \
 # https://github.com/waspinator/pycococreator (covered by Apache-2.0 License)
@@ -55,31 +56,7 @@ def mask_to_poly(mask_for_conversion, tolerance = 1, scale_factor = 1.0):
     #adjust tolerance to image size so that polygons are consistent during processing
     adj_tolerance = tolerance / scale_factor
 
-    mask_labels, labels_nnum = measure.label(mask_for_conversion.astype(int), return_num=True)
-
-    main_region_label = 1
-    
-    regions = measure.regionprops(mask_labels)
-
-    if labels_nnum > 1:
-        #selects largest region in case central zircon mask has multiple disconnected regions
-        area_list = [props.area for props in regions]
-        main_region_label = regions[area_list.index(max(area_list))].label
-
-    #filled area for better contour finding; only relevant for Otsu masks
-    filled_binary, f_bbox = [(props.image_filled, props.bbox) for props in
-                             regions if props.label == main_region_label][0]
-    mask_filled = mask_labels == main_region_label
-    mask_filled[f_bbox[0]:f_bbox[2],f_bbox[1]:f_bbox[3]] = filled_binary
-
-    # padding of mask is apparently necessary for contour closure.
-    pad_fill = np.pad(mask_filled.astype(int), pad_width = 1,
-                      mode='constant', constant_values = 0)
-
-    #gets contours of mask
-    mask_contours = measure.find_contours(pad_fill, 0.5)[0]
-
-    mask_contours = np.subtract(mask_contours, 1)
+    mask_contours = contours_from_mask(mask_for_conversion)
     mask_contours = close_contour(mask_contours)
     poly_pts = measure.approximate_polygon(mask_contours, adj_tolerance) #converts contours to mask
 
@@ -98,6 +75,64 @@ def mask_to_poly(mask_for_conversion, tolerance = 1, scale_factor = 1.0):
         export_polygon.append(pt_dict)
 
     return export_polygon
+
+# code for fxn below significantly modified from: \
+# https://github.com/waspinator/pycococreator (covered by Apache-2.0 License)
+def contours_from_mask(mask_for_conversion, convex = False):
+    """Convert a numpy mask array to polygon suitable for GUI display, editing.
+
+    Parameters
+    ----------
+    mask_for_conversion : np array
+        A numpy binary array representing the central zircon mask for an image,
+        as returned by (successfully) running mos_proc.get_central_mask().
+    convex : Bool, optional
+        Determines whether or not convex hull (vs. normal) contours will be
+        returned. The default is False.
+
+    Returns
+    -------
+    mask_contours : np array
+        An array (n, 2) with n (row, column) coordinates for contour of main
+        mask region.
+
+    """
+
+    mask_labels, labels_nnum = measure.label(mask_for_conversion.astype(int), return_num=True)
+
+    main_region_label = 1
+
+    regions = measure.regionprops(mask_labels)
+
+    if labels_nnum > 1:
+        #selects largest region in case central zircon mask has multiple disconnected regions
+        area_list = [props.area for props in regions]
+        main_region_label = regions[area_list.index(max(area_list))].label
+
+    filled_binary, f_bbox = [], []
+
+    if convex:
+        #convex area for contour finding
+        filled_binary, f_bbox = [(props.image_convex, props.bbox) for props in
+                                 regions if props.label == main_region_label][0]
+    else:
+        #filled area for better contour finding; only relevant for Otsu masks
+        filled_binary, f_bbox = [(props.image_filled, props.bbox) for props in
+                                 regions if props.label == main_region_label][0]
+
+    mask_filled = mask_labels == main_region_label
+    mask_filled[f_bbox[0]:f_bbox[2],f_bbox[1]:f_bbox[3]] = filled_binary
+
+    # padding of mask is apparently necessary for contour closure.
+    pad_fill = np.pad(mask_filled.astype(int), pad_width = 1,
+                      mode='constant', constant_values = 0)
+
+    #gets contours of mask
+    mask_contours = measure.find_contours(pad_fill, 0.5, fully_connected='high')[0]
+
+    mask_contours = np.subtract(mask_contours, 1)
+
+    return mask_contours
 
 
 def poly_to_mask(poly_for_conversion, original_image):

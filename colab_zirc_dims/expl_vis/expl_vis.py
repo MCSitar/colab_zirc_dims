@@ -507,6 +507,7 @@ def exploratory_plot_ui(dataset_for_plot):
                         'Minor axis length (µm)',
                         'Circularity']
 
+
     #bar-whisker plotting UI
     bp_expl_str = ''.join(["Use the interface below to parameterize a bar",
                            " and whisker plot of your dataset measurements.",
@@ -670,6 +671,48 @@ def exploratory_plot_ui(dataset_for_plot):
     plot_ui_io_dict = {'sel_plot': plot_type_dropdown}
 
     plot_ui_vis_dict = {'Bar-whisker': bp_ui, 'Histogram': hist_ui, 'X-Y': XY_ui}
+    
+    #record whether parameter selection widgets need to be updated
+    key_av_dict = {'prev_new_keys_available': False}
+
+    def check_for_new_keys():
+        default_params = ['Area (µm^2)',
+                          'Convex area (µm^2)',
+                          'Eccentricity',
+                          'Equivalent diameter (µm)',
+                          'Perimeter (µm)',
+                          'Major axis length (µm)',
+                          'Minor axis length (µm)',
+                          'Circularity']
+        
+        new_params = ['Feret diameter (µm)', 'Feret-orthogonal diameter (µm)']
+        widg_plot_params = []
+        mismatch_found = False
+        dataset_keys = list(dataset_for_plot.keys())
+        new_keys_available = False
+        for key in dataset_keys[:1]:
+            if 'Feret diameter (µm)' in list(dataset_for_plot[key].keys()):
+                new_keys_available = True
+        if new_keys_available != key_av_dict['prev_new_keys_available']:
+            for param in default_params:
+                widg_plot_params.append(param)
+            if new_keys_available:
+                for new_param in new_params:
+                    widg_plot_params.append(new_param)
+            for param_widget in [bp_param_dropdown, bp_sort_param_dropdown,
+                                 hist_param_dropdown, XY_x_param_dropdown,
+                                 XY_y_param_dropdown]:
+                orig_status = param_widget.disabled
+                orig_value = param_widget.value
+                param_widget.disabled = False
+                if orig_value in new_params and not new_keys_available:
+                    param_widget.value = 'Major axis length (µm)'
+                    mismatch_found = True
+                param_widget.options = widg_plot_params
+                param_widget.disabled = orig_status
+        new_update_dict = {'prev_new_keys_available': new_keys_available}
+        key_av_dict.update(new_update_dict)
+        return mismatch_found
 
 
     def handle_plot_ui_visibility(**kwargs):
@@ -679,6 +722,7 @@ def exploratory_plot_ui(dataset_for_plot):
                     ui_obj.layout.display = None
                 else:
                     ui_obj.layout.display = 'none'
+        _ = check_for_new_keys()
 
     ui = widgets.VBox([widgets.HTML(value = '''<br> <font size="+2"> <b>Exploratory plotting</b> </font>'''),
                        widgets.HTML(value = exp_plot_expl_str),
@@ -688,7 +732,13 @@ def exploratory_plot_ui(dataset_for_plot):
 
     def plot_button_fxn(_):
         plot_output.clear_output()
-        if dataset_for_plot:
+        break_bool = False
+        if check_for_new_keys():
+            with plot_output:
+                print('Old dataset loaded without selected measurements.',
+                      'Re-select measurements to plot and try again.')
+            break_bool = True
+        if dataset_for_plot and not break_bool:
             #update 'color_dict' with any new vals from dataset
             create_update_plot_color_dict(dataset_for_plot, color_dict)
             plot_selection = plot_type_dropdown.value
@@ -711,7 +761,7 @@ def exploratory_plot_ui(dataset_for_plot):
                                                     plot_dpi=dpi_entered)
                 if fig:
                     plt.show(fig)
-        else:
+        if not dataset_for_plot:
             with plot_output:
                 print('No dataset loaded; plotting unavailable.')
     plot_button.on_click(plot_button_fxn)

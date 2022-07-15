@@ -364,17 +364,9 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
         eta_trk.stop_update_eta()
     #converts collected data to pandas DataFrame, saves as .csv
     output_dataframe = pd.DataFrame(output_data_list,
-                                    columns=['Analysis', 'Area (µm^2)',
-                                             'Convex area (µm^2)',
-                                             'Eccentricity',
-                                             'Equivalent diameter (µm)',
-                                             'Perimeter (µm)',
-                                             'Major axis length (µm)',
-                                             'Minor axis length (µm)',
-                                             'Circularity',
-                                             'Scale factor (µm/pixel)',
-                                             'Scale factor from:',
-                                             'Image filename'])
+                                    columns=czd_utils.get_save_fields(proj_type='general',
+                                                                      save_type='auto',
+                                                                      addit_fields=[]))
     csv_filename = str(eachsample) + '_grain_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)

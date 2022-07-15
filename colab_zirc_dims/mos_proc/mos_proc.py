@@ -21,6 +21,7 @@ import skimage.io as skio
 
 from .. import czd_utils
 from .. import pointgen
+from .. import measure_utils
 
 __all__ = ['mask_size_at_pt',
            'get_central_mask',
@@ -260,6 +261,10 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
         ax.plot((x0, x2), (y0, y2), '-r', linewidth=1.5)
         ax.plot(x0, y0, '.g', markersize=10)
 
+        #plot minimum bounding rectangle atop image (source of Feret diameter)
+        ax.plot(*main_region.rect_points, color = 'b',
+                linestyle = '--', alpha =0.4, linewidth=1.0)
+
     #mark 'failed' shots
     else:
         adj_analys_name = str(analys_name) + '_failed'
@@ -328,7 +333,7 @@ def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
     input_central_mask = czd_utils.mask_to_3D_arr_size(input_central_mask,
                                                        original_image)
     #get main region properties
-    main_region = get_main_region_props(input_central_mask)
+    main_region = measure_utils.box_main_region_props(input_central_mask)
 
     if display_bool or save_dir:
         save_show_results_img(original_image, analys_name, display_bool,
@@ -383,10 +388,13 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False,
     major_leng = props.major_axis_length * img_scale_factor
     minor_leng = props.minor_axis_length * img_scale_factor
     roundness = 4 * math.pi * props.area / props.perimeter**2
+    Feret_diam = props.rect_major_axis_length
+    orth_feret_diam = props.rect_minor_axis_length
     scale_factor = img_scale_factor
 
     props_list = [analys_name, area, convex_area, eccent, eq_diam, perim,
-                  major_leng, minor_leng, roundness, scale_factor]
+                  major_leng, minor_leng, roundness, Feret_diam,
+                  orth_feret_diam, scale_factor]
     for addit_prop in addit_props:
         props_list.append(addit_prop)
 

@@ -16,7 +16,56 @@ __all__ = ['find_Align',
            'check_unused_samples',
            'unique_scan_name',
            'load_gen_data_dict',
-           'gen_calc_scans_n']
+           'gen_calc_scans_n',
+           'get_save_fields']
+
+def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = []):
+    """A function to standardize saving colab_zirc_dims measurements to .csv
+        files and make adding new measurements quicker. Returns a list of
+        output .csv column headers, depending on inputs.
+
+    Parameters
+    ----------
+    proj_type : str, optional
+        String ('default' or 'general') defining project type.
+        The default is 'mosaic'.
+    save_type : str, optional
+        String ('auto' or 'GUI') defining saving interface type.
+        The default is 'auto'.
+    addit_fields : List[str], optional
+        List with any additional fields that need to be added to headers list.
+        The default is [].
+
+    Returns
+    -------
+    ret_save_fields : TYPE
+        DESCRIPTION.
+
+    """
+    default_save_fields = ['Analysis', 'Area (µm^2)',
+                           'Convex area (µm^2)',
+                           'Eccentricity',
+                           'Equivalent diameter (µm)',
+                           'Perimeter (µm)',
+                           'Major axis length (µm)',
+                           'Minor axis length (µm)',
+                           'Circularity',
+                           'Feret diameter (µm)',
+                           'Feret-orthogonal diameter (µm)',
+                           'Scale factor (µm/pixel)']
+    
+    addit_gen_save_fields = ['Scale factor from:', 'Image filename']
+    addit_GUI_save_fields = ['Human_or_auto', 'tagged?']
+    
+    ret_save_fields = default_save_fields
+    if proj_type == 'general':
+        ret_save_fields = [*ret_save_fields, *addit_gen_save_fields]
+    if save_type == 'GUI':
+        ret_save_fields = [*ret_save_fields, *addit_GUI_save_fields]
+    ret_save_fields = [*ret_save_fields, *addit_fields]
+    return ret_save_fields
+    
+
 
 def find_Align(name, all_files_list, img_suffix = '.png'):
     """Find a .Align file matching (same except for file type) an image file.

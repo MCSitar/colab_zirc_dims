@@ -269,16 +269,9 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
 
             #converts collected data to pandas DataFrame, saves as .csv
             output_dataframe = pd.DataFrame(output_data_list,
-                                            columns=['Analysis', 'Area (µm^2)',
-                                                     'Convex area (µm^2)',
-                                                     'Eccentricity',
-                                                     'Equivalent diameter (µm)',
-                                                     'Perimeter (µm)',
-                                                     'Major axis length (µm)',
-                                                     'Minor axis length (µm)',
-                                                     'Circularity',
-                                                     'Scale factor (µm/pixel)',
-                                                     'Human_or_auto', 'tagged?'])
+                                            columns=czd_utils.get_save_fields(proj_type='mosaic',
+                                                                              save_type='GUI',
+                                                                              addit_fields=[]))
             csv_filename = str(sample_name) + '_grain_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
@@ -565,13 +558,9 @@ def run_alc_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
                                                    scale_factor=scale_fact)
 
             output_dataframe = pd.DataFrame(output_data_list,
-                                columns=['Analysis', 'Area (µm^2)',
-                                         'Convex area (µm^2)', 'Eccentricity',
-                                         'Equivalent diameter (µm)',
-                                         'Perimeter (µm)', 'Major axis length (µm)',
-                                         'Minor axis length (µm)', 'Circularity',
-                                         'Scale factor (µm/pixel)',
-                                         'Human_or_auto', 'tagged?'])
+                                columns=czd_utils.get_save_fields(proj_type='mosaic',
+                                                                  save_type='GUI',
+                                                                  addit_fields=[]))
             csv_filename = str(sample_name) + '_grain_dimensions.csv'
             output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
             czd_utils.save_csv(output_csv_filepath, output_dataframe)
