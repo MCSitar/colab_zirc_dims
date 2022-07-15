@@ -702,13 +702,17 @@ def exploratory_plot_ui(dataset_for_plot):
             for param_widget in [bp_param_dropdown, bp_sort_param_dropdown,
                                  hist_param_dropdown, XY_x_param_dropdown,
                                  XY_y_param_dropdown]:
+                mismatch_found_here = False
                 orig_status = param_widget.disabled
                 orig_value = param_widget.value
                 param_widget.disabled = False
                 if orig_value in new_params and not new_keys_available:
                     param_widget.value = 'Major axis length (µm)'
                     mismatch_found = True
+                    mismatch_found_here = True
                 param_widget.options = widg_plot_params
+                if not mismatch_found_here:
+                    param_widget.value = orig_value
                 param_widget.disabled = orig_status
         new_update_dict = {'prev_new_keys_available': new_keys_available}
         key_av_dict.update(new_update_dict)
