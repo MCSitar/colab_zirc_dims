@@ -55,23 +55,29 @@ def mask_to_poly(mask_for_conversion, tolerance = 1, scale_factor = 1.0):
     #adjust tolerance to image size so that polygons are consistent during processing
     adj_tolerance = tolerance / scale_factor
 
-    # padding of mask is apparently necessary for contour closure. /
-    # This line also converts mask to binary.
-    padded_mask = np.pad(mask_for_conversion.astype(int), pad_width = 1,
-                         mode='constant', constant_values = 0)
-
-    mask_labels, labels_nnum = measure.label(padded_mask, return_num=True)
+    mask_labels, labels_nnum = measure.label(mask_for_conversion.astype(int), return_num=True)
 
     main_region_label = 1
+    
+    regions = measure.regionprops(mask_labels)
 
     if labels_nnum > 1:
         #selects largest region in case central zircon mask has multiple disconnected regions
-        regions = measure.regionprops(mask_labels)
         area_list = [props.area for props in regions]
         main_region_label = regions[area_list.index(max(area_list))].label
 
+    #filled area for better contour finding; only relevant for Otsu masks
+    filled_binary, f_bbox = [(props.image_filled, props.bbox) for props in
+                             regions if props.label == main_region_label][0]
+    mask_filled = mask_labels == main_region_label
+    mask_filled[f_bbox[0]:f_bbox[2],f_bbox[1]:f_bbox[3]] = filled_binary
+
+    # padding of mask is apparently necessary for contour closure.
+    pad_fill = np.pad(mask_filled.astype(int), pad_width = 1,
+                      mode='constant', constant_values = 0)
+
     #gets contours of mask
-    mask_contours = measure.find_contours(mask_labels == main_region_label, 0.5)[0]
+    mask_contours = measure.find_contours(pad_fill, 0.5)[0]
 
     mask_contours = np.subtract(mask_contours, 1)
     mask_contours = close_contour(mask_contours)
