@@ -82,7 +82,7 @@ def mask_to_min_rect(inpt_mask):
         Equivalent to skimage.measure.regionprops.orientation.
     box_points : tuple(list[float], list[float])
         X and Y points for 4 + 1 corners of box (lines return to starting point).
-    contour:  np array
+    contours:  np array
         An array (n, 2) with n (row, column) coordinates for contour of central mask.
 
     """

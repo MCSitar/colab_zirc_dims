@@ -388,8 +388,8 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False,
     major_leng = props.major_axis_length * img_scale_factor
     minor_leng = props.minor_axis_length * img_scale_factor
     roundness = 4 * math.pi * props.area / props.perimeter**2
-    Feret_diam = props.rect_major_axis_length
-    orth_feret_diam = props.rect_minor_axis_length
+    Feret_diam = props.rect_major_axis_length * img_scale_factor
+    orth_feret_diam = props.rect_minor_axis_length * img_scale_factor
     scale_factor = img_scale_factor
 
     props_list = [analys_name, area, convex_area, eccent, eq_diam, perim,
