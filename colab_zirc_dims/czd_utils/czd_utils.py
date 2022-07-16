@@ -10,6 +10,7 @@ calculating scale factors for images from .Align data.
 import os
 import operator
 import json
+import copy
 
 from urllib.request import urlopen
 
@@ -33,13 +34,15 @@ __all__ = ['check_url',
            'prediction_to_np',
            'mask_list_to_np',
            'rescale_2d_arr',
+           'rotate_pt',
            'crop_nd_arr',
            'mask_to_3D_arr_size',
            'scancsv_to_dict',
            'get_Align_center_size',
            'calc_scale_factor',
            'load_data_dict',
-           'alc_calc_scans_n']
+           'alc_calc_scans_n',
+           'czd_csvs_to_dict']
 
 ### Various functions and classes for file processing and code simplification
 ### in other modules below.
@@ -308,10 +311,16 @@ def check_mos_csv_keys(input_mos_csv_dict):
 
     """
     req_keys = ['Sample', 'Scanlist', 'Mosaic',
-                'Max_zircon_size', 'X_offset', 'Y_offset']
+                'Max_grain_size', 'X_offset', 'Y_offset']
     input_keys = list(input_mos_csv_dict.keys())
 
-    return all(key in input_keys for key in req_keys)
+    if all(key in input_keys for key in req_keys):
+        return True
+    #backwards compatability with original header "Max_zircon_size"
+    else:
+        req_keys = ['Sample', 'Scanlist', 'Mosaic',
+                    'Max_zircon_size', 'X_offset', 'Y_offset']
+        return all(key in input_keys for key in req_keys)
 
 
 def prediction_to_np(input_results):
@@ -379,6 +388,32 @@ def rescale_2d_arr(im, nR, nC):
     nC0 = len(im[0])  # source number of columns
     return np.asarray([[ im[int(nR0 * r / nR)][int(nC0 * c / nC)]
                         for c in range(nC)] for r in range(nR)])
+
+def rotate_pt(pt, theta, center):
+    """Rotate an x-y coordinate point clockwise by theta degrees around x-y
+       coordinate point theta.
+
+    Parameters
+    ----------
+    pt : tuple (x, y)
+        Coordinates of point for rotation.
+    theta : float or int
+        Degrees for clockwise rotation of pt around center.
+    center : tuple (x, y)
+        Coordinates of center for rotation operation.
+
+    Returns
+    -------
+    x_new : float
+        X coordinate of rotated point.
+    y_new : float
+        Y coordinate of rotated point.
+
+    """
+    cos_theta, sin_theta = np.cos(np.radians(theta)), np.sin(np.radians(theta))
+    x_new = (pt[0] - center[0]) * cos_theta + (pt[1] - center[1]) * sin_theta + center[0]
+    y_new = -(pt[0] - center[0]) * sin_theta + (pt[1] - center[1]) * cos_theta + center[1]
+    return (x_new, y_new)
 
 
 # from https://stackoverflow.com/a/50322574
@@ -452,8 +487,7 @@ def scancsv_to_dict(scancsv_path):
     temp_coords_dict = {}
     # scanlist from .scancsv file, loaded as a dict
     each_scanlist = pd.read_csv(scancsv_path, header=0, index_col=False,
-                                squeeze=False, encoding='cp1252'
-                                ).to_dict('list')
+                                encoding='cp1252').to_dict('list')
     added_scans_unchanged = []  # list of scans added to output dictionary
 
     # loops through shotlist, gets coordinates for each scan, \
@@ -473,11 +507,42 @@ def scancsv_to_dict(scancsv_path):
             added_scans_unchanged.append(eachscan)
     return temp_coords_dict
 
+def czd_csvs_to_dict(input_path):
+    """Extract measurements in a colab_zirc_dims run directory to
+       a dictionary.
+
+    Parameters
+    ----------
+    input_path : str
+        Path to run directory
+        (e.g., "/content/drive/My Drive/example_dataset/outputs/myrun"
+         from which measurements will be extracted.
+
+    Returns
+    -------
+    output_dict : dict
+        Dict of format {sample1: {header1: [row1, row2,...],...}, ...}.
+
+    """
+    output_dict = {}
+    possible_dir_names = ['zircon_dimensions', 'grain_dimensions']
+    toplevel_dirs = [f for f in os.scandir(input_path)
+                     if f.is_dir() and f.name in possible_dir_names]
+    grain_zircon_str = toplevel_dirs[0].name
+    dimensions_files = [f for f in os.scandir(toplevel_dirs[0])
+                        if grain_zircon_str in f.name]
+    strip_len = len('_' + grain_zircon_str + '.csv')
+    sample_names = [f.name[:-strip_len] for f in dimensions_files]
+    for idx, each_sample_path in enumerate([f.path for f in dimensions_files]):
+        each_sample_name = sample_names[idx]
+        output_dict[each_sample_name] = pd.read_csv(each_sample_path, header=0,
+                                                    index_col=False).to_dict('list')
+    return output_dict
 
 def get_Align_center_size(align_file_path):
-    """Gets the data tagged as 'Center' and as 'Size' (microns) from a
-       .Align alignment xml file. Used for scaling and mapping shots to
-       mosaic image(s).
+    """Gets the data tagged as 'Center', 'Size' (microns), and 'Rotation'
+       (degrees, clockwise around center) from a .Align alignment xml file.
+       Used for scaling and mapping shots to mosaic image(s).
 
     Parameters
     ----------
@@ -488,15 +553,14 @@ def get_Align_center_size(align_file_path):
     -------
     list
         A list of data extracted from .Align file. Format:
-            [x_center, y_center, x_size, y_size]
+            [x_center, y_center, x_size, y_size, rotation]
 
     """
 
-    x_center, y_center, x_size, y_size = 0, 0, 0, 0
+    x_center, y_center, x_size, y_size, rotation = 0, 0, 0, 0, 0
     align_tree = ET.parse(align_file_path)
     align_root = align_tree.getroot()
-    #loop through xml file to get image center, size
-    ##UPDATE TO INCLUDE ROTATION IF NEEDED##
+    #loop through xml file to get image center, size, rotation if present
     for eachchild in align_root:
         if eachchild.tag == 'Alignment':
             for each_align_data in eachchild:
@@ -508,7 +572,9 @@ def get_Align_center_size(align_file_path):
                     sizes = [float(data) for data
                              in each_align_data.text.split(',')]
                     x_size, y_size = sizes
-    return [x_center, y_center, x_size, y_size]
+                if each_align_data.tag == 'Rotation':
+                    rotation = float(each_align_data.text)
+    return [x_center, y_center, x_size, y_size, rotation]
 
 def calc_scale_factor(Align_x_y_sizes, mosaic_x_y_sizes):
     """Calculate the scale factor for a mosaic image in microns/pixel
@@ -549,7 +615,7 @@ def load_data_dict(project_dir_string):
         {'SAMPLE NAME': {'Scanlist': SCANLIST (.SCANCSV) PATH,
                          'Mosaic': MOSAIC .BMP PATH,
                          'Align_file': MOSAIC ALIGN FILE PATH,
-                         'Max_zircon_size': MAX USER-INPUT ZIRCON SIZE,
+                         'Max_grain_size': MAX USER-INPUT GRAIN SIZE,
                          'Offsets': [USER X OFFSET, USER Y OFFSET],
                          'Scan_dict': DICT LOADED FROM .SCANCSV FILE},
          ...}.
@@ -565,12 +631,16 @@ def load_data_dict(project_dir_string):
     mos_csv_path = os.path.join(project_dir_string, 'mosaic_info.csv')
 
     # loads info csv as dictionary
-    mos_csv_dict = pd.read_csv(mos_csv_path, header=0, index_col=False,
-                               squeeze=False).to_dict('list')
+    mos_csv_dict = pd.read_csv(mos_csv_path, header=0, index_col=False
+                               ).to_dict('list')
 
     if not check_mos_csv_keys(mos_csv_dict):
         print('Incorrect mosaic_info.csv headers: correct and re-save')
         return {}
+
+    #backwards compatability with old "Max_zircon_size" mosaic_info header
+    if "Max_zircon_size" in list(mos_csv_dict.keys()):
+        mos_csv_dict['Max_grain_size'] = copy.deepcopy(mos_csv_dict['Max_zircon_size'])
 
     # lists of files in directories
     mosaic_bmp_filenames = list_if_endswith(os.listdir(mosaic_path),
@@ -619,7 +689,7 @@ def load_data_dict(project_dir_string):
             temp_output_dict[eachsample]['Scanlist'] = act_scn_file
             temp_output_dict[eachsample]['Mosaic'] = act_mos_file
             temp_output_dict[eachsample]['Align_file'] = act_align_file
-            temp_output_dict[eachsample]['Max_zircon_size'] = mos_csv_dict['Max_zircon_size'][eachindex]
+            temp_output_dict[eachsample]['Max_grain_size'] = mos_csv_dict['Max_grain_size'][eachindex]
             temp_output_dict[eachsample]['Offsets'] = [mos_csv_dict['X_offset'][eachindex],
                                                        mos_csv_dict['Y_offset'][eachindex]]
             temp_output_dict[eachsample]['Scan_dict'] = coords_dict
@@ -639,7 +709,7 @@ def alc_calc_scans_n(inpt_mos_data_dict, inpt_selected_samples):
         {'SAMPLE NAME': {'Scanlist': SCANLIST (.SCANCSV) PATH,
                          'Mosaic': MOSAIC .BMP PATH,
                          'Align_file': MOSAIC ALIGN FILE PATH,
-                         'Max_zircon_size': MAX USER-INPUT ZIRCON SIZE,
+                         'Max_grain_size': MAX USER-INPUT ZIRCON SIZE,
                          'Offsets': [USER X OFFSET, USER Y OFFSET],
                          'Scan_dict': DICT LOADED FROM .SCANCSV FILE},
          ...}.

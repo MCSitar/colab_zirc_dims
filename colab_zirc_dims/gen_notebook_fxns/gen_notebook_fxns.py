@@ -180,7 +180,7 @@ def gen_inspect_data(inpt_loaded_data_dict, inpt_selected_samples,
             skio.show()
 
 def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
-                  d2_metadata, n_scans_sample =3):
+                  d2_metadata, n_scans_sample =3, src_str=None, **kwargs):
     """Plot predictions and extract grain measurements for n randomly-selected
        scans from each selected sample in an ALC dataset.
 
@@ -198,6 +198,18 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
     n_scans_sample : int, optional
         Number of randomly-selected scans from each sample to segment and measure.
         The default is 3.
+    src_str : str or None, optional
+        String for selecting spot names - if not None, spots will only be
+        displayed if their names match the string. The default is None.
+    **kwargs :
+        Plotting-related kwargs, passed in full to czd_utils.save_show_results_img.
+            fig_dpi = int; will set plot dpi to input integer.
+            show_ellipse = bool; will plot ellipse corresponding
+                           to maj, min axes if True.
+            show_box = bool; will plot the minimum area rect.
+                       if True.
+            show_legend = bool; will plot a legend on plot if
+                          True.
 
     Returns
     -------
@@ -208,6 +220,8 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
         sample_dict = inpt_loaded_data_dict[eachsample]
         scan_sample = random.sample(sample_dict.keys(),
                                     n_scans_sample)
+        if isinstance(src_str, type('a')):
+            scan_sample = [key for key in sample_dict.keys() if src_str in str(key)]
 
         print(4 * "\n")
         print(str(eachsample) + ':')
@@ -233,7 +247,8 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
                                                                  each_img,
                                                                  eachscan,
                                                                  display_bool = True,
-                                                                 scale_factor=scale_factor)
+                                                                 scale_factor=scale_factor,
+                                                                 **kwargs)
                 _ = mos_proc.parse_properties(each_props,
                                               scale_factor,
                                               eachscan, verbose = True)
@@ -364,18 +379,10 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
         eta_trk.stop_update_eta()
     #converts collected data to pandas DataFrame, saves as .csv
     output_dataframe = pd.DataFrame(output_data_list,
-                                    columns=['Analysis', 'Area (µm^2)',
-                                             'Convex area (µm^2)',
-                                             'Eccentricity',
-                                             'Equivalent diameter (µm)',
-                                             'Perimeter (µm)',
-                                             'Major axis length (µm)',
-                                             'Minor axis length (µm)',
-                                             'Circularity',
-                                             'Scale factor (µm/pixel)',
-                                             'Scale factor from:',
-                                             'Image filename'])
-    csv_filename = str(eachsample) + '_zircon_dimensions.csv'
+                                    columns=czd_utils.get_save_fields(proj_type='general',
+                                                                      save_type='auto',
+                                                                      addit_fields=[]))
+    csv_filename = str(eachsample) + '_grain_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)
 
@@ -453,7 +460,7 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_loaded_data_dict,
     os.makedirs(img_save_root_dir)
 
     #creates a directory for zircon dimension .csv files
-    csv_save_dir = os.path.join(run_dir, 'zircon_dimensions')
+    csv_save_dir = os.path.join(run_dir, 'grain_dimensions')
     os.makedirs(csv_save_dir)
 
     #initialize class instances for ETA, other output display

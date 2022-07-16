@@ -17,3 +17,5 @@ from . import gen_filename_fxns
 from . import gen_notebook_fxns
 from . import non_std_cfgs
 from . import eta
+from . import expl_vis
+from . import measure_utils

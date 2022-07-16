@@ -12,7 +12,72 @@ import skimage.measure as measure
 __all__ = ['mask_to_poly',
            'poly_to_mask',
            'vertex_dict_to_list',
-           'poly_dicts_to_arrays']
+           'poly_dicts_to_arrays',
+           'contours_from_mask',
+           'contour_to_poly']
+
+# code for fxn below significantly modified from: \
+# https://github.com/waspinator/pycococreator (covered by Apache-2.0 License)
+def contour_to_poly(mask_contour, mask_shape, tolerance = 1, scale_factor = 1.0):
+    """Convert a numpy mask array to polygon suitable for GUI display, editing.
+
+    Parameters
+    ----------
+    mask_contours : np array
+        An array (n, 2) with n (row, column) coordinates for contour of main
+        mask region.
+    mask_shape : tuple(int)
+        Shape of mask array for conversion.
+    tolerance : Int, optional
+        Tolerance in microns for polygon converted from input mask; resulting
+        polygon will approximate the mask within *tolerance* microns.
+        The default is 1.
+    scale_factor : float, optional
+        Scale factor for the current mosaic image. Used to adjust polygon
+        tolerance to microns. The default is 1.0.
+
+    Returns
+    -------
+    export_polygon
+        An ordered list of dicts {x:, y:} representing vertices in a polygon.
+        Point coordinates are x = x/image width, y = y/image height.
+        Suitable for display/editing in manual adjustment/annotation GUI.
+
+    """
+    #print('Input shape:', mask_for_conversion.shape)
+
+    #closes contour
+    def close_contour(contour):
+        if not np.array_equal(contour[0], contour[-1]):
+            contour = np.vstack((contour, contour[0]))
+        return contour
+
+    export_polygon = []
+
+    full_mask_h, full_mask_w = mask_shape #size of original mask
+
+    #adjust tolerance to image size so that polygons are consistent during processing
+    adj_tolerance = tolerance / scale_factor
+
+    mask_contours = close_contour(mask_contour)
+    poly_pts = measure.approximate_polygon(mask_contours, adj_tolerance) #converts contours to mask
+
+    #flip ensures that polygons load properly (rather than mirrored) in GUI
+    poly_pts = np.flip(poly_pts, axis=1)
+
+    #converts to list of {x:, y:} dicts for JS annotation tool
+    for each_pt in poly_pts:
+        pt_dict = {'x': 0.0, 'y': 0.0}
+
+        if each_pt[0] >= 0:
+            pt_dict['x'] = round(each_pt[0]/full_mask_w, 3)
+
+        if each_pt[1] >= 0:
+            pt_dict['y'] = round(each_pt[1]/full_mask_h, 3)
+        export_polygon.append(pt_dict)
+
+    return export_polygon
+
 
 # code for fxn below significantly modified from: \
 # https://github.com/waspinator/pycococreator (covered by Apache-2.0 License)
@@ -50,48 +115,71 @@ def mask_to_poly(mask_for_conversion, tolerance = 1, scale_factor = 1.0):
 
     export_polygon = []
 
-    full_mask_h, full_mask_w = mask_for_conversion.shape #size of original mask
+    mask_contours = contours_from_mask(mask_for_conversion)
+    export_polygon = contour_to_poly(mask_contours,
+                                     mask_for_conversion.shape,
+                                     tolerance,
+                                     scale_factor)
 
-    #adjust tolerance to image size so that polygons are consistent during processing
-    adj_tolerance = tolerance / scale_factor
+    return export_polygon
 
-    # padding of mask is apparently necessary for contour closure. /
-    # This line also converts mask to binary.
-    padded_mask = np.pad(mask_for_conversion.astype(int), pad_width = 1,
-                         mode='constant', constant_values = 0)
+# code for fxn below significantly modified from: \
+# https://github.com/waspinator/pycococreator (covered by Apache-2.0 License)
+def contours_from_mask(mask_for_conversion, convex = False):
+    """Convert a numpy mask array to polygon suitable for GUI display, editing.
 
-    mask_labels, labels_nnum = measure.label(padded_mask, return_num=True)
+    Parameters
+    ----------
+    mask_for_conversion : np array
+        A numpy binary array representing the central zircon mask for an image,
+        as returned by (successfully) running mos_proc.get_central_mask().
+    convex : Bool, optional
+        Determines whether or not convex hull (vs. normal) contours will be
+        returned. The default is False.
+
+    Returns
+    -------
+    mask_contours : np array
+        An array (n, 2) with n (row, column) coordinates for contour of main
+        mask region.
+
+    """
+
+    mask_labels, labels_nnum = measure.label(mask_for_conversion.astype(int), return_num=True)
 
     main_region_label = 1
 
+    regions = measure.regionprops(mask_labels)
+
     if labels_nnum > 1:
         #selects largest region in case central zircon mask has multiple disconnected regions
-        regions = measure.regionprops(mask_labels)
         area_list = [props.area for props in regions]
         main_region_label = regions[area_list.index(max(area_list))].label
 
+    filled_binary, f_bbox = [], []
+
+    if convex:
+        #convex area for contour finding
+        filled_binary, f_bbox = [(props.convex_image, props.bbox) for props in
+                                 regions if props.label == main_region_label][0]
+    else:
+        #filled area for better contour finding; only relevant for Otsu masks
+        filled_binary, f_bbox = [(props.filled_image, props.bbox) for props in
+                                 regions if props.label == main_region_label][0]
+
+    mask_filled = mask_labels == main_region_label
+    mask_filled[f_bbox[0]:f_bbox[2],f_bbox[1]:f_bbox[3]] = filled_binary
+
+    # padding of mask is apparently necessary for contour closure.
+    pad_fill = np.pad(mask_filled.astype(int), pad_width = 1,
+                      mode='constant', constant_values = 0)
+
     #gets contours of mask
-    mask_contours = measure.find_contours(mask_labels == main_region_label, 0.5)[0]
+    mask_contours = measure.find_contours(pad_fill, 0.5, fully_connected='high')[0]
 
     mask_contours = np.subtract(mask_contours, 1)
-    mask_contours = close_contour(mask_contours)
-    poly_pts = measure.approximate_polygon(mask_contours, adj_tolerance) #converts contours to mask
 
-    #flip ensures that polygons load properly (rather than mirrored) in GUI
-    poly_pts = np.flip(poly_pts, axis=1)
-
-    #converts to list of {x:, y:} dicts for JS annotation tool
-    for each_pt in poly_pts:
-        pt_dict = {'x': 0.0, 'y': 0.0}
-
-        if each_pt[0] >= 0:
-            pt_dict['x'] = round(each_pt[0]/full_mask_w, 3)
-
-        if each_pt[1] >= 0:
-            pt_dict['y'] = round(each_pt[1]/full_mask_h, 3)
-        export_polygon.append(pt_dict)
-
-    return export_polygon
+    return mask_contours
 
 
 def poly_to_mask(poly_for_conversion, original_image):

@@ -16,7 +16,65 @@ __all__ = ['find_Align',
            'check_unused_samples',
            'unique_scan_name',
            'load_gen_data_dict',
-           'gen_calc_scans_n']
+           'gen_calc_scans_n',
+           'get_save_fields']
+
+def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [],
+                    get_nulls=False):
+    """A function to standardize saving colab_zirc_dims measurements to .csv
+        files and make adding new measurements quicker. Returns a list of
+        output .csv column headers, depending on inputs.
+
+    Parameters
+    ----------
+    proj_type : str, optional
+        String ('default' or 'general') defining project type.
+        The default is 'mosaic'.
+    save_type : str, optional
+        String ('auto' or 'GUI') defining saving interface type.
+        The default is 'auto'.
+    addit_fields : List[str], optional
+        List with any additional fields that need to be added to headers list.
+        The default is [].
+    get_nulls : Bool
+        If true, get a list of 0s with length of properties that won't have
+        any data input unless a measurement is made.
+
+    Returns
+    -------
+    ret_save_fields : TYPE
+        DESCRIPTION.
+
+    """
+    default_save_fields = ['Analysis', 'Area (µm^2)',
+                           'Convex area (µm^2)',
+                           'Eccentricity',
+                           'Equivalent diameter (µm)',
+                           'Perimeter (µm)',
+                           'Major axis length (µm)',
+                           'Minor axis length (µm)',
+                           'Circularity',
+                           'Long axis rectangular diameter (µm)',
+                           'Short axis rectangular diameter (µm)',
+                           'Scale factor (µm/pixel)']
+    
+    addit_gen_save_fields = ['Scale factor from:', 'Image filename']
+    addit_GUI_save_fields = ['Human_or_auto', 'tagged?']
+    poss_invariate_fields = ['Analysis', 'Scale factor (µm/pixel)']
+
+    if get_nulls:
+        null_fields = [prop for prop in default_save_fields if prop not in poss_invariate_fields]
+        return [0 for _ in range(len(null_fields))]
+
+    ret_save_fields = default_save_fields
+    if proj_type == 'general':
+        ret_save_fields = [*ret_save_fields, *addit_gen_save_fields]
+    if save_type == 'GUI':
+        ret_save_fields = [*ret_save_fields, *addit_GUI_save_fields]
+    ret_save_fields = [*ret_save_fields, *addit_fields]
+    return ret_save_fields
+    
+
 
 def find_Align(name, all_files_list, img_suffix = '.png'):
     """Find a .Align file matching (same except for file type) an image file.
@@ -61,7 +119,9 @@ def indiv_img_scale_factor(img_path, Align_path):
     """
     img = skio.imread(img_path)
     img_xy = img.shape[:2][::-1]
-    align_xy = czd_utils.get_Align_center_size(Align_path)[2:]
+    #No reason to expect rotation or that it will impact grain centeredness if \
+    # present; rotation field ignored from .Align file.
+    align_xy = czd_utils.get_Align_center_size(Align_path)[2:-1]
     return czd_utils.calc_scale_factor(align_xy, img_xy)
 
 def check_load_sample_info(project_dir):
@@ -265,7 +325,7 @@ def load_gen_opt_B(scans_dir, split_fxn = None, file_type = '.png'):
                 each_align_path = os.path.join(each_sample_dir, each_align_path)
             if each_sample not in output_dict.keys():
                 output_dict[each_sample] = {}
-            #makes sure that spots are unique to avoid losing data
+            #makes sure that spot names are unique to avoid overwriting data
             each_spot = unique_scan_name(each_spot,
                                          list(output_dict[each_sample].keys()))
             output_dict[each_sample][each_spot] = {'img_file': each_img_path,

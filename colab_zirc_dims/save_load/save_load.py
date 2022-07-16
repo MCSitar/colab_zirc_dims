@@ -128,7 +128,8 @@ def new_json_save_dict(include_manual_fields = False):
     else:
         return {'spot_names': [], 'spot_polys': []}
 
-def auto_append_json_dict(json_dict, spot_name, spot_mask, curr_scale_factor = 1.0):
+def auto_append_json_dict(json_dict, spot_name, spot_mask, curr_scale_factor = 1.0,
+                          contour = None):
     """Convert a mask to a polygon then add it and a spot name to a dict for saving
        as a loadable .json file.
 
@@ -145,14 +146,23 @@ def auto_append_json_dict(json_dict, spot_name, spot_mask, curr_scale_factor = 1
     curr_scale_factor : float, optional
         Scale factor for the current mosaic image. Passed to mask_to_poly(), where
         it is used to adjust polygon tolerance to microns. The default is 1.0.
+    contour:  np array
+            An array (n, 2) with n (row, column) coordinates for contour of central mask.
+            The default is None, in which case the polygon is just calculated from the
+            spot_mask.
 
     Returns
     -------
     None.
 
     """
-    #convert mask to polygon
-    new_poly = poly_utils.mask_to_poly(spot_mask, scale_factor = curr_scale_factor)
+    new_poly = None
+    if isinstance(contour, type(None)):
+        #convert mask to polygon
+        new_poly = poly_utils.mask_to_poly(spot_mask, scale_factor = curr_scale_factor)
+    else:
+        new_poly = poly_utils.contour_to_poly(contour, spot_mask.shape,
+                                           scale_factor = curr_scale_factor)
 
     #add spot name, polygon to input dictionary
     json_dict['spot_names'].append(spot_name)
