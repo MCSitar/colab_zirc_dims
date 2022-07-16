@@ -685,13 +685,14 @@ def exploratory_plot_ui(dataset_for_plot):
                           'Minor axis length (µm)',
                           'Circularity']
         
-        new_params = ['Feret diameter (µm)', 'Feret-orthogonal diameter (µm)']
+        new_params = ['Long axis rectangular diameter (µm)',
+                      'Short axis rectangular diameter (µm)']
         widg_plot_params = []
         mismatch_found = False
         dataset_keys = list(dataset_for_plot.keys())
         new_keys_available = False
         for key in dataset_keys[:1]:
-            if 'Feret diameter (µm)' in list(dataset_for_plot[key].keys()):
+            if 'Long axis rectangular diameter (µm)' in list(dataset_for_plot[key].keys()):
                 new_keys_available = True
         if new_keys_available != key_av_dict['prev_new_keys_available']:
             for param in default_params:

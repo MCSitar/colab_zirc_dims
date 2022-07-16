@@ -54,8 +54,8 @@ def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [],
                            'Major axis length (µm)',
                            'Minor axis length (µm)',
                            'Circularity',
-                           'Feret diameter (µm)',
-                           'Feret-orthogonal diameter (µm)',
+                           'Long axis rectangular diameter (µm)',
+                           'Short axis rectangular diameter (µm)',
                            'Scale factor (µm/pixel)']
     
     addit_gen_save_fields = ['Scale factor from:', 'Image filename']
