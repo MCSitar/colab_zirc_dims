@@ -180,7 +180,7 @@ def gen_inspect_data(inpt_loaded_data_dict, inpt_selected_samples,
             skio.show()
 
 def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
-                  d2_metadata, n_scans_sample =3):
+                  d2_metadata, n_scans_sample =3, src_str=None, **kwargs):
     """Plot predictions and extract grain measurements for n randomly-selected
        scans from each selected sample in an ALC dataset.
 
@@ -198,6 +198,18 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
     n_scans_sample : int, optional
         Number of randomly-selected scans from each sample to segment and measure.
         The default is 3.
+    src_str : str or None, optional
+        String for selecting spot names - if not None, spots will only be
+        displayed if their names match the string. The default is None.
+    **kwargs :
+        Plotting-related kwargs, passed in full to czd_utils.save_show_results_img.
+            fig_dpi = int; will set plot dpi to input integer.
+            show_ellipse = bool; will plot ellipse corresponding
+                           to maj, min axes if True.
+            show_box = bool; will plot the minimum area rect.
+                       if True.
+            show_legend = bool; will plot a legend on plot if
+                          True.
 
     Returns
     -------
@@ -208,6 +220,8 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
         sample_dict = inpt_loaded_data_dict[eachsample]
         scan_sample = random.sample(sample_dict.keys(),
                                     n_scans_sample)
+        if isinstance(src_str, type('a')):
+            scan_sample = [key for key in sample_dict.keys() if src_str in str(key)]
 
         print(4 * "\n")
         print(str(eachsample) + ':')
@@ -233,7 +247,8 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
                                                                  each_img,
                                                                  eachscan,
                                                                  display_bool = True,
-                                                                 scale_factor=scale_factor)
+                                                                 scale_factor=scale_factor,
+                                                                 **kwargs)
                 _ = mos_proc.parse_properties(each_props,
                                               scale_factor,
                                               eachscan, verbose = True)

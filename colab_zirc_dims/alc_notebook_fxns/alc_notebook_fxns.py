@@ -183,7 +183,7 @@ def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default')
     display(model_picker, model_out)
 
 def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
-              d2_metadata, n_scans_sample =3):
+              d2_metadata, n_scans_sample =3, src_str = None, **kwargs):
     """Plot predictions and extract grain measurements for n randomly-selected
        scans from each selected sample in an ALC dataset.
 
@@ -201,6 +201,18 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
     n_scans_sample : int, optional
         Number of randomly-selected scans from each sample to segment and measure.
         The default is 3.
+    src_str : str or None, optional
+        String for selecting spot names - if not None, spots will only be
+        displayed if their names match the string. The default is None.
+    **kwargs :
+        Plotting-related kwargs, passed in full to czd_utils.save_show_results_img.
+            fig_dpi = int; will set plot dpi to input integer.
+            show_ellipse = bool; will plot ellipse corresponding
+                           to maj, min axes if True.
+            show_box = bool; will plot the minimum area rect.
+                       if True.
+            show_legend = bool; will plot a legend on plot if
+                          True.
 
     Returns
     -------
@@ -214,6 +226,11 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
                                       inpt_mos_data_dict[eachsample]['Offsets'])
         scan_sample = random.sample(inpt_mos_data_dict[eachsample]['Scan_dict'].keys(),
                                     n_scans_sample)
+        #if src_str provided, ignore sample size and instead search for string
+        if isinstance(src_str, type('a')):
+            scan_sample = [key for key in
+                           inpt_mos_data_dict[eachsample]['Scan_dict'].keys()
+                           if src_str in str(key)]
         print(4 * "\n")
         print(str(eachsample) + ':')
         print('Scale factor:', each_mosaic.scale_factor, 'µm/pixel')
@@ -234,7 +251,8 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
                                                                 each_mosaic.sub_img,
                                                                 eachscan,
                                                                 display_bool = True,
-                                                                scale_factor=each_mosaic.scale_factor)
+                                                                scale_factor=each_mosaic.scale_factor,
+                                                                **kwargs)
                 _ = mos_proc.parse_properties(each_props,
                                               each_mosaic.scale_factor,
                                               eachscan, verbose = True)

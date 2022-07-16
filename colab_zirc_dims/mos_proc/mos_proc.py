@@ -19,6 +19,9 @@ import skimage
 import skimage.measure as measure
 import skimage.io as skio
 
+from matplotlib.patches import Ellipse
+from matplotlib.lines import Line2D
+
 from .. import czd_utils
 from .. import pointgen
 from .. import measure_utils
@@ -179,7 +182,7 @@ def get_main_region_props(input_central_mask):
 
 def save_show_results_img(original_image, analys_name, display_bool=False,
                           save_dir='', tag_bool=False, input_central_mask=None,
-                          main_region=None, scale_factor=None):
+                          main_region=None, scale_factor=None, **kwargs):
     """Save and/or display a (optionally) scaled figure showing a shot-image,
        w/ or w/o mask and axes overlaid.
 
@@ -209,6 +212,14 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     scale_factor : float, optional
         Scale factor (microns/pixel) for original image and mask.
         The default is None.
+    **kwargs :
+        Args for plotting - fig_dpi = int; will set plot dpi to input integer.
+                            show_ellipse = bool; will plot ellipse corresponding
+                                           to maj, min axes if True.
+                            show_box = bool; will plot the minimum area rect.
+                                       if True.
+                            show_legend = bool; will plot a legend on plot if
+                                          True.
 
     Returns
     -------
@@ -257,13 +268,27 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
         x2 = x0 - math.sin(orientation) * 0.5 * main_region.major_axis_length
         y2 = y0 - math.cos(orientation) * 0.5 * main_region.major_axis_length
 
-        ax.plot((x0, x1), (y0, y1), '-r', linewidth=1.5)
+        ax.plot((x0, x1), (y0, y1), '-r', linewidth=1.5,
+                label = 'Major, minor axes')
         ax.plot((x0, x2), (y0, y2), '-r', linewidth=1.5)
-        ax.plot(x0, y0, '.g', markersize=10)
+        ax.plot(x0, y0, '.g', markersize=10, label = 'Centroid')
 
         #plot minimum bounding rectangle atop image (source of Feret diameter)
-        ax.plot(*main_region.rect_points, color = 'b',
-                linestyle = '--', alpha =0.4, linewidth=1.0)
+        if 'show_ellipse' in kwargs:
+            if kwargs['show_ellipse'] is True:
+                el_rot_deg = math.degrees(orientation) * -1.0
+                el = Ellipse((x0, y0), main_region.minor_axis_length,
+                              main_region.major_axis_length, angle=el_rot_deg,
+                              fill = False, linestyle='--', color='red', 
+                              alpha=0.5, linewidth=1.5)
+                ax.add_artist(el)
+
+
+        #plot minimum bounding rectangle atop image (source of Feret diameter)
+        if 'show_box' in kwargs:
+            if kwargs['show_box'] is True:
+                ax.plot(*main_region.rect_points, color = 'b',
+                        linestyle = '--', alpha =0.5, linewidth=1.0)
 
     #mark 'failed' shots
     else:
@@ -273,6 +298,20 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     ax.set_xticklabels([str(label) for label in x_tick_labels])
     ax.set_yticks(y_tick_locs)
     ax.set_yticklabels([str(label) for label in y_tick_labels])
+
+    #additional kwarg plotting options
+    if 'show_legend' in kwargs:
+        if kwargs['show_legend'] is True:
+            handles, labels = ax.get_legend_handles_labels()
+            if 'show_ellipse' in kwargs:
+                if kwargs['show_ellipse'] is True:
+                    handles, labels = ax.get_legend_handles_labels()
+                    handles.append(Line2D([0], [0], linestyle='--', color='red',
+                                          alpha=0.5, linewidth=1.5))
+                    labels.append("Ellipse with same $2_{nd}$ order\nmoments as grain mask")
+            plt.legend(handles=handles, labels = labels)
+    if 'fig_dpi' in kwargs:
+        fig.set_dpi(int(kwargs['fig_dpi']))
 
     if save_dir:
         img_save_filename = os.path.join(save_dir, adj_analys_name + '.png')
@@ -295,7 +334,7 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
 # (if display_bool = True) and/or saves (if save_dir != '') this image.
 def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
                                display_bool=False, save_dir='', tag_bool=False,
-                               scale_factor=None):
+                               scale_factor=None, **kwargs):
     """Measures zircon mask (in pixels) using skimage, creates an image by
        overlaying the mask atop the original subimage, and optionally displays
        (if display_bool = True) and/or saves (if save_dir != '') this image.
@@ -321,6 +360,15 @@ def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
     scale_factor : float, optional
         Scale factor (microns/pixel) for original image and mask.
         The default is None.
+    **kwargs :
+        Plotting-related kwargs, passed in full to czd_utils.save_show_results_img.
+            fig_dpi = int; will set plot dpi to input integer.
+            show_ellipse = bool; will plot ellipse corresponding
+                           to maj, min axes if True.
+            show_box = bool; will plot the minimum area rect.
+                       if True.
+            show_legend = bool; will plot a legend on plot if
+                          True.
 
     Returns
     -------
@@ -338,7 +386,7 @@ def overlay_mask_and_get_props(input_central_mask, original_image, analys_name,
     if display_bool or save_dir:
         save_show_results_img(original_image, analys_name, display_bool,
                               save_dir, tag_bool, input_central_mask,
-                              main_region, scale_factor)
+                              main_region, scale_factor, **kwargs)
 
     return main_region
 
