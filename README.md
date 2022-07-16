@@ -1,10 +1,10 @@
 # colab_zirc_dims
-This repository contains code for dimensional analysis of zircons in LA-ICP-MS alignment images using Google Colab, with or without the aid of RCNN (deep learning) segmentation. Because processing is done in Google Colab, this method should be available to anyone with an internet connection. [Detectron2](https://github.com/facebookresearch/detectron2) was used for model training and is used for Colab implementation.
+This repository contains code for dimensional analysis of heavy mineral grains in reflected light LA-ICP-MS alignment images using Google Colab, with or without the aid of RCNN (deep learning) segmentation. Models were trained and tested on images of detrital zircons. Because processing is done in Google Colab, this method should be available to anyone with an internet connection. [Detectron2](https://github.com/facebookresearch/detectron2) was used for model training and is used for Colab implementation.
 
 ## Features
-The code in this repo enables organization (e.g., matching zircon mosaic images to .scancsv scanlists), data extraction (e.g., mapping shots to subimages of mosaics), and post-segmentation processing (e.g., extracting accurate zircon dimensions from segmentation masks) of mosaic-scanlist and single-shot-per-image reflected light zircon image datasets from LA-ICP-MS facilities using Chromium targeting software. RCNN instance segmentation of zircons is handled by Detectron2 and implemented in ready-to-run Google Colab notebooks (see 'Links'). Said code and notebooks have been tested with and fully support processing of image datasets from the [University of Arizona LaserChron Center](https://sites.google.com/laserchron.org/arizonalaserchroncenter/home) and the [UCSB LA-ICP-MS facility](https://www.petrochronology.com/); datasets from other facilities using Chromium *should* work with colab_zirc_dims but have not been tested. Users with reflected image datasets lacking Chromium image metadata *can* segment their images (see 'single image-per-shot' notebook below) with some additional project folder organization and/or after manually adding image scaling information, but they (and researchers with non-reflected-light images) should also consider using [AnalyZr](https://github.com/TarynScharf/AnalyZr).
+The code in this repo enables organization (e.g., matching zircon/heavy mosaic images to .scancsv scanlists), data extraction (e.g., mapping shots to subimages of mosaics), and post-segmentation processing (e.g., extracting accurate grain dimensions from segmentation masks) of mosaic-scanlist and single-shot-per-image reflected light zircon/heavy mineral image datasets from LA-ICP-MS facilities using Chromium targeting software. RCNN instance segmentation of grains is handled by Detectron2 and implemented in ready-to-run Google Colab notebooks (see 'Links'). Said code and notebooks have been tested with and fully support processing of image datasets from the [University of Arizona LaserChron Center](https://sites.google.com/laserchron.org/arizonalaserchroncenter/home) and the [UCSB LA-ICP-MS facility](https://www.petrochronology.com/); datasets from other facilities using Chromium *should* work with colab_zirc_dims but have not been tested. Users with reflected image datasets lacking Chromium image metadata *can* segment their images (see 'single image-per-shot' notebook below) with some additional project folder organization and/or after manually adding image scaling information, but they (and researchers with non-reflected-light images) should also consider using [AnalyZr](https://github.com/TarynScharf/AnalyZr).
 
-In datasets with good image quality and well-exposed zircons (i.e., with full cross-sections visible above puck(s)), automated colab_zirg processing achieves measurements comparable to those produced by humans (with average error along long and short axes < .5 μm vs. humans in some tested samples) in a fraction of the time. See below for an example analysis of a single spot.
+In datasets with good image quality and well-exposed zircons (i.e., with full cross-sections visible above mounts(s)), automated colab_zirg processing achieves measurements comparable to those produced by humans (with average absolute error along long and short axes <10 μm vs. humans in 18/19 tested samples) in a fraction of the time. See below for an example analysis of a single spot.
 
 ![Spot 315_cropped](https://user-images.githubusercontent.com/74220513/139790689-a68c5cf8-7c6b-4158-b555-76b6718673b8.png)
 
@@ -21,13 +21,13 @@ Various functions for processing mosaic image datasets are available in (among o
 ## Links
 #### Per-sample mosaic image datasets (e.g., from ALC):
 Colab notebooks are available for:
-- [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1dz_oLo81kmxA9avHN75KR7SYxNvml3e7?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from mosaics - v1.0.81 hotfix](https://colab.research.google.com/drive/1lWWNm1D1PELX7npNQCxOHFmMgZ6EYVsC?usp=sharing)
+- [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1oRgtZGHrl1nlN-8qMEnoAEy0PPesf6AR?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring zircons from mosaics - v1.0.9](https://colab.research.google.com/drive/1ZPxYZ2atEelmg-Sz30lZBQkIBI6OO4mc?usp=sharing)
 
 [A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
 #### Single image-per-shot datasets (e.g., from UCSB):
-- [A Colab notebook for automatically and/or semi-automatically segmenting, measuring zircons is available here - v1.0.81 hotfix](https://colab.research.google.com/drive/118fk2jIo8h52Vw99nZwlm2nPUsm6a5Wd?usp=sharing)
+- [A Colab notebook for automatically and/or semi-automatically segmenting and measuring grains is available here - v1.0.9](https://colab.research.google.com/drive/1aylXW-2BVEpqL3TGZc-TjB7K-5MxJFPk?usp=sharing)
 
 Template project folders are available for:
 - [Datasets where sample, shot information can be extracted from image filenames (e.g., from UCSB)](https://drive.google.com/drive/folders/1MkWh9PRArbV1m1eVbSTbb9C5PKC95Re3?usp=sharing)
@@ -54,16 +54,12 @@ To install inside of Google Colab, add:
 to a cell, then run the cell.
 
 
-## Project Status (updated 05/19/2022)
+## Project Status (updated 07/16/2022)
 - All features are functional. Bugs may exist, and are most likely to be encountered when using the package outside of the provided notebooks.
-- New models are now available.  Models are also now downloaded directly (from AWS) in the automated processing notebook and do not need to be included in project folder(s).
-- Saving and loading of automatically- and user-produced zircon segmentation polygons into the Colab GUI has been implemented. This is (I think) big for user convenience - you can automatically process a dataset, disconnect, and then view/edit segmentations in later session(s).
-- Generalized segmentation functions for non-ALC datasets now implemented, with full support for datasets from the UCSB LA-ICP-MS facility.
-- Example ALC and UCSB datasets have been added to the repo.
-- Model training dataset and training notebook (should be uploaded to Colab by user(s)) added to repo.
-- Package available through PyPI (though probably of limited utility outside of Colab).
-
-- Automated processing notebooks updated on 05/19/2022 with V1.0.81 hotfix for incompatibility between latest Detectron2 binary release and new standard Colab PyTorch installation (v1.11).
+- A bug in Otsu thresholding has been fixed; it now works slightly better as a backup to CNN-based segmentation.
+- Fully interactive Jupyter-widget-based exploratory measurement plotting UI (expl_vis module) implemented.
+- New measurements: minimum and maximum diameters measured from the minimum area circumscribing rectangle for a grain mask.
+- Automated processing notebooks updated on 05/19/2022 with V1.0.8.1 hotfix for incompatibility between latest Detectron2 binary release and new standard Colab PyTorch installation (v1.11).
 
 ## Additional Notes
 - Training and large-n zircon measurement datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.

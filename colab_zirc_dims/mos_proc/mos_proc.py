@@ -288,7 +288,8 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
         if 'show_box' in kwargs:
             if kwargs['show_box'] is True:
                 ax.plot(*main_region.rect_points, color = 'b',
-                        linestyle = '--', alpha =0.5, linewidth=1.0)
+                        linestyle = '--', alpha =0.5, linewidth=1.0,
+                        label = 'Minimum area rectangle')
 
     #mark 'failed' shots
     else:
