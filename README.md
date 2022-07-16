@@ -22,7 +22,7 @@ Various functions for processing mosaic image datasets are available in (among o
 #### Per-sample mosaic image datasets (e.g., from ALC):
 Colab notebooks are available for:
 - [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1oRgtZGHrl1nlN-8qMEnoAEy0PPesf6AR?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring zircons from mosaics - v1.0.9](https://colab.research.google.com/drive/1ZPxYZ2atEelmg-Sz30lZBQkIBI6OO4mc?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring grains from mosaics - v1.0.9](https://colab.research.google.com/drive/1ZPxYZ2atEelmg-Sz30lZBQkIBI6OO4mc?usp=sharing)
 
 [A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
