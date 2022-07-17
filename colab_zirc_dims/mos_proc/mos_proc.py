@@ -255,6 +255,12 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     if not isinstance(input_central_mask, type(None)):
         if not isinstance(main_region, type(None)):
             overlay_bool = True
+    #check kwargs
+    plot_ellipse, plot_rect = False, False
+    for each_kword_idx, each_kword in enumerate(['show_ellipse', 'show_box']):
+        if each_kword in kwargs:
+            if kwargs[each_kword]:
+                [plot_ellipse, plot_rect][each_kword_idx] = True
     if overlay_bool:
 
         ax.imshow(input_central_mask, alpha=0.4)
@@ -272,24 +278,24 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
                 label = 'Major, minor axes')
         ax.plot((x0, x2), (y0, y2), '-r', linewidth=1.5)
         ax.plot(x0, y0, '.g', markersize=10, label = 'Centroid')
-
-        #plot minimum bounding rectangle atop image (source of Feret diameter)
-        if 'show_ellipse' in kwargs:
-            if kwargs['show_ellipse'] is True:
-                el_rot_deg = math.degrees(orientation) * -1.0
-                el = Ellipse((x0, y0), main_region.minor_axis_length,
-                              main_region.major_axis_length, angle=el_rot_deg,
-                              fill = False, linestyle='--', color='red', 
-                              alpha=0.5, linewidth=1.5)
-                ax.add_artist(el)
+        
 
 
         #plot minimum bounding rectangle atop image (source of Feret diameter)
-        if 'show_box' in kwargs:
-            if kwargs['show_box'] is True:
-                ax.plot(*main_region.rect_points, color = 'b',
-                        linestyle = '--', alpha =0.5, linewidth=1.0,
-                        label = 'Minimum area rectangle')
+        if 'moment' in str(main_region.best_ax_from) or plot_ellipse is True:
+            el_rot_deg = math.degrees(orientation) * -1.0
+            el = Ellipse((x0, y0), main_region.minor_axis_length,
+                          main_region.major_axis_length, angle=el_rot_deg,
+                          fill = False, linestyle='--', color='red', 
+                          alpha=0.5, linewidth=1.5)
+            ax.add_artist(el)
+
+
+        #plot minimum bounding rectangle atop image (source of Feret diameter)
+        if 'rect' in str(main_region.best_ax_from) or plot_rect is True:
+            ax.plot(*main_region.rect_points, color = 'b',
+                    linestyle = '--', alpha =0.5, linewidth=1.0,
+                    label = 'Minimum area rectangle')
 
     #mark 'failed' shots
     else:
@@ -304,12 +310,11 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     if 'show_legend' in kwargs:
         if kwargs['show_legend'] is True:
             handles, labels = ax.get_legend_handles_labels()
-            if 'show_ellipse' in kwargs:
-                if kwargs['show_ellipse'] is True:
-                    handles, labels = ax.get_legend_handles_labels()
-                    handles.append(Line2D([0], [0], linestyle='--', color='red',
-                                          alpha=0.5, linewidth=1.5))
-                    labels.append("Ellipse with same $2_{nd}$ order\nmoments as grain mask")
+            if 'moment' in str(main_region.best_ax_from) or plot_ellipse is True:
+                handles, labels = ax.get_legend_handles_labels()
+                handles.append(Line2D([0], [0], linestyle='--', color='red',
+                                      alpha=0.5, linewidth=1.5))
+                labels.append("Ellipse with same $2_{nd}$ order\nmoments as grain mask")
             plt.legend(handles=handles, labels = labels)
     if 'fig_dpi' in kwargs:
         fig.set_dpi(int(kwargs['fig_dpi']))
