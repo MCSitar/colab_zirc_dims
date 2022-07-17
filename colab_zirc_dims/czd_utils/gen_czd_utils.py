@@ -64,10 +64,14 @@ def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [],
     addit_gen_save_fields = ['Scale factor from:', 'Image filename']
     addit_GUI_save_fields = ['Human_or_auto', 'tagged?']
     poss_invariate_fields = ['Analysis', 'Scale factor (µm/pixel)']
+    poss_non_plottable_fields = ['Analysis', 'Best axes calculated from',
+                                 'Scale factor (µm/pixel)']
 
     if get_nulls:
         null_fields = [prop for prop in default_save_fields if prop not in poss_invariate_fields]
         return [0 for _ in range(len(null_fields))]
+    if proj_type == 'plotting':
+        return [field for field in default_save_fields if field not in poss_non_plottable_fields]
 
     ret_save_fields = default_save_fields
     if proj_type == 'general':

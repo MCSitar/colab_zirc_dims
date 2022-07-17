@@ -264,25 +264,26 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     if overlay_bool:
 
         ax.imshow(input_central_mask, alpha=0.4)
-
-        #plots measured axes atop image
-        #for props in regions:
-        y0, x0 = main_region.centroid
-        orientation = main_region.orientation
-        x1 = x0 + math.cos(orientation) * 0.5 * main_region.minor_axis_length
-        y1 = y0 - math.sin(orientation) * 0.5 * main_region.minor_axis_length
-        x2 = x0 - math.sin(orientation) * 0.5 * main_region.major_axis_length
-        y2 = y0 - math.cos(orientation) * 0.5 * main_region.major_axis_length
-
-        ax.plot((x0, x1), (y0, y1), '-r', linewidth=1.5,
-                label = 'Major, minor axes')
-        ax.plot((x0, x2), (y0, y2), '-r', linewidth=1.5)
-        ax.plot(x0, y0, '.g', markersize=10, label = 'Centroid')
+        
+        if 'moment' in str(main_region.best_ax_from):
+            #plots measured axes atop image
+            #for props in regions:
+            y0, x0 = main_region.centroid
+            orientation = main_region.orientation
+            x1 = x0 + math.cos(orientation) * 0.5 * main_region.minor_axis_length
+            y1 = y0 - math.sin(orientation) * 0.5 * main_region.minor_axis_length
+            x2 = x0 - math.sin(orientation) * 0.5 * main_region.major_axis_length
+            y2 = y0 - math.cos(orientation) * 0.5 * main_region.major_axis_length
+    
+            ax.plot((x0, x1), (y0, y1), '-r', linewidth=1.5,
+                    label = 'Major, minor axes')
+            ax.plot((x0, x2), (y0, y2), '-r', linewidth=1.5)
+            ax.plot(x0, y0, '.g', markersize=10, label = 'Centroid')
         
 
 
         #plot minimum bounding rectangle atop image (source of Feret diameter)
-        if 'moment' in str(main_region.best_ax_from) or plot_ellipse is True:
+        if plot_ellipse is True:
             el_rot_deg = math.degrees(orientation) * -1.0
             el = Ellipse((x0, y0), main_region.minor_axis_length,
                           main_region.major_axis_length, angle=el_rot_deg,
@@ -310,7 +311,7 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
     if 'show_legend' in kwargs:
         if kwargs['show_legend'] is True:
             handles, labels = ax.get_legend_handles_labels()
-            if 'moment' in str(main_region.best_ax_from) or plot_ellipse is True:
+            if plot_ellipse is True:
                 handles, labels = ax.get_legend_handles_labels()
                 handles.append(Line2D([0], [0], linestyle='--', color='red',
                                       alpha=0.5, linewidth=1.5))
@@ -457,8 +458,8 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False,
         props_list.append(addit_prop)
 
     if verbose:
-        print('Major axis length =', round(major_leng, 1), 'µm,',
-              'Minor axis length =', round(minor_leng, 1), 'µm')
+        print('Major axis length =', round(best_major_ax, 1), 'µm,',
+              'Minor axis length =', round(best_minor_ax, 1), 'µm')
 
     return props_list
 

@@ -129,11 +129,16 @@ def best_axis_measures(moment_minor_ax, moment_major_ax,
         on which measurements were chosen as 'best'.
 
     """
-    area_rect = rect_minor_ax * rect_major_ax
-    area_ellipse = moment_minor_ax * moment_major_ax * np.pi
-    dif_area_rect = abs(mask_convex_area - area_rect)
-    dif_area_ellipse = abs(mask_convex_area - area_ellipse)
-    if dif_area_rect < dif_area_ellipse:
+    
+    aspect_check = moment_major_ax/moment_minor_ax >= 2 #very rectangular grains
+                                                          #will have higher aspect
+    #print(aspect_check)
+    overest_check = any([moment_major_ax > (1.02 * rect_major_ax),
+                         moment_major_ax < (0.9*rect_major_ax)])#long moment will
+                                                             #overestimate for
+                                                             #rectangular grains
+    #print('dif area rectangle:', dif_area_rect, 'dif area ellipse:', dif_area_ellipse)
+    if aspect_check and overest_check:
         return rect_minor_ax, rect_major_ax, 'minimum circumscribing rectangle'
     else:
         return moment_minor_ax, moment_major_ax, '2nd central moments'
