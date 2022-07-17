@@ -439,11 +439,15 @@ def parse_properties(props, img_scale_factor, analys_name, verbose = False,
     roundness = 4 * math.pi * props.area / props.perimeter**2
     Feret_diam = props.rect_major_axis_length * img_scale_factor
     orth_feret_diam = props.rect_minor_axis_length * img_scale_factor
+    best_major_ax = props.best_major_ax_length * img_scale_factor
+    best_minor_ax = props.best_minor_ax_length * img_scale_factor
+    best_ax_from = props.best_ax_from
     scale_factor = img_scale_factor
 
     props_list = [analys_name, area, convex_area, eccent, eq_diam, perim,
                   major_leng, minor_leng, roundness, Feret_diam,
-                  orth_feret_diam, scale_factor]
+                  orth_feret_diam, best_major_ax, best_minor_ax,
+                  best_ax_from, scale_factor]
     for addit_prop in addit_props:
         props_list.append(addit_prop)
 
