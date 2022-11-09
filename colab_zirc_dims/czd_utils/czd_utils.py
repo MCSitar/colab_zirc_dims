@@ -11,6 +11,8 @@ import os
 import operator
 import json
 import copy
+import requests
+import yaml
 
 from urllib.request import urlopen
 
@@ -23,6 +25,7 @@ __all__ = ['check_url',
            'read_json',
            'save_json',
            'json_from_path_or_url',
+           'read_yaml',
            'save_csv',
            'list_if_endswith',
            'list_if_in',
@@ -42,13 +45,41 @@ __all__ = ['check_url',
            'calc_scale_factor',
            'load_data_dict',
            'alc_calc_scans_n',
-           'czd_csvs_to_dict']
+           'czd_csvs_to_dict',
+           'connected_to_internet']
 
 ### Various functions and classes for file processing and code simplification
 ### in other modules below.
 
+#slightly modified from https://stackoverflow.com/a/24460981
+def connected_to_internet(url='http://www.example.com/', timeout=10):
+    """Check whether machine is connected to the internet by trying to ping
+    a url.
+        
+
+    Parameters
+    ----------
+    url : str, optional
+        An http or https domain name to attempt to ping.
+        The default is 'http://www.example.com/'.
+    timeout : int|float, optional
+        Timeout (in seconds) for url ping request. The default is 10.
+
+    Returns
+    -------
+    bool
+        True if connection is available, False if not.
+
+    """
+    try:
+        _ = requests.head(url, timeout=timeout)
+        return True
+    except requests.ConnectionError:
+        print("No internet connection available.")
+    return False
+
 def check_url(input_str):
-    """Check if a string is a 'https' url.
+    """Check if a string is an 'http:/'|'https:/' url.
 
     Parameters
     ----------
@@ -61,7 +92,8 @@ def check_url(input_str):
         True if input_string is url, else False.
 
     """
-    return 'https' in str(input_str)
+    return any(['https:/' in str(input_str),
+                'http:/' in str(input_str)])
 
 def read_json(json_path):
     """Read a .json file.
@@ -146,6 +178,25 @@ def save_json(json_path, item_for_save):
     with open(json_path, 'w') as f:
         json.dump(item_for_save, f)
     return
+
+def read_yaml(yaml_path):
+    """Read .yaml file at the provided path and return its contents.
+
+    Parameters
+    ----------
+    yaml_path : str
+        Path to .yaml file for loading.
+
+    Returns
+    -------
+    ym : list[dict]
+        Imported .yaml file contents.
+
+    """
+    with open(yaml_path, 'r') as f:
+        ym = yaml.load(f, Loader=yaml.FullLoader)
+    return ym
+
 
 def save_csv(path, pandas_table):
     """Save a pandas table as a .csv file

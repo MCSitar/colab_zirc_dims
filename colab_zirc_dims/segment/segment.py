@@ -90,7 +90,7 @@ def segment(curr_mosaic_img, curr_predictor,
     orig_subimg_size = curr_mosaic_img.sub_img_size_input
 
     #apply predictor to given subimg
-    central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img))
+    central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img[:,:,::-1]))
 
     # try zooming out slightly
     if try_bools[0] and not central_mask[0]:
@@ -99,7 +99,7 @@ def segment(curr_mosaic_img, curr_predictor,
         else:
             print('Trying segementation of zoomed-out subimage')
         curr_mosaic_img.set_sub_img_size(round(orig_subimg_size * 1.1))
-        central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img))
+        central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img[:,:,::-1]))
         curr_mosaic_img.set_sub_img_size(orig_subimg_size)
     #try zooming in slightly
     if try_bools[1] and not central_mask[0]:
@@ -108,7 +108,7 @@ def segment(curr_mosaic_img, curr_predictor,
         else:
             print('Trying segementation of zoomed-in subimage')
         curr_mosaic_img.set_sub_img_size(round(orig_subimg_size * 0.9))
-        central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img))
+        central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img[:,:,::-1]))
         curr_mosaic_img.set_sub_img_size(orig_subimg_size)
     #try increasing contrast
     if try_bools[2] and not central_mask[0]:
@@ -117,7 +117,7 @@ def segment(curr_mosaic_img, curr_predictor,
         else:
             print('Trying segmentation of contrast-enhanced subimage')
         cont_enhanced = exposure.equalize_hist(curr_mosaic_img.sub_img)
-        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced))
+        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced[:,:,::-1]))
     #try otsu threshholding
     if try_bools[3] and not central_mask[0]:
         if out_trk is not None:
@@ -162,7 +162,7 @@ def gen_segment(curr_img, curr_predictor,
     """
 
     #apply predictor to given subimg
-    central_mask = mos_proc.get_central_mask(curr_predictor(curr_img))
+    central_mask = mos_proc.get_central_mask(curr_predictor(curr_img[:,:,::-1]))
 
     #try increasing contrast
     if try_bools[0] and not central_mask[0]:
@@ -171,7 +171,7 @@ def gen_segment(curr_img, curr_predictor,
         else:
             print('Trying segmentation of contrast-enhanced subimage')
         cont_enhanced = exposure.equalize_hist(curr_img)
-        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced))
+        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced[:,:,::-1]))
     #try otsu threshholding
     if try_bools[1] and not central_mask[0]:
         if out_trk is not None:

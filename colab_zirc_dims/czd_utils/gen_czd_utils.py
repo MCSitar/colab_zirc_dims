@@ -42,8 +42,9 @@ def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [],
 
     Returns
     -------
-    ret_save_fields : TYPE
-        DESCRIPTION.
+    ret_save_fields : list[str] or list[0]
+        Either header strings given input parameters or a list of zeros, if
+         get_nulls=True.
 
     """
     default_save_fields = ['Analysis', 'Area (µm^2)',
@@ -211,7 +212,7 @@ def unique_scan_name(curr_scan_name, curr_sample_keys):
     Parameters
     ----------
     curr_scan_name : str
-        Unalterned name of a scan that is being loaded into a sample dict.
+        Unaltered name of a scan that is being loaded into a sample dict.
     curr_sample_keys : list[str]
         Names of scans that have already been loaded into said dict.
 

@@ -130,7 +130,7 @@ def best_axis_measures(moment_minor_ax, moment_major_ax,
 
     """
     
-    aspect_check = moment_major_ax/moment_minor_ax >= 2 #very rectangular grains
+    aspect_check = moment_major_ax/moment_minor_ax >= 1.8 #very rectangular grains
                                                           #will have higher aspect
     #print(aspect_check)
     overest_check = any([moment_major_ax > (1.02 * rect_major_ax),

@@ -14,17 +14,18 @@ import datetime
 from typing import List
 from typing import Union
 from IPython.display import display
-from IPython.display import Javascript
 import numpy as np
 from PIL import Image
 import pandas as pd
 import skimage.io as skio
 
+colab_import_success_bool = True
 try:
     from google.colab import output
     from google.colab.output import eval_js
 except ModuleNotFoundError:
-    pass
+    from ..jupyter_colab_compat import output_local as output
+    colab_import_success_bool = False
 
 from .gui_js import js
 from .. import czd_utils
@@ -44,7 +45,8 @@ from .. import save_load
 __all__ = ['run_gen_GUI']
 
 def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
-                load_dir = None, id_string = ''):
+                load_dir = None, id_string = '',
+                is_colab = colab_import_success_bool):
     """Run a colab-based GUI for automated / manual zircon segmentation and
        segmentation inspection of non-ALC (one image/shot) datasets.
 
@@ -74,6 +76,14 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
     id_string : str, optional
         A string to add to front of default (date-time) output folder name.
         The default is ''.
+    is_colab : bool, optional
+        A bool telling the GUI function whether to use Google Colab (if True)
+        or local IPython >= 7.0 (if False) functions and callbacks, both in the
+        GUI javascript function and in its Python wrapper. Users should not
+        need to set this argument manually. Its default value is determined
+        automatically based on whether trying to import 'google.colab.outputs'
+        module throws a ModuleNotFoundError (this package is installed) in
+        all Colab virtual environments.
 
     Raises
     ------
@@ -141,17 +151,25 @@ def run_gen_GUI(sample_data_dict, sample_list, root_dir_path, Predictor,
         # format arrays for input
         image_data = json.dumps(bytearrays)
         del bytearrays
-
         # call java script function pass string byte array(image_data) as input
-        display(js)
-
-        eval_js('load_image({}, {}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list,
-                                                                                                            sample_scale_factors,
-                                                                                                            original_polys,
-                                                                                                            auto_human_list_input, tag_list_input1,
-                                                                                                            sample_name,
-                                                                                                            callbackId1, callbackId2, callbackId3,
-                                                                                                            callbackId4))
+        if is_colab:
+            display(js)
+            eval_js('load_image(true, {}, {}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list,
+                                                                                                             sample_scale_factors,
+                                                                                                             original_polys,
+                                                                                                             auto_human_list_input, tag_list_input1,
+                                                                                                             sample_name,
+                                                                                                             callbackId1, callbackId2, callbackId3,
+                                                                                                             callbackId4))
+        else:
+            output.alt_eval_js(js,
+                               'load_image(false, {}, {}, {}, {}, {}, {}, {}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\')'.format(image_data, spot_names, track_list,
+                                                                                                                                sample_scale_factors,
+                                                                                                                                original_polys,
+                                                                                                                                auto_human_list_input, tag_list_input1,
+                                                                                                                                sample_name,
+                                                                                                                                callbackId1, callbackId2, callbackId3,
+                                                                                                                                callbackId4))
 
         return
 

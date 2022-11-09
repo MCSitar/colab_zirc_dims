@@ -18,7 +18,8 @@ try:
     from google.colab.patches import cv2_imshow
 except ModuleNotFoundError:
     print('WARNING: google.colab not found; (machine != Colab VM?).',
-          'Some colab_zirc_dims visualization functions will fail.')
+          'Using local copy of patches for visualization functions.')
+    from ..jupyter_colab_compat.patches import cv2_imshow
     pass
 import ipywidgets as widgets
 import skimage.io as skio
@@ -32,7 +33,7 @@ from .. import eta
 
 __all__ = ['gen_data_load_interface',
            'gen_inspect_data',
-           'gen_test_eval',
+           'gen_demo_eval',
            'gen_auto_proc_sample',
            'full_auto_proc']
 
@@ -179,7 +180,7 @@ def gen_inspect_data(inpt_loaded_data_dict, inpt_selected_samples,
             skio.imshow(each_img, extent=[0, each_x_extent, 0, each_y_extent])
             skio.show()
 
-def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
+def gen_demo_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
                   d2_metadata, n_scans_sample =3, src_str=None, **kwargs):
     """Plot predictions and extract grain measurements for n randomly-selected
        scans from each selected sample in an ALC dataset.
@@ -233,7 +234,7 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
             print('Scale factor:', round(scale_factor, 5),
                   'µm/pixel; scale from:', scale_from)
             print(str(eachscan), 'processed subimage:')
-            outputs = inpt_predictor(each_img)
+            outputs = inpt_predictor(each_img[:, :, ::-1])
             central_mask = mos_proc.get_central_mask(outputs)
             v = Visualizer(each_img[:, :, ::-1],
                            metadata=d2_metadata,

@@ -17,7 +17,8 @@ try:
     from google.colab.patches import cv2_imshow
 except ModuleNotFoundError:
     print('WARNING: google.colab not found; (machine != Colab VM?).',
-          'Some colab_zirc_dims visualization functions will fail.')
+          'Using local copy of patches for visualization functions.')
+    from ..jupyter_colab_compat.patches import cv2_imshow
     pass
 try:
     from detectron2.utils.visualizer import Visualizer
@@ -28,6 +29,7 @@ except ModuleNotFoundError:
 import ipywidgets as widgets
 import skimage.io as skio
 import pandas as pd
+import time
 
 from .. import czd_utils
 from .. import mos_proc
@@ -38,7 +40,7 @@ from .. import eta
 __all__ = ['select_samples_fxn',
            'inspect_data',
            'select_download_model_interface',
-           'test_eval',
+           'demo_eval',
            'auto_proc_sample',
            'full_auto_proc']
 
@@ -147,7 +149,28 @@ def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default')
 
     """
     if model_lib_loc == 'default':
-        model_lib_loc = 'https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/czd_model_library.json'
+        if os.path.exists(os.path.join(os.getcwd(), 'czd_model_library.json')):
+            model_lib_loc = os.path.join(os.getcwd(), 'czd_model_library.json')
+        else:
+            if not czd_utils.connected_to_internet():
+                raise Exception(' '.join(['No model library file accessible.', 
+                                          'Such a file is available at',
+                                          ''.join(['https://raw.githubusercontent.com/',
+                                          'MCSitar/colab_zirc_dims/main/',
+                                          'czd_model_library.json'])+'.',
+                                          'To enable this model download /',
+                                          'selection UI, please either',
+                                          'download it manually to your current',
+                                          'working directory or run this',
+                                          'notebook at least once while',
+                                          'connected to the internet to',
+                                          'do so automatically']))
+            model_lib_loc = ''.join(['https://raw.githubusercontent.com/',
+                                     'MCSitar/colab_zirc_dims/main/',
+                                     'czd_model_library.json'])
+            urllib.request.urlretrieve(model_lib_loc,
+                                       os.path.join(os.getcwd(), 
+                                                    'czd_model_library.json'))
     model_lib_list = czd_utils.json_from_path_or_url(model_lib_loc)
     model_labels = [each_dict['desc'] for each_dict in model_lib_list]
     model_picker = widgets.Dropdown(options=model_labels, value=model_labels[0],
@@ -155,34 +178,100 @@ def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default')
                                     layout={'width': 'max-content'})
     def select_download_model(selection):
         cwd = os.getcwd()
+        weights_yml_dirpath = os.path.join(cwd, 'downloaded_czd_model_files')
+        os.makedirs(weights_yml_dirpath, exist_ok=True)
         if selection is not None:
+            mut_curr_model_d.clear()
             mut_curr_model_d.update(model_lib_list[model_labels.index(selection)])
             print('Selected:', mut_curr_model_d['name'])
-            if os.path.exists(os.path.join(cwd, mut_curr_model_d['name'])):
+            target_weights_path = os.path.join(weights_yml_dirpath, 
+                                               mut_curr_model_d['name'])
+            if os.path.exists(target_weights_path):
                 if czd_utils.check_url(mut_curr_model_d['model_url']):
                     print('Model already downloaded')
                 else:
                     print('Model already copied to current working directory')
+                mut_curr_model_d.update({'selected_model_weights':
+                                         target_weights_path})
             else:
-                #download weights if url; attempt to copy if not
+                #download weights if url (default); attempt to copy as path if not
                 if czd_utils.check_url(mut_curr_model_d['model_url']):
-                    print('Downloading:', mut_curr_model_d['name'])
-                    print('...')
-                    urllib.request.urlretrieve(mut_curr_model_d['model_url'],
-                                              os.path.join(cwd,
-                                                            mut_curr_model_d['name']))
-                    print('Download finished')
+                    if not czd_utils.connected_to_internet():
+                        print(' '.join(['No model weights file accessible',
+                                        'for selected model. Please either',
+                                        'copy weights to directory manually',
+                                        'or run this notebook while connected',
+                                        'to the internet to do so automatically.',
+                                        'The current model library .json file',
+                                        'indicates that weights for the',
+                                        'selected model are available at:', 
+                                        str(mut_curr_model_d['model_url']),
+                                        'They should be copied to:',
+                                        str(target_weights_path)]))
+                    else:
+                        print('Downloading:', mut_curr_model_d['name'])
+                        print('...')
+                        urllib.request.urlretrieve(mut_curr_model_d['model_url'],
+                                                   target_weights_path)
+                        print('Download finished')
+                        mut_curr_model_d.update({'selected_model_weights':
+                                                 target_weights_path})
                 else:
                     print('Copying:', mut_curr_model_d['name'])
                     shutil.copy(mut_curr_model_d['model_url'],
-                                os.path.join(cwd,
-                                             mut_curr_model_d['name']))
+                                target_weights_path)
                     print('Done copying')
+                    mut_curr_model_d.update({'selected_model_weights':
+                                             target_weights_path})
+            if 'full_config_yaml_name' in mut_curr_model_d.keys():
+                target_yaml_path = os.path.join(weights_yml_dirpath,
+                                                mut_curr_model_d['full_config_yaml_name'])
+                src_yaml_path_or_url = mut_curr_model_d['yaml_url']
+                if os.path.exists(target_yaml_path):
+                    if czd_utils.check_url(src_yaml_path_or_url):
+                        print('Config. .yaml already downloaded')
+                    else:
+                        print('Config. .yaml already copied to',
+                              'current working directory')
+                    mut_curr_model_d.update({'selected_config_yaml':
+                                             target_yaml_path})
+                else:
+                    #download yaml if url (default); attempt to copy as path if not
+                    if czd_utils.check_url(src_yaml_path_or_url):
+                        if not czd_utils.connected_to_internet():
+                            print(' '.join(['No config .yaml file accessible',
+                                            'for selected model. Please either',
+                                            'copy .yaml to directory manually',
+                                            'or run this notebook while connected',
+                                            'to the internet to do so automatically.',
+                                            'The current model library .json file',
+                                            'indicates that the .yaml config for the',
+                                            'selected model is available at:', 
+                                            str(src_yaml_path_or_url),
+                                            'It should be copied to:',
+                                            str(target_yaml_path)]))
+                        else:
+                            print('Downloading:', 
+                                  mut_curr_model_d['full_config_yaml_name'])
+                            print('...')
+                            urllib.request.urlretrieve(src_yaml_path_or_url,
+                                                       target_yaml_path)
+                            print('Download finished')
+                            mut_curr_model_d.update({'selected_config_yaml':
+                                                     target_yaml_path})
+                    else:
+                        print('Copying:', mut_curr_model_d['name'])
+                        shutil.copy(src_yaml_path_or_url,
+                                    target_yaml_path)
+                        print('Done copying')
+                        mut_curr_model_d.update({'selected_config_yaml':
+                                                 target_yaml_path})
+                
     model_out = widgets.interactive_output(select_download_model,
                                            {'selection': model_picker})
     display(model_picker, model_out)
 
-def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
+def demo_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
               d2_metadata, n_scans_sample =3, src_str = None, **kwargs):
     """Plot predictions and extract grain measurements for n randomly-selected
        scans from each selected sample in an ALC dataset.
@@ -237,7 +326,7 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
         for eachscan in scan_sample:
             each_mosaic.set_subimg(*inpt_mos_data_dict[eachsample]['Scan_dict'][eachscan])
             print(str(eachscan), 'processed subimage:')
-            outputs = inpt_predictor(each_mosaic.sub_img)
+            outputs = inpt_predictor(each_mosaic.sub_img[:, :, ::-1])
             central_mask = mos_proc.get_central_mask(outputs)
             v = Visualizer(each_mosaic.sub_img[:, :, ::-1],
                       metadata=d2_metadata,
@@ -264,7 +353,7 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
 
 def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                      inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
-                     inpt_alt_methods, eta_trk, out_trk):
+                     inpt_alt_methods, eta_trk, out_trk, save_spot_time=False):
     """Automatically process and save results from a single sample in an ALC
        dataset.
 
@@ -299,6 +388,9 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     out_trk : colab_zirc_dims.eta.OutputTracker instance
         Optionally (depending on initialization params) refreshes text output
         for every scan instead of streaming all print() data to output box.
+    save_spot_time : bool, optional
+        If True, push per-spot segmentation times to output data .csv file.
+        The default is False.
 
     Returns
     -------
@@ -335,8 +427,10 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                     str(eachsample),
                                     str(eachscan)]))
         each_mosaic.set_subimg(*inpt_mos_data_dict[eachsample]['Scan_dict'][eachscan])
+        each_seg_start_time = time.perf_counter()
         central_mask = segment.segment(each_mosaic, inpt_predictor,
                                        inpt_alt_methods, out_trk)
+        each_total_seg_time = time.perf_counter() - each_seg_start_time
         if central_mask[0]:
             out_trk.print_txt('Success')
 
@@ -353,6 +447,11 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                                         each_mosaic.scale_factor,
                                                         str(eachscan),
                                                         verbose = False)
+
+            #add segmentation time dependent on user params
+            if save_spot_time:
+                temp_props_list.append(each_total_seg_time)
+
             output_data_list.append(temp_props_list)
 
             #optionally converts mask to polygon and adds it to json_dict for saving
@@ -365,6 +464,10 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
             null_properties = mos_proc.parse_properties([],
                                                         each_mosaic.scale_factor,
                                                         str(eachscan))
+            #add segmentation time dependent on user params
+            if save_spot_time:
+                null_properties.append(each_total_seg_time)
+
             output_data_list.append(null_properties)
             mos_proc.save_show_results_img(each_mosaic.sub_img, str(eachscan),
                                            display_bool = False,
@@ -379,12 +482,18 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     #deletes mosaic class instance after processing. \
     # May or may not reduce RAM during automated processing; probably best practice.
     del each_mosaic
-
+    
+    #additional parameters to save to output (i.e., for performance monitoring)
+    addit_save_fields = []
+    
+    if save_spot_time:
+        addit_save_fields.append('spot_time')
+    
     #converts collected data to pandas DataFrame, saves as .csv
     output_dataframe = pd.DataFrame(output_data_list,
                                     columns=czd_utils.get_save_fields(proj_type='mosaic',
                                                                       save_type='auto',
-                                                                      addit_fields = []))
+                                                                      addit_fields = addit_save_fields))
     csv_filename = str(eachsample) + '_grain_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)
@@ -396,7 +505,7 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
 
 def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
                    inpt_predictor, inpt_save_polys_bool, inpt_alt_methods,
-                   id_string = '', stream_output=False):
+                   id_string = '', stream_output=False, save_spot_time=False):
     """Automatically segment, measure, and save results for every selected
     sample in an ALC dataset.
 
@@ -474,7 +583,8 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     for eachsample in inpt_selected_samples:
         auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                          inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
-                         inpt_alt_methods, eta_trk, out_trk)
+                         inpt_alt_methods, eta_trk, out_trk,
+                         save_spot_time=save_spot_time)
         gc.collect()
 
     return run_dir
