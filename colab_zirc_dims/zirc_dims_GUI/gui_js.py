@@ -248,7 +248,7 @@ async function load_image(is_colab, imgs, spot_nms, trck_list, sample_scls, orig
     };
 
     // on analyze and save (MeasureSample), send polygons for saving, conversion, size analysis
-    MeasureSample.textContent = "Analyze sample zircon dimensions and export to Drive";
+    MeasureSample.textContent = "Analyze sample grain dimensions and export to Drive";
     MeasureSample.onclick = function(){
       errorlog.innerHTML = "Segmentations sent for processing";
       //orig polygons = new polygons after saving
@@ -298,7 +298,7 @@ async function load_image(is_colab, imgs, spot_nms, trck_list, sample_scls, orig
       }
     }
     // on analyzeall, save current polys, clear GUI, and start callback
-    analyzeAllbutton.textContent = "Analyze, export zircon dimensions from polygons for all selected samples";
+    analyzeAllbutton.textContent = "Analyze, export grain dimensions from polygons for all selected samples";
     analyzeAllbutton.onclick = function(){
       errorlog.innerHTML = "";
       // close GUI
