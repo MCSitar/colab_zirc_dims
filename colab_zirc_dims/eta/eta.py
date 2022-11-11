@@ -43,18 +43,18 @@ class EtaTracker:
         self.curr_n = 0
         self.curr_eta = 0
         self.start_time = None
-        self.n_time = None
+        self.el_time = None
         self.str_eta = 'ETA: calculating'
 
     def start(self):
-        """Start the timer for a single spot/image.
+        """Start the timer for a process.
 
         Returns
         -------
         None.
 
         """
-        self.n_time = None
+        self.el_time = 0
         self.start_time = time.perf_counter()
 
     def stop_update_eta(self):
@@ -65,18 +65,12 @@ class EtaTracker:
         None.
 
         """
-        self.n_time = time.perf_counter() - self.start_time
-        self.adj_eta(self.n_time)
-        self.start_time = None
+        self._adj_eta()
 
 
-    def adj_eta(self, input_val):
+    def _adj_eta(self):
         """Recalculate avg. rate, ETA, updates self.eta_str. Called internally.
 
-        Parameters
-        ----------
-        input_val : float
-            A new spot time in s.
 
         Returns
         -------
@@ -84,7 +78,8 @@ class EtaTracker:
 
         """
         self.curr_n += 1
-        self.curr_rate = self.curr_rate*(1-(1/self.curr_n)) + input_val*(1/self.curr_n)
+        self.el_time = time.perf_counter() - self.start_time
+        self.curr_rate = self.el_time / self.curr_n
         self.curr_eta = (self.total_n - self.curr_n) * self.curr_rate
         if self.curr_n >= 10:
             self.str_eta = 'ETA: '+'{:0>8}'.format(str(timedelta(seconds=round(self.curr_eta, 0))))
@@ -185,3 +180,27 @@ class OutputTracker:
             indiv_output=[string + '\n' if not string.endswith('\n')
                           else string for string in self.curr_output]
             print(''.join(indiv_output), flush=True)
+
+    def reset_and_print(self, new_txt):
+        """Reset the tracker, then print something into it. Useful for cases
+        where order of 'print' and 'reset' calls from parent function could
+        get mixed up (i.e., parallel processing). New test will print normally
+        if self.stream_outputs is True.
+
+        Parameters
+        ----------
+        new_txt : any type or list[any type]
+            Something to print; will be converted to string.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.reset()
+        if isinstance(new_txt, list):
+            for val in new_txt:
+                self.print_txt(val)
+        else:
+            self.print_txt(new_txt)
+

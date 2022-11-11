@@ -11,7 +11,10 @@ import gc
 import datetime
 import urllib.request
 import shutil
+import time
 from IPython.display import display
+from joblib import Parallel, delayed
+from matplotlib import pyplot as plt
 
 try:
     from google.colab.patches import cv2_imshow
@@ -29,7 +32,7 @@ except ModuleNotFoundError:
 import ipywidgets as widgets
 import skimage.io as skio
 import pandas as pd
-import time
+
 
 from .. import czd_utils
 from .. import mos_proc
@@ -298,8 +301,6 @@ def demo_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
             fig_dpi = int; will set plot dpi to input integer.
             show_ellipse = bool; will plot ellipse corresponding
                            to maj, min axes if True.
-            show_box = bool; will plot the minimum area rect.
-                       if True.
             show_legend = bool; will plot a legend on plot if
                           True.
 
@@ -353,7 +354,8 @@ def demo_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
 
 def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                      inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
-                     inpt_alt_methods, eta_trk, out_trk, save_spot_time=False):
+                     inpt_alt_methods, eta_trk, out_trk, save_spot_time=False,
+                     n_jobs=4, **kwargs):
     """Automatically process and save results from a single sample in an ALC
        dataset.
 
@@ -391,6 +393,8 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     save_spot_time : bool, optional
         If True, push per-spot segmentation times to output data .csv file.
         The default is False.
+    n_jobs : int, optional
+        Number of parallel threads to run using joblib during processing.
 
     Returns
     -------
@@ -409,42 +413,55 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     if inpt_save_polys_bool:
         each_json_dict = save_load.new_json_save_dict()
 
-    #loads mosaic file, automatically increasing contrast if needed
-    each_mosaic = mos_proc.MosImg(inpt_mos_data_dict[eachsample]['Mosaic'],
-                                  inpt_mos_data_dict[eachsample]['Align_file'],
-                                  inpt_mos_data_dict[eachsample]['Max_grain_size'],
-                                  inpt_mos_data_dict[eachsample]['Offsets'])
+    #parallel processing does not maintain input sequence order. We don't want \
+    # that for output data. The dicts below accumulate unsorted processing outputs
+    # for subsequent sorting.
+    unsort_output_data_dict = {}
+    unsort_each_json_dict = {}
 
-    #extracts zircon subimage and runs predictor for each scan
-    for eachscan in inpt_mos_data_dict[eachsample]['Scan_dict'].keys():
-        #start timing for spot
-        eta_trk.start()
+    #loads mosaic file, automatically increasing contrast if needed. Links it \
+    #to the current sample's scan dict to make it iterable for parallel proc.
+    mos_iterator = mos_proc.IterableMosImg(inpt_mos_data_dict[eachsample]['Mosaic'],
+                                           inpt_mos_data_dict[eachsample]['Scan_dict'],
+                                           inpt_alt_methods,
+                                           inpt_mos_data_dict[eachsample]['Align_file'],
+                                           inpt_mos_data_dict[eachsample]['Max_grain_size'],
+                                           inpt_mos_data_dict[eachsample]['Offsets'])
+    #sets up a ~parallel-safe avg spot segmentation time counter
+    start_time_outer = time.perf_counter()
+    n_done = 0
+    def get_spot_time():
+        nonlocal n_done
+        n_done += 1
+        return n_done/(time.perf_counter()-start_time_outer)
 
-        #reset output text display
-        out_trk.reset()
-        out_trk.print_txt(eta_trk.str_eta)
-        out_trk.print_txt(' '.join(['Processing:',
-                                    str(eachsample),
-                                    str(eachscan)]))
-        each_mosaic.set_subimg(*inpt_mos_data_dict[eachsample]['Scan_dict'][eachscan])
-        each_seg_start_time = time.perf_counter()
-        central_mask = segment.segment(each_mosaic, inpt_predictor,
-                                       inpt_alt_methods, out_trk)
-        each_total_seg_time = time.perf_counter() - each_seg_start_time
+    #extracts zircon subimage and runs predictor for each scan. Takes outputs
+    # from __iter__ function of a mos_proc.IterableMosImg instance
+    def parallel_proc_scans(iter_count, eachscan, imgs, each_scale_factor):
+
+        #restrict printing to a reasonable rate to avoid strange
+        if iter_count % n_jobs == 0 or out_trk.stream_outputs:
+            #reset output text display, prints some useful info
+            out_trk.reset_and_print([eta_trk.str_eta,
+                                     ' '.join(['Processing:',
+                                               str(eachsample),
+                                               str(eachscan)])])
+        central_mask=segment.segment_given_imgs(imgs, inpt_predictor,
+                                                try_bools=inpt_alt_methods,
+                                                **kwargs)
+        each_total_seg_time = get_spot_time()
         if central_mask[0]:
-            out_trk.print_txt('Success')
-
             #saves mask image and gets properties
             each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
-                                                             each_mosaic.sub_img,
+                                                             imgs[0],
                                                              str(eachscan),
                                                              display_bool = False,
                                                              save_dir=each_img_save_dir,
-                                                             scale_factor=each_mosaic.scale_factor)
+                                                             scale_factor=each_scale_factor)
 
             #adds properties to output list
             temp_props_list = mos_proc.parse_properties(each_props,
-                                                        each_mosaic.scale_factor,
+                                                        each_scale_factor,
                                                         str(eachscan),
                                                         verbose = False)
 
@@ -452,36 +469,66 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
             if save_spot_time:
                 temp_props_list.append(each_total_seg_time)
 
-            output_data_list.append(temp_props_list)
+            unsort_output_data_dict[str(eachscan)] = temp_props_list
+            #output_data_list.append(temp_props_list)
 
             #optionally converts mask to polygon and adds it to json_dict for saving
             if inpt_save_polys_bool:
-                save_load.auto_append_json_dict(each_json_dict, str(eachscan),
-                                                central_mask[1], each_mosaic.scale_factor)
+                unsort_each_json_dict[str(eachscan)] = {'spot_names':[],
+                                                        'spot_polys':[]}
+                save_load.auto_append_json_dict(unsort_each_json_dict[str(eachscan)],
+                                                str(eachscan),
+                                                central_mask[1], 
+                                                each_scale_factor)
 
         #gives empty outputs if no mask image
         else:
             null_properties = mos_proc.parse_properties([],
-                                                        each_mosaic.scale_factor,
+                                                        each_scale_factor,
                                                         str(eachscan))
             #add segmentation time dependent on user params
             if save_spot_time:
                 null_properties.append(each_total_seg_time)
 
-            output_data_list.append(null_properties)
-            mos_proc.save_show_results_img(each_mosaic.sub_img, str(eachscan),
+            unsort_output_data_dict[str(eachscan)] = null_properties
+            mos_proc.save_show_results_img(imgs[0], str(eachscan),
                                            display_bool = False,
                                            save_dir = each_img_save_dir,
-                                           scale_factor = each_mosaic.scale_factor)
+                                           scale_factor = each_scale_factor)
             #optionally adds empty polygons to json_dict for saving
             if inpt_save_polys_bool:
-                save_load.null_append_json_dict(each_json_dict, str(eachscan))
+                unsort_each_json_dict[str(eachscan)] = {'spot_names':[],
+                                                        'spot_polys':[]}
+                save_load.null_append_json_dict(unsort_each_json_dict[str(eachscan)],
+                                                str(eachscan))
 
         #get total time for spot
         eta_trk.stop_update_eta()
+
+    with plt.ioff():
+        #run our big per-scan parallelized segmentation function for each scan
+        # in the dataset.
+        Parallel(n_jobs=n_jobs, 
+                 require='sharedmem'
+                 )(delayed(parallel_proc_scans)(*iter_out)
+                                      for iter_out in mos_iterator)
+
+    #fix order for output data
+    for eachscan in inpt_mos_data_dict[eachsample]['Scan_dict'].keys():
+        match_key = str(eachscan)
+        output_data_list.append(unsort_output_data_dict[match_key])
+        if inpt_save_polys_bool:
+            add_names = unsort_each_json_dict[match_key]['spot_names']
+            add_polys = unsort_each_json_dict[match_key]['spot_polys']
+            each_json_dict['spot_names'] = [*each_json_dict['spot_names'],
+                                            *add_names]
+            each_json_dict['spot_polys'] = [*each_json_dict['spot_polys'],
+                                            *add_polys]
+
+
     #deletes mosaic class instance after processing. \
     # May or may not reduce RAM during automated processing; probably best practice.
-    del each_mosaic
+    del mos_iterator
     
     #additional parameters to save to output (i.e., for performance monitoring)
     addit_save_fields = []
@@ -493,7 +540,7 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     output_dataframe = pd.DataFrame(output_data_list,
                                     columns=czd_utils.get_save_fields(proj_type='mosaic',
                                                                       save_type='auto',
-                                                                      addit_fields = addit_save_fields))
+                                                                      addit_fields=addit_save_fields))
     csv_filename = str(eachsample) + '_grain_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)
@@ -505,7 +552,8 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
 
 def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
                    inpt_predictor, inpt_save_polys_bool, inpt_alt_methods,
-                   id_string = '', stream_output=False, save_spot_time=False):
+                   id_string = '', stream_output=False, save_spot_time=False,
+                   n_jobs=2, **kwargs):
     """Automatically segment, measure, and save results for every selected
     sample in an ALC dataset.
 
@@ -538,6 +586,8 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
         straight to output, no clearing or refreshing) or displayed in an
         automatically-refreshing block at the top of cell outputs.
         The default is False.
+    n_jobs : int, optional
+        Number of parallel threads to run using joblib during processing.
 
     Returns
     -------
@@ -578,13 +628,17 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     eta_trk = eta.EtaTracker(czd_utils.alc_calc_scans_n(inpt_mos_data_dict,
                                                         inpt_selected_samples))
     out_trk = eta.OutputTracker(n_blank_lines=10, stream_outputs=stream_output)
+    
+    #start timing for ETA
+    eta_trk.start()
 
     #starts loop through dataset dictionary
     for eachsample in inpt_selected_samples:
         auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                          inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
                          inpt_alt_methods, eta_trk, out_trk,
-                         save_spot_time=save_spot_time)
+                         save_spot_time=save_spot_time, n_jobs=n_jobs, **kwargs)
         gc.collect()
+    out_trk.print_txt('Done')
 
     return run_dir

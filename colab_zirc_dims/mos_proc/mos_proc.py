@@ -34,7 +34,8 @@ __all__ = ['mask_size_at_pt',
            'parse_properties',
            'auto_inc_contrast',
            'random_subimg_sample',
-           'MosImg']
+           'MosImg',
+           'IterableMosImg']
 
 # Various small functions that simplify larger functions below
 
@@ -69,7 +70,7 @@ def mask_size_at_pt(input_mask, coords):
 
 
 # function for retrieving mask at center of image, ~nearest to center of image
-def get_central_mask(results):
+def get_central_mask(results, verbose=True):
     """Return the largest central mask region array, if any,
         from threshholding or Detectron2 prediction results.
 
@@ -77,6 +78,10 @@ def get_central_mask(results):
     ----------
     results : Detectron2 Prediction or list[array]
         Detectron2 predictions or list of mask arrays for central mask.
+    verbose : bool, optional
+        Determines whether function prints error messages (e.g., "NO CENTRAL
+        GRAIN FOUND"). The default is True.
+        
 
     Returns
     -------
@@ -101,7 +106,8 @@ def get_central_mask(results):
 
     #does not search for masks if no zircons segmented from image
     if masks == []:
-        print('NO ZIRCON MASKS FOUND')
+        if verbose:
+            print('NO GRAIN MASKS FOUND')
         return mask_found_bool, []
 
     #gets central points for masks/image, number of masks created
@@ -125,18 +131,18 @@ def get_central_mask(results):
         mask_found_bool = True
 
     #extends search if mask not found at exact center
-    while mask_found_bool is False and pts.in_bounds:
-        pts.next_pt()
-        curr_x, curr_y = pts.curr_pts
-        for i in range(0, num_masks):
-            if masks[curr_y, curr_x, i]:
-                central_mask_indices.append(i)
-        if len(central_mask_indices) > 0:
-            mask_found_bool = True
-            break
+    for each_x, each_y in pts:
+        if mask_found_bool is False:
+            for i in range(0, num_masks):
+                if masks[each_y, each_x, i]:
+                    central_mask_indices.append(i)
+            if len(central_mask_indices) > 0:
+                mask_found_bool = True
+                break
 
     if not mask_found_bool:
-        print('ERROR: NO CENTRAL ZIRCON MASK FOUND')
+        if verbose:
+            print('ERROR: NO CENTRAL GRAIN MASK FOUND')
         return(mask_found_bool, [])
 
     #if only one mask at center, return it
@@ -216,10 +222,9 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
         Args for plotting - fig_dpi = int; will set plot dpi to input integer.
                             show_ellipse = bool; will plot ellipse corresponding
                                            to maj, min axes if True.
-                            show_box = bool; will plot the minimum area rect.
-                                       if True.
                             show_legend = bool; will plot a legend on plot if
                                           True.
+                            
 
     Returns
     -------
@@ -256,29 +261,30 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
         if not isinstance(main_region, type(None)):
             overlay_bool = True
     #check kwargs
-    plot_ellipse, plot_rect = False, False
-    for each_kword_idx, each_kword in enumerate(['show_ellipse', 'show_box']):
-        if each_kword in kwargs:
-            if kwargs[each_kword]:
-                [plot_ellipse, plot_rect][each_kword_idx] = True
+    plot_ellipse = False
+    if 'show_ellipse' in kwargs:
+        plot_ellipse = True
     if overlay_bool:
 
         ax.imshow(input_central_mask, alpha=0.4)
         
+        #plots measured axes atop image
+        #for props in regions:
+        y0, x0 = main_region.centroid
+        orientation = main_region.orientation
+        x1 = x0 + math.cos(orientation) * 0.5 * main_region.minor_axis_length
+        y1 = y0 - math.sin(orientation) * 0.5 * main_region.minor_axis_length
+        x2 = x0 - math.sin(orientation) * 0.5 * main_region.major_axis_length
+        y2 = y0 - math.cos(orientation) * 0.5 * main_region.major_axis_length
         if 'moment' in str(main_region.best_ax_from):
-            #plots measured axes atop image
-            #for props in regions:
-            y0, x0 = main_region.centroid
-            orientation = main_region.orientation
-            x1 = x0 + math.cos(orientation) * 0.5 * main_region.minor_axis_length
-            y1 = y0 - math.sin(orientation) * 0.5 * main_region.minor_axis_length
-            x2 = x0 - math.sin(orientation) * 0.5 * main_region.major_axis_length
-            y2 = y0 - math.cos(orientation) * 0.5 * main_region.major_axis_length
-    
             ax.plot((x0, x1), (y0, y1), '-r', linewidth=1.5,
                     label = 'Major, minor axes')
             ax.plot((x0, x2), (y0, y2), '-r', linewidth=1.5)
-            ax.plot(x0, y0, '.g', markersize=10, label = 'Centroid')
+        else:
+            ax.plot((x0, x1), (y0, y1), '--r', linewidth=1.5,
+                    label = 'Major, minor axes', alpha =0.5,)
+            ax.plot((x0, x2), (y0, y2), '--r', linewidth=1.5, alpha =0.5)
+        ax.plot(x0, y0, '.g', markersize=10, label = 'Centroid')
         
 
 
@@ -293,9 +299,13 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
 
 
         #plot minimum bounding rectangle atop image (source of Feret diameter)
-        if 'rect' in str(main_region.best_ax_from) or plot_rect is True:
+        if 'rect' in str(main_region.best_ax_from):
             ax.plot(*main_region.rect_points, color = 'b',
-                    linestyle = '--', alpha =0.5, linewidth=1.0,
+                    linestyle = '-', alpha =0.7, linewidth=1.0,
+                    label = 'Minimum area rectangle')
+        else:
+            ax.plot(*main_region.rect_points, color = 'b',
+                    linestyle = '--', alpha =0.35, linewidth=1.0,
                     label = 'Minimum area rectangle')
 
     #mark 'failed' shots
@@ -316,7 +326,7 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
                 handles.append(Line2D([0], [0], linestyle='--', color='red',
                                       alpha=0.5, linewidth=1.5))
                 labels.append("Ellipse with same $2_{nd}$ order\nmoments as grain mask")
-            plt.legend(handles=handles, labels = labels)
+            fig.legend(handles=handles, labels = labels)
     if 'fig_dpi' in kwargs:
         fig.set_dpi(int(kwargs['fig_dpi']))
 
@@ -326,14 +336,14 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
             img_save_filename = os.path.join(save_dir,
                                              adj_analys_name + '_tagged.png')
 
-        plt.savefig(img_save_filename)
+        fig.savefig(img_save_filename)
 
     #plt.clf()
 
     if display_bool:
         plt.show()
 
-    plt.close('all')
+    plt.close(fig)
 
 
 #measures zircon mask (in pixels) using skimage, creates an image by \
@@ -488,13 +498,13 @@ def auto_inc_contrast(input_image, low_cont_threshhold =0.10):
 
         ## code for enhancing contrast by channel: \
         ## avoids warning but produces grainy images
-        #red = skimage.exposure.equalize_hist(input_image[:, :, 0])
-        #green = skimage.exposure.equalize_hist(input_image[:, :, 1])
-        #blue = skimage.exposure.equalize_hist(input_image[:, :, 2])
-        #return skimage.img_as_ubyte(np.stack([red, green, blue], axis=2))
+        red = skimage.exposure.equalize_hist(input_image[:, :, 0])
+        green = skimage.exposure.equalize_hist(input_image[:, :, 1])
+        blue = skimage.exposure.equalize_hist(input_image[:, :, 2])
+        return skimage.img_as_ubyte(np.stack([red, green, blue], axis=2))
 
         #code for enhancing contrast without splitting channels: results are less grainy
-        return skimage.img_as_ubyte(skimage.exposure.equalize_hist(input_image))
+        #return skimage.img_as_ubyte(skimage.exposure.equalize_hist(input_image))
     else:
         return input_image
 
@@ -732,3 +742,82 @@ class MosImg:
                      self.x_y_0_offsets[0]:self.x_y_1_offsets[0],
                      :] = self.full_img[self.x_y_0[1]:self.x_y_1[1],
                                         self.x_y_0[0]:self.x_y_1[0], :]
+    def get_subimg(self, *coords_inpt):
+        """Get the current sub_img, after optionally adjusting the current
+        sub_img location to input coordinates if they are given.
+
+        Parameters
+        ----------
+        coords_inpt : 2 ints and/or floats, optional
+            If given, they will be treated as x_coord, y_coord and used to set
+            a new sub_img location. Otherwise, location will be kept as-is.
+
+        Returns
+        -------
+        np.ndarray
+            Array representing the current subimage (i.e., self.sub_img).
+
+        """
+        if coords_inpt:
+            self.set_subimg(*coords_inpt)
+        return self.sub_img
+    
+    def get_zoomed_subimg(self, zoom_fact=1.1):
+        """Get a version of the current subimage that is zoomed in or out by
+        the given zoom_fact (i.e., decreasing or increasing spatial extent on
+        the mosaic image, keeping the same center). Reset instance sub_img_size
+        afterwards.
+
+        Parameters
+        ----------
+        zoom_fact : int or float, optional
+            Factor to multiply the current sub_img extent by. The default is
+            1.1.
+
+        Returns
+        -------
+        out_img: np.ndarray
+            Array representing the current subimage (i.e., self.sub_img), with
+            extent adjusted by zoom_fact.
+
+        """
+        self.set_sub_img_size(self.sub_img_size*zoom_fact)
+        out_img = self.get_subimg()
+        self.set_sub_img_size(self.sub_img_size_input)
+        return out_img
+
+
+class IterableMosImg:
+    
+    def __init__(self, mosaic_image_path, scan_dict,
+                 try_bools=[False, False, False, False],
+                 align_file_path = '',
+                 sub_img_size = 500, x_y_shift_list = [0, 0]):
+
+        #create the child mosaic image instance
+        self._mos_img = MosImg(mosaic_image_path, 
+                               align_file_path=align_file_path,
+                               sub_img_size=sub_img_size,
+                               x_y_shift_list=x_y_shift_list)
+        self._scan_dict = scan_dict
+        self.try_bools = try_bools
+
+    def get_aug_subimgs(self, *inpt_pt_coords):
+        if inpt_pt_coords:
+            self._mos_img.set_subimg(*inpt_pt_coords)
+        out_lst = [self._mos_img.get_subimg()]
+        #if first try bool is true, we need a 'zoomed-out' subimage (extent*1.1)
+        if self.try_bools[0]:
+            out_lst.append(self._mos_img.get_zoomed_subimg(1.1))
+        #if second is True, we need a 'zoomed-in' subimage (extent*0.9)
+        if self.try_bools[1]:
+            out_lst.append(self._mos_img.get_zoomed_subimg(0.9))
+        return out_lst
+
+    def __iter__(self):
+        idx_count = 0
+        for eachscan, eachscan_coords in self._scan_dict.items():
+            idx_count +=1
+            out_imgs = self.get_aug_subimgs(*eachscan_coords)
+            out_scale_factor=self._mos_img.scale_factor
+            yield (idx_count,str(eachscan), out_imgs, out_scale_factor)

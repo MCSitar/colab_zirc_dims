@@ -133,6 +133,7 @@ dmypy.json
 
 # draft and local testing files
 *DRAFT_IGNORE.ipynb
+*DRAFT_IGNORE.py
 **/downloaded_czd_model_files
 **/swinT_repo
 **/centermask
