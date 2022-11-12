@@ -336,7 +336,7 @@ def demo_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
             out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
             cv2_imshow(out.get_image()[:, :, ::-1])
             if central_mask[0]:
-                print(str(eachscan), 'analyzed (scanned) zircon image:')
+                print(str(eachscan), 'analyzed (scanned) grain image:')
                 each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
                                                                 each_mosaic.sub_img,
                                                                 eachscan,
@@ -347,7 +347,7 @@ def demo_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
                                               each_mosaic.scale_factor,
                                               eachscan, verbose = True)
             else:
-                print(str(eachscan), 'analyzed (scanned) zircon image:')
+                print(str(eachscan), 'analyzed (scanned) grain image:')
                 mos_proc.save_show_results_img(each_mosaic.sub_img, eachscan,
                                                display_bool = True,
                                                scale_factor = each_mosaic.scale_factor)
@@ -366,7 +366,7 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     img_save_root_dir : str
         Path to dir where mask images for each scan will be saved.
     csv_save_dir : str
-        Path to dir where .csv files with zircon dimensions for each scan
+        Path to dir where .csv files with grain dimensions for each scan
         will be saved.
     eachsample : str
         Sample name (must be in inpt_mos_data_dict) for the sample being processed.
@@ -427,15 +427,8 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                            inpt_mos_data_dict[eachsample]['Align_file'],
                                            inpt_mos_data_dict[eachsample]['Max_grain_size'],
                                            inpt_mos_data_dict[eachsample]['Offsets'])
-    #sets up a ~parallel-safe avg spot segmentation time counter
-    start_time_outer = time.perf_counter()
-    n_done = 0
-    def get_spot_time():
-        nonlocal n_done
-        n_done += 1
-        return n_done/(time.perf_counter()-start_time_outer)
 
-    #extracts zircon subimage and runs predictor for each scan. Takes outputs
+    #extracts grain subimage and runs predictor for each scan. Takes outputs
     # from __iter__ function of a mos_proc.IterableMosImg instance
     def parallel_proc_scans(iter_count, eachscan, imgs, each_scale_factor):
 
@@ -446,10 +439,12 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                      ' '.join(['Processing:',
                                                str(eachsample),
                                                str(eachscan)])])
+        time_start_seg = time.perf_counter()
         central_mask=segment.segment_given_imgs(imgs, inpt_predictor,
                                                 try_bools=inpt_alt_methods,
                                                 **kwargs)
-        each_total_seg_time = get_spot_time()
+        ##time for segmentation. Will only be accurate if n_jobs == 1.
+        each_total_seg_time = time.perf_counter()-time_start_seg
         if central_mask[0]:
             #saves mask image and gets properties
             each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
@@ -505,13 +500,13 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
         #get total time for spot
         eta_trk.stop_update_eta()
 
-    with plt.ioff():
-        #run our big per-scan parallelized segmentation function for each scan
-        # in the dataset.
-        Parallel(n_jobs=n_jobs, 
-                 require='sharedmem'
-                 )(delayed(parallel_proc_scans)(*iter_out)
-                                      for iter_out in mos_iterator)
+    plt.ioff()
+    #run our big per-scan parallelized segmentation function for each scan
+    # in the sample.
+    Parallel(n_jobs=n_jobs, 
+             require='sharedmem'
+             )(delayed(parallel_proc_scans)(*iter_out)
+                                  for iter_out in mos_iterator)
 
     #fix order for output data
     for eachscan in inpt_mos_data_dict[eachsample]['Scan_dict'].keys():
@@ -620,7 +615,7 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     img_save_root_dir = os.path.join(run_dir, 'mask_images')
     os.makedirs(img_save_root_dir)
 
-    #creates a directory for zircon dimension .csv files
+    #creates a directory for grain dimension .csv files
     csv_save_dir = os.path.join(run_dir, 'grain_dimensions')
     os.makedirs(csv_save_dir)
 

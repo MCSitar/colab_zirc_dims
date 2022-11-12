@@ -326,7 +326,7 @@ def save_show_results_img(original_image, analys_name, display_bool=False,
                 handles.append(Line2D([0], [0], linestyle='--', color='red',
                                       alpha=0.5, linewidth=1.5))
                 labels.append("Ellipse with same $2_{nd}$ order\nmoments as grain mask")
-            fig.legend(handles=handles, labels = labels)
+            ax.legend(handles=handles, labels = labels)
     if 'fig_dpi' in kwargs:
         fig.set_dpi(int(kwargs['fig_dpi']))
 
@@ -788,6 +788,41 @@ class MosImg:
 
 
 class IterableMosImg:
+    """Creates and links a MosImage instance to a scan dict loaded from a
+    corresponding dict loaded from a .scancsv, with scan coordinates. Iterable
+    for easy use with parallel processing.
+
+    Parameters
+    ----------
+    mosaic_image_path : str
+        Full file path to a .bmp mosaic image file.
+    scan_dict : dict{Any: [float|int, float|int]}
+        A dictionary with scan names: scan coordinates, as loaded from a
+        .scancsv file using czd_utils.scancsv_to_dict().
+    try_bools : list[bool], optional
+        A list of bools corresponding to alternate methods (scale jittering,
+        contrast enhancement, and/or Otsu thresholding) to iteratively try on
+        a scan image if inital central grain segmentation is unsuccesful.
+        Format: [Try_zoomed_out_subimage, Try_zoomed_in_subimage,
+                 Try_contrast_enhanced_subimage,
+                 Try_Otsu_thresholding].
+        The default is [False, False, False, False].
+    align_file_path : str, optional
+        Path to a .Align file corresponding to the mosaic image.
+        If not entered, the image scale will be in pixels.
+        The default is ''.
+    sub_img_size : int, optional
+        Size of subimages extracted from the mosaic in pixels or microns.
+        The default is 500.
+    x_y_shift_list : list[int], optional
+        A list [x shift, y shift] used to correct misalignment between
+        .scancsv shot coordinates and a mosaic image. The default is [0, 0].
+
+    Returns
+    -------
+    None.
+
+    """
     
     def __init__(self, mosaic_image_path, scan_dict,
                  try_bools=[False, False, False, False],
@@ -803,21 +838,68 @@ class IterableMosImg:
         self.try_bools = try_bools
 
     def get_aug_subimgs(self, *inpt_pt_coords):
+        """Get a list of subimgs (as np.ndarrays) from the child MosImg. These
+        will depend on the first three try bools.
+
+        Parameters
+        ----------
+        *inpt_pt_coords : float|int, float|int, optional
+            Coordinates to set subimage location. If not included, subimages
+            will be drawn from the child MosImg current subimg location.
+
+        Returns
+        -------
+        out_imgs_lst : list[np.ndarray]
+            Images for segmentation. These depend on the first two booleans in
+            self.try_bools. The number of returned subimages in the list will
+            thus range from 1 to 3. The first subimage will always be the
+            unaltered (i.e., 'original') subimage clipped from the child
+            MosImg instance, at the current target location.
+            Format:
+                [unaltered subimage at target location,
+                 if try_bools[0]: subimage with extent increased w/ fact. of 1.1,
+                 if try_bools[0]: subimage with extent decreased w/ fact. of 0.9,]
+
+        """
         if inpt_pt_coords:
             self._mos_img.set_subimg(*inpt_pt_coords)
-        out_lst = [self._mos_img.get_subimg()]
+        out_imgs_lst = [self._mos_img.get_subimg()]
         #if first try bool is true, we need a 'zoomed-out' subimage (extent*1.1)
         if self.try_bools[0]:
-            out_lst.append(self._mos_img.get_zoomed_subimg(1.1))
+            out_imgs_lst.append(self._mos_img.get_zoomed_subimg(1.1))
         #if second is True, we need a 'zoomed-in' subimage (extent*0.9)
         if self.try_bools[1]:
-            out_lst.append(self._mos_img.get_zoomed_subimg(0.9))
-        return out_lst
+            out_imgs_lst.append(self._mos_img.get_zoomed_subimg(0.9))
+        return out_imgs_lst
 
     def __iter__(self):
+        """Iterate through the scan dict, yielding all scan-dependent variables
+        needed for segmentation and central grain dimensional analysis of the
+        target grain.
+
+        Yields
+        ------
+        idx_count : int
+            Current index-location within the scan dict.
+        str
+            Current scan name (from .scancsv file, by way of the scan dict).
+        out_imgs : list[np.ndarray]
+            List of images (as np.ndarrays).These depend on the first two booleans in
+            self.try_bools. The number of returned subimages in the list will
+            thus range from 1 to 3. The first subimage will always be the
+            unaltered (i.e., 'original') subimage clipped from the child
+            MosImg instance, at the current target location.
+            Format:
+                [unaltered subimage at target location,
+                 if try_bools[0]: subimage with extent increased w/ fact. of 1.1,
+                 if try_bools[0]: subimage with extent decreased w/ fact. of 0.9,]
+        out_scale_factor : float
+            Scale in um/pixel for spot. From loaded child MosImg instance.
+
+        """
         idx_count = 0
         for eachscan, eachscan_coords in self._scan_dict.items():
-            idx_count +=1
             out_imgs = self.get_aug_subimgs(*eachscan_coords)
             out_scale_factor=self._mos_img.scale_factor
             yield (idx_count,str(eachscan), out_imgs, out_scale_factor)
+            idx_count +=1
