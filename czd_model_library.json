@@ -1,6 +1,42 @@
 [{
+        "name": "czd_large_M-ST-C_7.0k.pth",
+        "desc": "M-ST-C (Mask-RCNN with Swin-T backbone; current 'best' model)",
+        "config_file": "Misc/scratch_mask_rcnn_R_50_FPN_3x_gn.yaml",
+        "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/czd_large_M-ST-C_7.0k.pth",
+        "resnet_depth": 50,
+        "non_std_id": "swint",
+        "full_config_yaml_name": "SwinT_czd_large_v1.yaml",
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Swin-T/SwinT_czd_large_v1.yaml"
+    }, {
+        "name": "czd_large_M-R101-C_7.0k.pth",
+        "desc": "M-R101-C (Detectron2 Mask-RCNN ResNet101 FPN; will run without outside dependencies)",
+        "config_file": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
+        "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/czd_large_M-R101-C_7.0k.pth",
+        "resnet_depth": 101,
+        "non_std_id": "",
+        "full_config_yaml_name": "R_101_COCO_czd_large_v1.yaml",
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_101_COCO_czd_large_v1.yaml"
+    }, {
+        "name": "czd_large_C-V-C_11.0k.pth",
+        "desc": "C-V-C (Centermask2-VoVNetV2; performs very well on larger grains, less so on small grains)",
+        "config_file": "Misc/scratch_mask_rcnn_R_50_FPN_3x_gn.yaml",
+        "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/czd_large_C-V-C_11.0k.pth",
+        "resnet_depth": 101,
+        "non_std_id": "centermask",
+        "full_config_yaml_name": "Cmask2_czd_large_v1.yaml",
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Centermask/Cmask2_czd_large_v1.yaml"
+    }, {
+        "name": "czd_large_M-R50-C_6.0k.pth",
+        "desc": "M-R50-C (Detectron2 Mask-RCNN ResNet101 FPN; slightly worse-performing but slightly faster model)",
+        "config_file": "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml",
+        "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/czd_large_M-R50-C_6.0k.pth",
+        "resnet_depth": 50,
+        "non_std_id": "",
+        "full_config_yaml_name": "R_50_COCO_czd_large_v1.yaml",
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_50_COCO_czd_large_v1.yaml"
+    }, (
         "name": "101_model_COCO_base_6.0k.pth",
-        "desc": "101_model_COCO_base (default; best standard model)",
+        "desc": "TRAINED ON SMALL DATASET: 101_model_COCO_base (default before 11/10/22)",
         "config_file": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/101_model_COCO_base_2_6.0k.pth",
         "resnet_depth": 101,
@@ -9,7 +45,7 @@
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_model_COCO_base_orig.yaml"
     }, {
         "name": "centermask2_4.0k.pth",
-        "desc": "centermask2_4.0k (probable most accurate model; non-standard)",
+        "desc": "TRAINED ON SMALL DATASET: centermask2_4.0k (most accurate among models trained on small dataset; non-standard)",
         "config_file": "Misc/scratch_mask_rcnn_R_50_FPN_3x_gn.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/centermask2_4.0k.pth",
         "resnet_depth": 50,
@@ -18,7 +54,7 @@
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Centermask/Centermask2_orig.yaml"
     }, {
         "name": "101_model_final_2.pth",
-        "desc": "101_model_final_2 (older model, default before 03/21/22)",
+        "desc": "TRAINED ON SMALL DATASET: 101_model_final_2 (default before 03/21/22)",
         "config_file": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/101_model_final_2.pth",
         "resnet_depth": 101,
@@ -27,7 +63,7 @@
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_model_COCO_base_orig.yaml"
     }, {
         "name": "50_model_COCO_base_6.0k.pth",
-        "desc": "50_model_COCO_base_6.0k (a worse-performing, slightly faster model)",
+        "desc": "TRAINED ON SMALL DATASET: 50_model_COCO_base_6.0k (a worse-performing, slightly faster model)",
         "config_file": "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/50_model_COCO_base_2_6.0k.pth",
         "resnet_depth": 50,
@@ -36,7 +72,7 @@
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_model_COCO_base_orig.yaml"
     }, {
         "name": "101_from_scratch_8.0k.pth",
-        "desc": "101_from_scratch_8.0k (poor performance; for data replication purposes only)",
+        "desc": "TRAINED ON SMALL DATASET: 101_from_scratch_8.0k (poor performance; for preprint replication purposes only)",
         "config_file": "Misc/scratch_mask_rcnn_R_50_FPN_3x_gn.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/101_from_scratch_8.0k.pth",
         "resnet_depth": 101,
@@ -45,7 +81,7 @@
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_from_scratch.yaml"
     }, {
         "name": "50_from_scratch_4.0k.pth",
-        "desc": "50_from_scratch_4.0k (poor performance; for data replication purposes only)",
+        "desc": "TRAINED ON SMALL DATASET: 50_from_scratch_4.0k (poor performance; for preprint replication purposes only)",
         "config_file": "Misc/scratch_mask_rcnn_R_50_FPN_3x_gn.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/50_from_scratch_4.0k.pth",
         "resnet_depth": 50,
@@ -54,7 +90,7 @@
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_from_scratch.yaml"
     }, {
         "name": "50_from_scratch_no_augs_4.0k.pth",
-        "desc": "50_from_scratch_no_augs_4.0k (poor performance; for data replication purposes only)",
+        "desc": "TRAINED ON SMALL DATASET: 50_from_scratch_no_augs_4.0k (poor performance; for preprint replication purposes only)",
         "config_file": "Misc/scratch_mask_rcnn_R_50_FPN_3x_gn.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/50_from_scratch_no_augs_4.0k.pth",
         "resnet_depth": 50,
@@ -63,7 +99,7 @@
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_from_scratch_no_augs.yaml"
     }, {
         "name": "mask_rcnn_swint_7.0k.pth",
-        "desc": "mask_rcnn_swint_7.0k (Swin-T backbone)",
+        "desc": "TRAINED ON SMALL DATASET: mask_rcnn_swint_7.0k (Swin-T backbone)",
         "config_file": "Misc/scratch_mask_rcnn_R_50_FPN_3x_gn.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/mask_rcnn_swint_7.0k.pth",
         "resnet_depth": 50,
