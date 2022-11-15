@@ -1,5 +1,0 @@
-This folder contains the training/validation dataset used to train Detectron2 models for implementation in colab_zirc_dims notebooks and  ready-to-run Jupyter/Colab notebooks for training new Detectron2 models using said dataset.
-
-Annotations for the training dataset were created with the Via image annotation tool (https://www.robots.ox.ac.uk/~vgg/software/via/via_demo.html) and the dataset can be extended using Via; load a via_region_data.json file to view/add annotations.
-
-To train a new model, upload both the unzipped training_dataset directory and a notebook file to your Google Drive, then open the notebook and follow the directions within.
