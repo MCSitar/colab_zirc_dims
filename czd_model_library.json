@@ -34,7 +34,7 @@
         "non_std_id": "",
         "full_config_yaml_name": "R_50_COCO_czd_large_v1.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_50_COCO_czd_large_v1.yaml"
-    }, (
+    }, {
         "name": "101_model_COCO_base_6.0k.pth",
         "desc": "TRAINED ON SMALL DATASET: 101_model_COCO_base (default before 11/10/22)",
         "config_file": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
