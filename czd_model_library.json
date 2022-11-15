@@ -6,7 +6,10 @@
         "resnet_depth": 50,
         "non_std_id": "swint",
         "full_config_yaml_name": "SwinT_czd_large_v1.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Swin-T/SwinT_czd_large_v1.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Swin-T/SwinT_czd_large_v1.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-ST-C/training_metrics.json",
+        "mask_AP": 75.60867201195781,
+        "bbox_AP": 75.14282841232558
     }, {
         "name": "czd_large_M-R101-C_7.0k.pth",
         "desc": "M-R101-C (Detectron2 Mask-RCNN ResNet101 FPN; will run without outside dependencies)",
@@ -15,7 +18,10 @@
         "resnet_depth": 101,
         "non_std_id": "",
         "full_config_yaml_name": "R_101_COCO_czd_large_v1.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_101_COCO_czd_large_v1.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_101_COCO_czd_large_v1.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-R101-C/training_metrics.json",
+        "mask_AP": 75.91944897316468,
+        "bbox_AP": 73.87234593000869
     }, {
         "name": "czd_large_C-V-C_11.0k.pth",
         "desc": "C-V-C (Centermask2-VoVNetV2; performs very well on larger grains, less so on small grains)",
@@ -24,7 +30,10 @@
         "resnet_depth": 101,
         "non_std_id": "centermask",
         "full_config_yaml_name": "Cmask2_czd_large_v1.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Centermask/Cmask2_czd_large_v1.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Centermask/Cmask2_czd_large_v1.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_C-V-C/training_metrics.json",
+        "mask_AP": 72.14565404511126,
+        "bbox_AP": 72.09531205787981
     }, {
         "name": "czd_large_M-R50-C_6.0k.pth",
         "desc": "M-R50-C (Detectron2 Mask-RCNN ResNet101 FPN; slightly worse-performing but slightly faster model)",
@@ -33,7 +42,10 @@
         "resnet_depth": 50,
         "non_std_id": "",
         "full_config_yaml_name": "R_50_COCO_czd_large_v1.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_50_COCO_czd_large_v1.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_50_COCO_czd_large_v1.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-R50-C/training_metrics.json",
+        "mask_AP": 74.31300227615326,
+        "bbox_AP": 72.20986326536415
     }, {
         "name": "101_model_COCO_base_6.0k.pth",
         "desc": "TRAINED ON SMALL DATASET: 101_model_COCO_base (default before 11/10/22)",
@@ -42,25 +54,22 @@
         "resnet_depth": 101,
         "non_std_id": "",
         "full_config_yaml_name": "101_model_COCO_base_orig.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_model_COCO_base_orig.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_model_COCO_base_orig.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/101_model_COCO_base/training_metrics.json",
+        "mask_AP": 67.62529118297032,
+        "bbox_AP": 72.56707539360522
     }, {
         "name": "centermask2_4.0k.pth",
         "desc": "TRAINED ON SMALL DATASET: centermask2_4.0k (most accurate among models trained on small dataset; non-standard)",
         "config_file": "Misc/scratch_mask_rcnn_R_50_FPN_3x_gn.yaml",
         "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/centermask2_4.0k.pth",
-        "resnet_depth": 50,
+        "resnet_depth": 0,
         "non_std_id": "centermask",
         "full_config_yaml_name": "Centermask2_orig.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Centermask/Centermask2_orig.yaml"
-    }, {
-        "name": "101_model_final_2.pth",
-        "desc": "TRAINED ON SMALL DATASET: 101_model_final_2 (default before 03/21/22)",
-        "config_file": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
-        "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/101_model_final_2.pth",
-        "resnet_depth": 101,
-        "non_std_id": "",
-        "full_config_yaml_name": "101_model_COCO_base_orig.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_model_COCO_base_orig.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Centermask/Centermask2_orig.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/centermask2/training_metrics.json",
+        "mask_AP": 67.5672794747418,
+        "bbox_AP": 74.37494405837339
     }, {
         "name": "50_model_COCO_base_6.0k.pth",
         "desc": "TRAINED ON SMALL DATASET: 50_model_COCO_base_6.0k (a worse-performing, slightly faster model)",
@@ -69,7 +78,10 @@
         "resnet_depth": 50,
         "non_std_id": "",
         "full_config_yaml_name": "50_model_COCO_base_orig.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_model_COCO_base_orig.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_model_COCO_base_orig.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_model_COCO_base/training_metrics.json",
+        "mask_AP": 66.2136635886584,
+        "bbox_AP": 71.20111309607276
     }, {
         "name": "101_from_scratch_8.0k.pth",
         "desc": "TRAINED ON SMALL DATASET: 101_from_scratch_8.0k (poor performance; for preprint replication purposes only)",
@@ -78,7 +90,10 @@
         "resnet_depth": 101,
         "non_std_id": "",
         "full_config_yaml_name": "101_from_scratch.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_from_scratch.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_from_scratch.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/101_from_scratch/training_metrics.json",
+        "mask_AP": 63.35141300887363,
+        "bbox_AP": 65.83575301356561
     }, {
         "name": "50_from_scratch_4.0k.pth",
         "desc": "TRAINED ON SMALL DATASET: 50_from_scratch_4.0k (poor performance; for preprint replication purposes only)",
@@ -87,7 +102,10 @@
         "resnet_depth": 50,
         "non_std_id": "",
         "full_config_yaml_name": "50_from_scratch.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_from_scratch.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_from_scratch.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_from_scratch/training_metrics.json",
+        "mask_AP": 61.454697940642035,
+        "bbox_AP": 63.39739398087233
     }, {
         "name": "50_from_scratch_no_augs_4.0k.pth",
         "desc": "TRAINED ON SMALL DATASET: 50_from_scratch_no_augs_4.0k (poor performance; for preprint replication purposes only)",
@@ -96,7 +114,10 @@
         "resnet_depth": 50,
         "non_std_id": "",
         "full_config_yaml_name": "50_from_scratch_no_augs.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_from_scratch_no_augs.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_from_scratch_no_augs.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_from_scratch_no_augs/training_metrics.json",
+        "mask_AP": 35.81820023510859,
+        "bbox_AP": 35.993340446082165
     }, {
         "name": "mask_rcnn_swint_7.0k.pth",
         "desc": "TRAINED ON SMALL DATASET: mask_rcnn_swint_7.0k (Swin-T backbone)",
@@ -105,6 +126,21 @@
         "resnet_depth": 50,
         "non_std_id": "swint",
         "full_config_yaml_name": "Swin-T_orig.yaml",
-        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Swin-T/Swin-T_orig.yaml"
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Swin-T/Swin-T_orig.yaml",
+        "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/mask_rcnn_swint/training_metrics.json",
+        "mask_AP": 67.69496671665856,
+        "bbox_AP": 72.41664497905008
+    }, {
+        "name": "101_model_final_2.pth",
+        "desc": "TRAINED ON SMALL DATASET: 101_model_final_2 (default before 03/21/22)",
+        "config_file": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
+        "model_url": "https://colabzircdimsmodels.s3.us-west-1.amazonaws.com/101_model_final_2.pth",
+        "resnet_depth": 101,
+        "non_std_id": "",
+        "full_config_yaml_name": "101_model_COCO_base_orig.yaml",
+        "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_model_COCO_base_orig.yaml",
+        "metrics_url": "",
+        "mask_AP": 111111111.0,
+        "bbox_AP": 11111111.0
     }
 ]
