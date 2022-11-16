@@ -1,5 +1,5 @@
 # colab_zirc_dims
-This repository contains code for dimensional analysis of heavy mineral grains in reflected light LA-ICP-MS alignment images using Google Colab, with or without the aid of RCNN (deep learning) segmentation. Because processing is done in Google Colab, this method should be available to anyone with an internet connection and access to Google services. Users who lack one or both of these can instead run the notebooks on a local machine after [a lengthier installation process](insert_link_here).  [Detectron2](https://github.com/facebookresearch/detectron2) was used for model training and is used for Colab/Jupyter implementation.
+This repository contains code for dimensional analysis of heavy mineral grains in reflected light LA-ICP-MS alignment images using Google Colab, with or without the aid of RCNN (deep learning) segmentation. Because processing is done in Google Colab, this method should be available to anyone with an internet connection and access to Google services. Users who lack one or both of these can instead run the notebooks on a local machine after [a lengthier installation process](https://github.com/MCSitar/colab_zirc_dims/blob/main/advanced_local_installation.md).  [Detectron2](https://github.com/facebookresearch/detectron2) was used for model training and is used for Colab/Jupyter implementation.
 
 ## Features
 The code in this repo enables organization (e.g., matching zircon/heavy mineral mosaic images to .scancsv scanlists), data extraction (e.g., mapping shots to subimages of mosaics), and post-segmentation processing (e.g., extracting accurate grain dimensions from segmentation masks) of mosaic-scanlist and single-shot-per-image reflected light zircon/heavy mineral image datasets from LA-ICP-MS facilities using Chromium targeting software. RCNN instance segmentation of grains is handled by Detectron2 and implemented in ready-to-run Google Colab/Jupyter notebooks (see 'Links'). Said code and notebooks have been tested with and fully support processing of image datasets from the [University of Arizona LaserChron Center](https://sites.google.com/laserchron.org/arizonalaserchroncenter/home) and the [UCSB LA-ICP-MS facility](https://www.petrochronology.com/); datasets from other facilities using Chromium *should* work with colab_zirc_dims but have not been tested. Users with reflected image datasets lacking Chromium image metadata *can* segment their images (see 'single image-per-shot' notebook below) with some additional project folder organization and/or after manually adding image scaling information, but they (and researchers with non-reflected-light images) should also consider using [AnalyZr](https://github.com/TarynScharf/AnalyZr).
@@ -79,7 +79,7 @@ Template project folders are available for:
 - [Video tutorial and demo - intro to Colab notebooks at 4:50](https://youtu.be/WM7qEjaJdgo)
 
 ## Running notebooks without Google Colab (on local machines):
-The notebooks provided can be run as basic Jupyter notebooks in a local Anaconda environment. Some setup is required, though. Please refer to the [advanced local installation instructions](insert_link_here).
+The notebooks provided can be run as basic Jupyter notebooks in a local Anaconda environment. Some setup is required, though. Please refer to the [advanced local installation instructions](https://github.com/MCSitar/colab_zirc_dims/blob/main/advanced_local_installation.md).
 
 ## Installation outside of provided notebooks:
 [A distribution of this package is available through the Python Package Index](https://pypi.org/project/colab-zirc-dims/). It is recommended that this package only be used with the provided notebooks, but some functions could be useful to users working with mosaic or .Align files.
@@ -99,7 +99,7 @@ pip install colab_zirc_dims
 then press enter.
 <br>
 <br>
-To install outside of Google Colab with full segmentation functionalities, please refer to the [advanced local installation instructions](insert_link_here).
+To install outside of Google Colab with full segmentation functionalities, please refer to the [advanced local installation instructions](https://github.com/MCSitar/colab_zirc_dims/blob/main/advanced_local_installation.md).
 
 
 ## Project Status (updated 11/16/2022)
