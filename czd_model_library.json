@@ -8,6 +8,7 @@
         "full_config_yaml_name": "SwinT_czd_large_v1.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Swin-T/SwinT_czd_large_v1.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-ST-C/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-ST-C/timed_czd_test_eval.xlsx",
         "mask_AP": 75.60867201195781,
         "bbox_AP": 75.14282841232558
     }, {
@@ -20,6 +21,7 @@
         "full_config_yaml_name": "R_101_COCO_czd_large_v1.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_101_COCO_czd_large_v1.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-R101-C/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-R101-C/timed_czd_test_eval.xlsx",
         "mask_AP": 75.91944897316468,
         "bbox_AP": 73.87234593000869
     }, {
@@ -32,6 +34,7 @@
         "full_config_yaml_name": "Cmask2_czd_large_v1.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Centermask/Cmask2_czd_large_v1.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_C-V-C/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_C-V-C/timed_czd_test_eval.xlsx",
         "mask_AP": 72.14565404511126,
         "bbox_AP": 72.09531205787981
     }, {
@@ -44,6 +47,7 @@
         "full_config_yaml_name": "R_50_COCO_czd_large_v1.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/czd_large_dataset/Mask-RCNN/R_50_COCO_czd_large_v1.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-R50-C/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_large/czd_large_M-R50-C/timed_czd_test_eval.xlsx",
         "mask_AP": 74.31300227615326,
         "bbox_AP": 72.20986326536415
     }, {
@@ -56,6 +60,7 @@
         "full_config_yaml_name": "101_model_COCO_base_orig.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_model_COCO_base_orig.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/101_model_COCO_base/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/101_model_COCO_base/timed_czd_test_eval.xlsx",
         "mask_AP": 67.62529118297032,
         "bbox_AP": 72.56707539360522
     }, {
@@ -68,6 +73,7 @@
         "full_config_yaml_name": "Centermask2_orig.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Centermask/Centermask2_orig.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/centermask2/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/centermask2/timed_czd_test_eval.xlsx",
         "mask_AP": 67.5672794747418,
         "bbox_AP": 74.37494405837339
     }, {
@@ -80,6 +86,7 @@
         "full_config_yaml_name": "50_model_COCO_base_orig.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_model_COCO_base_orig.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_model_COCO_base/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_model_COCO_base/timed_czd_test_eval.xlsx",
         "mask_AP": 66.2136635886584,
         "bbox_AP": 71.20111309607276
     }, {
@@ -92,6 +99,7 @@
         "full_config_yaml_name": "101_from_scratch.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_from_scratch.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/101_from_scratch/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/101_from_scratch/timed_czd_test_eval.xlsx",
         "mask_AP": 63.35141300887363,
         "bbox_AP": 65.83575301356561
     }, {
@@ -104,6 +112,7 @@
         "full_config_yaml_name": "50_from_scratch.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_from_scratch.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_from_scratch/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_from_scratch/timed_czd_test_eval.xlsx",
         "mask_AP": 61.454697940642035,
         "bbox_AP": 63.39739398087233
     }, {
@@ -116,6 +125,7 @@
         "full_config_yaml_name": "50_from_scratch_no_augs.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/50_from_scratch_no_augs.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_from_scratch_no_augs/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/50_from_scratch_no_augs/timed_czd_test_eval.xlsx",
         "mask_AP": 35.81820023510859,
         "bbox_AP": 35.993340446082165
     }, {
@@ -128,6 +138,7 @@
         "full_config_yaml_name": "Swin-T_orig.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Swin-T/Swin-T_orig.yaml",
         "metrics_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/mask_rcnn_swint/training_metrics.json",
+        "full_eval_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/model_metrics/czd_orig/mask_rcnn_swint/timed_czd_test_eval.xlsx",
         "mask_AP": 67.69496671665856,
         "bbox_AP": 72.41664497905008
     }, {
@@ -140,6 +151,7 @@
         "full_config_yaml_name": "101_model_COCO_base_orig.yaml",
         "yaml_url": "https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/configs/orig_dataset/Mask-RCNN/101_model_COCO_base_orig.yaml",
         "metrics_url": "",
+        "full_eval_url": "",
         "mask_AP": 111111111.0,
         "bbox_AP": 11111111.0
     }
