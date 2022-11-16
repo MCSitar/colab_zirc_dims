@@ -18,5 +18,5 @@ The colab_zirc_dims package will work outside of Google Colab, and its processin
 It *should* be possible to run colab_zirc_dims notebooks without an internet connection. This is, however, untested, and does require another, similarly equipped computer with an internet connection. A proposed workflow is as follows:
 1.  Set up colab_zirc_dims on a computer with similar hardware and software to the target computer by following the 'Local installation' instructions above.
 2.  Following the 'Running notebooks locally' directions, run the desired notebooks with a sample of your data. This will make sure that any non-included dependencies, models, etc. are downloaded.
-3.  Follow the directions in [this StackOverlow post](https://stackoverflow.com/a/55103643) to copy your colab_zirc_dims Anaconda environment to the non-connected computer.
+3.  Follow the directions in [this StackOverflow post](https://stackoverflow.com/a/55103643) to copy your colab_zirc_dims Anaconda environment to the non-connected computer.
 4.  Copy the directory with notebooks +/- downloaded data from the internet-connected computer to the target computer. They should now be runnable without an internet connection.
