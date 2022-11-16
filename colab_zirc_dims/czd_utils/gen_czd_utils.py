@@ -42,8 +42,9 @@ def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [],
 
     Returns
     -------
-    ret_save_fields : TYPE
-        DESCRIPTION.
+    ret_save_fields : list[str] or list[0]
+        Either header strings given input parameters or a list of zeros, if
+         get_nulls=True.
 
     """
     default_save_fields = ['Analysis', 'Area (µm^2)',
@@ -56,15 +57,22 @@ def get_save_fields(proj_type = 'mosaic', save_type = 'auto', addit_fields = [],
                            'Circularity',
                            'Long axis rectangular diameter (µm)',
                            'Short axis rectangular diameter (µm)',
+                           'Best long axis length (µm)',
+                           'Best short axis length (µm)',
+                           'Best axes calculated from',
                            'Scale factor (µm/pixel)']
     
     addit_gen_save_fields = ['Scale factor from:', 'Image filename']
     addit_GUI_save_fields = ['Human_or_auto', 'tagged?']
     poss_invariate_fields = ['Analysis', 'Scale factor (µm/pixel)']
+    poss_non_plottable_fields = ['Analysis', 'Best axes calculated from',
+                                 'Scale factor (µm/pixel)']
 
     if get_nulls:
         null_fields = [prop for prop in default_save_fields if prop not in poss_invariate_fields]
         return [0 for _ in range(len(null_fields))]
+    if proj_type == 'plotting':
+        return [field for field in default_save_fields if field not in poss_non_plottable_fields]
 
     ret_save_fields = default_save_fields
     if proj_type == 'general':
@@ -204,7 +212,7 @@ def unique_scan_name(curr_scan_name, curr_sample_keys):
     Parameters
     ----------
     curr_scan_name : str
-        Unalterned name of a scan that is being loaded into a sample dict.
+        Unaltered name of a scan that is being loaded into a sample dict.
     curr_sample_keys : list[str]
         Names of scans that have already been loaded into said dict.
 

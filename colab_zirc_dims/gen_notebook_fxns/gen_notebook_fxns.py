@@ -7,7 +7,9 @@ import os
 import random
 import gc
 import datetime
+import time
 from IPython.display import display
+from joblib import Parallel, delayed
 try:
     from detectron2.utils.visualizer import Visualizer
 except ModuleNotFoundError:
@@ -18,7 +20,8 @@ try:
     from google.colab.patches import cv2_imshow
 except ModuleNotFoundError:
     print('WARNING: google.colab not found; (machine != Colab VM?).',
-          'Some colab_zirc_dims visualization functions will fail.')
+          'Using local copy of patches for visualization functions.')
+    from ..jupyter_colab_compat.patches import cv2_imshow
     pass
 import ipywidgets as widgets
 import skimage.io as skio
@@ -32,7 +35,7 @@ from .. import eta
 
 __all__ = ['gen_data_load_interface',
            'gen_inspect_data',
-           'gen_test_eval',
+           'gen_demo_eval',
            'gen_auto_proc_sample',
            'full_auto_proc']
 
@@ -179,7 +182,7 @@ def gen_inspect_data(inpt_loaded_data_dict, inpt_selected_samples,
             skio.imshow(each_img, extent=[0, each_x_extent, 0, each_y_extent])
             skio.show()
 
-def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
+def gen_demo_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
                   d2_metadata, n_scans_sample =3, src_str=None, **kwargs):
     """Plot predictions and extract grain measurements for n randomly-selected
        scans from each selected sample in an ALC dataset.
@@ -233,7 +236,7 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
             print('Scale factor:', round(scale_factor, 5),
                   'µm/pixel; scale from:', scale_from)
             print(str(eachscan), 'processed subimage:')
-            outputs = inpt_predictor(each_img)
+            outputs = inpt_predictor(each_img[:, :, ::-1])
             central_mask = mos_proc.get_central_mask(outputs)
             v = Visualizer(each_img[:, :, ::-1],
                            metadata=d2_metadata,
@@ -260,7 +263,8 @@ def gen_test_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
 
 def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                          inpt_save_polys_bool, inpt_loaded_data_dict,
-                         inpt_predictor, inpt_alt_methods, eta_trk, out_trk):
+                         inpt_predictor, inpt_alt_methods, eta_trk, out_trk,
+                         save_spot_time=False, n_jobs=2, **kwargs):
     """Automatically process and save results from a single sample in a single-
        image per shot (non-ALC) dataset.
 
@@ -315,27 +319,46 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     #loads sample subdict
     sample_dict = inpt_loaded_data_dict[eachsample]
 
+    #parallel processing does not maintain input sequence order. We don't want \
+    # that for output data. The dicts below accumulate unsorted processing outputs
+    # for subsequent sorting.
+    unsort_output_data_dict = {}
+    unsort_each_json_dict = {}
+
+
+    def iterate_sample_dict(inpt_sample_dict):
+        iter_count = 0
+        for eachscan, eachvals in sample_dict.items():
+            img=skio.imread(eachvals['img_file'])
+            scale_factor = eachvals['scale_factor']
+            scale_from = eachvals['scale_from']
+            file_name = eachvals['rel_file']
+            yield (iter_count, str(eachscan),
+                   img, scale_factor,
+                   scale_from, file_name)
+            iter_count +=1
+
+
     #extracts zircon subimage and runs predictor for each scan
-    for eachscan in sample_dict.keys():
-        #start timing for spot
-        eta_trk.start()
+    def parallel_proc_scans(iter_count, eachscan,
+                            each_img, scale_factor,
+                            scale_from, file_name):
 
-        #reset output text display
-        out_trk.reset()
-        out_trk.print_txt(eta_trk.str_eta)
-        out_trk.print_txt(' '.join(['Processing:',
-                                    str(eachsample),
-                                    str(eachscan)]))
+        #restrict printing to a reasonable rate to avoid strange
+        if iter_count % n_jobs == 0 or out_trk.stream_outputs:
+            #reset output text display, prints some useful info
+            out_trk.reset_and_print([eta_trk.str_eta,
+                                     ' '.join(['Processing:',
+                                               str(eachsample),
+                                               str(eachscan)])])
 
-        scale_factor = sample_dict[eachscan]['scale_factor']
-        scale_from = sample_dict[eachscan]['scale_from']
-        file_name = sample_dict[eachscan]['rel_file']
-        each_img = skio.imread(sample_dict[eachscan]['img_file'])
-        central_mask = segment.gen_segment(each_img, inpt_predictor,
-                                           inpt_alt_methods)
+        time_start_seg = time.perf_counter()
+        central_mask=segment.segment_given_imgs(each_img, inpt_predictor,
+                                                try_bools=inpt_alt_methods,
+                                                **kwargs)
+        ##time for segmentation. Will only be accurate if n_jobs == 1.
+        each_total_seg_time = time.perf_counter()-time_start_seg
         if central_mask[0]:
-            out_trk.print_txt('Success')
-
             #saves mask image and gets properties
             each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
                                                              each_img,
@@ -352,13 +375,22 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                                         False,
                                                         [str(scale_from),
                                                          str(file_name)])
-            output_data_list.append(temp_props_list)
+
+            #add segmentation time dependent on user params
+            if save_spot_time:
+                temp_props_list.append(each_total_seg_time)
+
+            unsort_output_data_dict[str(eachscan)] = temp_props_list
+            #output_data_list.append(temp_props_list)
 
             #optionally converts mask to polygon and adds it to json_dict for saving
             if inpt_save_polys_bool:
-                save_load.auto_append_json_dict(each_json_dict, str(eachscan),
-                                                central_mask[1], scale_factor)
-
+                unsort_each_json_dict[str(eachscan)] = {'spot_names':[],
+                                                        'spot_polys':[]}
+                save_load.auto_append_json_dict(unsort_each_json_dict[str(eachscan)],
+                                                str(eachscan),
+                                                central_mask[1], 
+                                                scale_factor)
         #gives empty outputs if no mask image
         else:
             null_properties = mos_proc.parse_properties([],
@@ -367,21 +399,56 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                                                         False,
                                                         [str(scale_from),
                                                          str(file_name)])
-            output_data_list.append(null_properties)
+            #add segmentation time dependent on user params
+            if save_spot_time:
+                null_properties.append(each_total_seg_time)
+
+            unsort_output_data_dict[str(eachscan)] = null_properties
             mos_proc.save_show_results_img(each_img, str(eachscan),
                                            display_bool = False,
                                            save_dir = each_img_save_dir,
                                            scale_factor = scale_factor)
             #optionally adds empty polygons to json_dict for saving
             if inpt_save_polys_bool:
-                save_load.null_append_json_dict(each_json_dict, str(eachscan))
+                unsort_each_json_dict[str(eachscan)] = {'spot_names':[],
+                                                        'spot_polys':[]}
+                save_load.null_append_json_dict(unsort_each_json_dict[str(eachscan)],
+                                                str(eachscan))
+
         #get total time for spot
         eta_trk.stop_update_eta()
+
+    
+    #run our big per-scan parallelized segmentation function for each scan
+    # in the sample.
+    Parallel(n_jobs=n_jobs,
+             require='sharedmem'
+             )(delayed(parallel_proc_scans)(*iter_out)
+                        for iter_out in 
+                        iterate_sample_dict(sample_dict))
+
+    #fix order for output data
+    for eachscan in sample_dict.keys():
+        match_key = str(eachscan)
+        output_data_list.append(unsort_output_data_dict[match_key])
+        if inpt_save_polys_bool:
+            add_names = unsort_each_json_dict[match_key]['spot_names']
+            add_polys = unsort_each_json_dict[match_key]['spot_polys']
+            each_json_dict['spot_names'] = [*each_json_dict['spot_names'],
+                                            *add_names]
+            each_json_dict['spot_polys'] = [*each_json_dict['spot_polys'],
+                                            *add_polys]
+    #additional parameters to save to output (i.e., for performance monitoring)
+    addit_save_fields = []
+    
+    if save_spot_time:
+        addit_save_fields.append('spot_time')
+
     #converts collected data to pandas DataFrame, saves as .csv
     output_dataframe = pd.DataFrame(output_data_list,
                                     columns=czd_utils.get_save_fields(proj_type='general',
                                                                       save_type='auto',
-                                                                      addit_fields=[]))
+                                                                      addit_fields=addit_save_fields))
     csv_filename = str(eachsample) + '_grain_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)
@@ -393,7 +460,7 @@ def gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
 
 def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_loaded_data_dict,
                    inpt_predictor, inpt_save_polys_bool, inpt_alt_methods,
-                   id_string = '', stream_output=False):
+                   id_string = '', stream_output=False, n_jobs=2, **kwargs):
     """Automatically segment, measure, and save results for every selected
     sample in an ALC dataset.
 
@@ -468,13 +535,16 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_loaded_data_dict,
                                                         inpt_selected_samples))
     out_trk = eta.OutputTracker(n_blank_lines=10, stream_outputs=stream_output)
 
-
+    #start timing for eta
+    eta_trk.start()
     #starts loop through dataset dictionary
     for eachsample in inpt_selected_samples:
         gen_auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir,
                              eachsample, inpt_save_polys_bool,
                              inpt_loaded_data_dict, inpt_predictor,
-                             inpt_alt_methods, eta_trk, out_trk)
+                             inpt_alt_methods, eta_trk, out_trk,
+                             n_jobs=n_jobs, **kwargs)
         gc.collect()
+    out_trk.print_txt('Done')
 
     return run_dir

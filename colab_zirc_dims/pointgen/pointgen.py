@@ -8,7 +8,9 @@ import numpy as np
 __all__ = ['PointGenerator']
 
 # class for generating points, moving ~radially outwards from center of image, \
-# to find central mask if not at actual center
+# to find central mask if not at actual center. In the future this could \
+# (should?) be replaced with a fully matrix-based method, possibly in a \
+# customized detector class for GPU utilization. For now, this works well.
 class PointGenerator:
     """Class for generating points moving ~radially outwards from center
         of an image. Used for checking whether zircon masks appear in
@@ -134,3 +136,17 @@ class PointGenerator:
             self.rot_counter = 0
             self.next_inc()
         self.update_pts()
+
+    def __iter__(self):
+        """Iterate through point coordinates via self.next_pt() until search
+        radius expands beyond image bounds.
+
+        Yields
+        ------
+        tuple(int, int)
+            Current x, y pixel coordinates to search for masks.
+
+        """
+        while self.in_bounds:
+            self.next_pt()
+            yield self.curr_pts

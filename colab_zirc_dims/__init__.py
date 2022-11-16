@@ -19,3 +19,4 @@ from . import non_std_cfgs
 from . import eta
 from . import expl_vis
 from . import measure_utils
+from . import jupyter_colab_compat

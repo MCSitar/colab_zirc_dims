@@ -11,13 +11,17 @@ import gc
 import datetime
 import urllib.request
 import shutil
+import time
 from IPython.display import display
+from joblib import Parallel, delayed
+from matplotlib import pyplot as plt
 
 try:
     from google.colab.patches import cv2_imshow
 except ModuleNotFoundError:
     print('WARNING: google.colab not found; (machine != Colab VM?).',
-          'Some colab_zirc_dims visualization functions will fail.')
+          'Using local copy of patches for visualization functions.')
+    from ..jupyter_colab_compat.patches import cv2_imshow
     pass
 try:
     from detectron2.utils.visualizer import Visualizer
@@ -29,6 +33,7 @@ import ipywidgets as widgets
 import skimage.io as skio
 import pandas as pd
 
+
 from .. import czd_utils
 from .. import mos_proc
 from .. import save_load
@@ -38,7 +43,7 @@ from .. import eta
 __all__ = ['select_samples_fxn',
            'inspect_data',
            'select_download_model_interface',
-           'test_eval',
+           'demo_eval',
            'auto_proc_sample',
            'full_auto_proc']
 
@@ -147,7 +152,28 @@ def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default')
 
     """
     if model_lib_loc == 'default':
-        model_lib_loc = 'https://raw.githubusercontent.com/MCSitar/colab_zirc_dims/main/czd_model_library.json'
+        if os.path.exists(os.path.join(os.getcwd(), 'czd_model_library.json')):
+            model_lib_loc = os.path.join(os.getcwd(), 'czd_model_library.json')
+        else:
+            if not czd_utils.connected_to_internet():
+                raise Exception(' '.join(['No model library file accessible.', 
+                                          'Such a file is available at',
+                                          ''.join(['https://raw.githubusercontent.com/',
+                                          'MCSitar/colab_zirc_dims/main/',
+                                          'czd_model_library.json'])+'.',
+                                          'To enable this model download /',
+                                          'selection UI, please either',
+                                          'download it manually to your current',
+                                          'working directory or run this',
+                                          'notebook at least once while',
+                                          'connected to the internet to',
+                                          'do so automatically']))
+            model_lib_loc = ''.join(['https://raw.githubusercontent.com/',
+                                     'MCSitar/colab_zirc_dims/main/',
+                                     'czd_model_library.json'])
+            urllib.request.urlretrieve(model_lib_loc,
+                                       os.path.join(os.getcwd(), 
+                                                    'czd_model_library.json'))
     model_lib_list = czd_utils.json_from_path_or_url(model_lib_loc)
     model_labels = [each_dict['desc'] for each_dict in model_lib_list]
     model_picker = widgets.Dropdown(options=model_labels, value=model_labels[0],
@@ -155,34 +181,100 @@ def select_download_model_interface(mut_curr_model_d, model_lib_loc = 'default')
                                     layout={'width': 'max-content'})
     def select_download_model(selection):
         cwd = os.getcwd()
+        weights_yml_dirpath = os.path.join(cwd, 'downloaded_czd_model_files')
+        os.makedirs(weights_yml_dirpath, exist_ok=True)
         if selection is not None:
+            mut_curr_model_d.clear()
             mut_curr_model_d.update(model_lib_list[model_labels.index(selection)])
             print('Selected:', mut_curr_model_d['name'])
-            if os.path.exists(os.path.join(cwd, mut_curr_model_d['name'])):
+            target_weights_path = os.path.join(weights_yml_dirpath, 
+                                               mut_curr_model_d['name'])
+            if os.path.exists(target_weights_path):
                 if czd_utils.check_url(mut_curr_model_d['model_url']):
                     print('Model already downloaded')
                 else:
                     print('Model already copied to current working directory')
+                mut_curr_model_d.update({'selected_model_weights':
+                                         target_weights_path})
             else:
-                #download weights if url; attempt to copy if not
+                #download weights if url (default); attempt to copy as path if not
                 if czd_utils.check_url(mut_curr_model_d['model_url']):
-                    print('Downloading:', mut_curr_model_d['name'])
-                    print('...')
-                    urllib.request.urlretrieve(mut_curr_model_d['model_url'],
-                                              os.path.join(cwd,
-                                                            mut_curr_model_d['name']))
-                    print('Download finished')
+                    if not czd_utils.connected_to_internet():
+                        print(' '.join(['No model weights file accessible',
+                                        'for selected model. Please either',
+                                        'copy weights to directory manually',
+                                        'or run this notebook while connected',
+                                        'to the internet to do so automatically.',
+                                        'The current model library .json file',
+                                        'indicates that weights for the',
+                                        'selected model are available at:', 
+                                        str(mut_curr_model_d['model_url']),
+                                        'They should be copied to:',
+                                        str(target_weights_path)]))
+                    else:
+                        print('Downloading:', mut_curr_model_d['name'])
+                        print('...')
+                        urllib.request.urlretrieve(mut_curr_model_d['model_url'],
+                                                   target_weights_path)
+                        print('Download finished')
+                        mut_curr_model_d.update({'selected_model_weights':
+                                                 target_weights_path})
                 else:
                     print('Copying:', mut_curr_model_d['name'])
                     shutil.copy(mut_curr_model_d['model_url'],
-                                os.path.join(cwd,
-                                             mut_curr_model_d['name']))
+                                target_weights_path)
                     print('Done copying')
+                    mut_curr_model_d.update({'selected_model_weights':
+                                             target_weights_path})
+            if 'full_config_yaml_name' in mut_curr_model_d.keys():
+                target_yaml_path = os.path.join(weights_yml_dirpath,
+                                                mut_curr_model_d['full_config_yaml_name'])
+                src_yaml_path_or_url = mut_curr_model_d['yaml_url']
+                if os.path.exists(target_yaml_path):
+                    if czd_utils.check_url(src_yaml_path_or_url):
+                        print('Config. .yaml already downloaded')
+                    else:
+                        print('Config. .yaml already copied to',
+                              'current working directory')
+                    mut_curr_model_d.update({'selected_config_yaml':
+                                             target_yaml_path})
+                else:
+                    #download yaml if url (default); attempt to copy as path if not
+                    if czd_utils.check_url(src_yaml_path_or_url):
+                        if not czd_utils.connected_to_internet():
+                            print(' '.join(['No config .yaml file accessible',
+                                            'for selected model. Please either',
+                                            'copy .yaml to directory manually',
+                                            'or run this notebook while connected',
+                                            'to the internet to do so automatically.',
+                                            'The current model library .json file',
+                                            'indicates that the .yaml config for the',
+                                            'selected model is available at:', 
+                                            str(src_yaml_path_or_url),
+                                            'It should be copied to:',
+                                            str(target_yaml_path)]))
+                        else:
+                            print('Downloading:', 
+                                  mut_curr_model_d['full_config_yaml_name'])
+                            print('...')
+                            urllib.request.urlretrieve(src_yaml_path_or_url,
+                                                       target_yaml_path)
+                            print('Download finished')
+                            mut_curr_model_d.update({'selected_config_yaml':
+                                                     target_yaml_path})
+                    else:
+                        print('Copying:', mut_curr_model_d['name'])
+                        shutil.copy(src_yaml_path_or_url,
+                                    target_yaml_path)
+                        print('Done copying')
+                        mut_curr_model_d.update({'selected_config_yaml':
+                                                 target_yaml_path})
+                
     model_out = widgets.interactive_output(select_download_model,
                                            {'selection': model_picker})
     display(model_picker, model_out)
 
-def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
+def demo_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
               d2_metadata, n_scans_sample =3, src_str = None, **kwargs):
     """Plot predictions and extract grain measurements for n randomly-selected
        scans from each selected sample in an ALC dataset.
@@ -209,8 +301,6 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
             fig_dpi = int; will set plot dpi to input integer.
             show_ellipse = bool; will plot ellipse corresponding
                            to maj, min axes if True.
-            show_box = bool; will plot the minimum area rect.
-                       if True.
             show_legend = bool; will plot a legend on plot if
                           True.
 
@@ -237,7 +327,7 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
         for eachscan in scan_sample:
             each_mosaic.set_subimg(*inpt_mos_data_dict[eachsample]['Scan_dict'][eachscan])
             print(str(eachscan), 'processed subimage:')
-            outputs = inpt_predictor(each_mosaic.sub_img)
+            outputs = inpt_predictor(each_mosaic.sub_img[:, :, ::-1])
             central_mask = mos_proc.get_central_mask(outputs)
             v = Visualizer(each_mosaic.sub_img[:, :, ::-1],
                       metadata=d2_metadata,
@@ -246,7 +336,7 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
             out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
             cv2_imshow(out.get_image()[:, :, ::-1])
             if central_mask[0]:
-                print(str(eachscan), 'analyzed (scanned) zircon image:')
+                print(str(eachscan), 'analyzed (scanned) grain image:')
                 each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
                                                                 each_mosaic.sub_img,
                                                                 eachscan,
@@ -257,14 +347,15 @@ def test_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
                                               each_mosaic.scale_factor,
                                               eachscan, verbose = True)
             else:
-                print(str(eachscan), 'analyzed (scanned) zircon image:')
+                print(str(eachscan), 'analyzed (scanned) grain image:')
                 mos_proc.save_show_results_img(each_mosaic.sub_img, eachscan,
                                                display_bool = True,
                                                scale_factor = each_mosaic.scale_factor)
 
 def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                      inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
-                     inpt_alt_methods, eta_trk, out_trk):
+                     inpt_alt_methods, eta_trk, out_trk, save_spot_time=False,
+                     n_jobs=4, **kwargs):
     """Automatically process and save results from a single sample in an ALC
        dataset.
 
@@ -275,7 +366,7 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     img_save_root_dir : str
         Path to dir where mask images for each scan will be saved.
     csv_save_dir : str
-        Path to dir where .csv files with zircon dimensions for each scan
+        Path to dir where .csv files with grain dimensions for each scan
         will be saved.
     eachsample : str
         Sample name (must be in inpt_mos_data_dict) for the sample being processed.
@@ -299,6 +390,11 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     out_trk : colab_zirc_dims.eta.OutputTracker instance
         Optionally (depending on initialization params) refreshes text output
         for every scan instead of streaming all print() data to output box.
+    save_spot_time : bool, optional
+        If True, push per-spot segmentation times to output data .csv file.
+        The default is False.
+    n_jobs : int, optional
+        Number of parallel threads to run using joblib during processing.
 
     Returns
     -------
@@ -317,74 +413,129 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
     if inpt_save_polys_bool:
         each_json_dict = save_load.new_json_save_dict()
 
-    #loads mosaic file, automatically increasing contrast if needed
-    each_mosaic = mos_proc.MosImg(inpt_mos_data_dict[eachsample]['Mosaic'],
-                                  inpt_mos_data_dict[eachsample]['Align_file'],
-                                  inpt_mos_data_dict[eachsample]['Max_grain_size'],
-                                  inpt_mos_data_dict[eachsample]['Offsets'])
+    #parallel processing does not maintain input sequence order. We don't want \
+    # that for output data. The dicts below accumulate unsorted processing outputs
+    # for subsequent sorting.
+    unsort_output_data_dict = {}
+    unsort_each_json_dict = {}
 
-    #extracts zircon subimage and runs predictor for each scan
-    for eachscan in inpt_mos_data_dict[eachsample]['Scan_dict'].keys():
-        #start timing for spot
-        eta_trk.start()
+    #loads mosaic file, automatically increasing contrast if needed. Links it \
+    #to the current sample's scan dict to make it iterable for parallel proc.
+    mos_iterator = mos_proc.IterableMosImg(inpt_mos_data_dict[eachsample]['Mosaic'],
+                                           inpt_mos_data_dict[eachsample]['Scan_dict'],
+                                           inpt_alt_methods,
+                                           inpt_mos_data_dict[eachsample]['Align_file'],
+                                           inpt_mos_data_dict[eachsample]['Max_grain_size'],
+                                           inpt_mos_data_dict[eachsample]['Offsets'])
 
-        #reset output text display
-        out_trk.reset()
-        out_trk.print_txt(eta_trk.str_eta)
-        out_trk.print_txt(' '.join(['Processing:',
-                                    str(eachsample),
-                                    str(eachscan)]))
-        each_mosaic.set_subimg(*inpt_mos_data_dict[eachsample]['Scan_dict'][eachscan])
-        central_mask = segment.segment(each_mosaic, inpt_predictor,
-                                       inpt_alt_methods, out_trk)
+    #extracts grain subimage and runs predictor for each scan. Takes outputs
+    # from __iter__ function of a mos_proc.IterableMosImg instance
+    def parallel_proc_scans(iter_count, eachscan, imgs, each_scale_factor):
+
+        #restrict printing to a reasonable rate to avoid strange
+        if iter_count % n_jobs == 0 or out_trk.stream_outputs:
+            #reset output text display, prints some useful info
+            out_trk.reset_and_print([eta_trk.str_eta,
+                                     ' '.join(['Processing:',
+                                               str(eachsample),
+                                               str(eachscan)])])
+        time_start_seg = time.perf_counter()
+        central_mask=segment.segment_given_imgs(imgs, inpt_predictor,
+                                                try_bools=inpt_alt_methods,
+                                                **kwargs)
+        ##time for segmentation. Will only be accurate if n_jobs == 1.
+        each_total_seg_time = time.perf_counter()-time_start_seg
         if central_mask[0]:
-            out_trk.print_txt('Success')
-
             #saves mask image and gets properties
             each_props = mos_proc.overlay_mask_and_get_props(central_mask[1],
-                                                             each_mosaic.sub_img,
+                                                             imgs[0],
                                                              str(eachscan),
                                                              display_bool = False,
                                                              save_dir=each_img_save_dir,
-                                                             scale_factor=each_mosaic.scale_factor)
+                                                             scale_factor=each_scale_factor)
 
             #adds properties to output list
             temp_props_list = mos_proc.parse_properties(each_props,
-                                                        each_mosaic.scale_factor,
+                                                        each_scale_factor,
                                                         str(eachscan),
                                                         verbose = False)
-            output_data_list.append(temp_props_list)
+
+            #add segmentation time dependent on user params
+            if save_spot_time:
+                temp_props_list.append(each_total_seg_time)
+
+            unsort_output_data_dict[str(eachscan)] = temp_props_list
+            #output_data_list.append(temp_props_list)
 
             #optionally converts mask to polygon and adds it to json_dict for saving
             if inpt_save_polys_bool:
-                save_load.auto_append_json_dict(each_json_dict, str(eachscan),
-                                                central_mask[1], each_mosaic.scale_factor)
+                unsort_each_json_dict[str(eachscan)] = {'spot_names':[],
+                                                        'spot_polys':[]}
+                save_load.auto_append_json_dict(unsort_each_json_dict[str(eachscan)],
+                                                str(eachscan),
+                                                central_mask[1], 
+                                                each_scale_factor)
 
         #gives empty outputs if no mask image
         else:
             null_properties = mos_proc.parse_properties([],
-                                                        each_mosaic.scale_factor,
+                                                        each_scale_factor,
                                                         str(eachscan))
-            output_data_list.append(null_properties)
-            mos_proc.save_show_results_img(each_mosaic.sub_img, str(eachscan),
+            #add segmentation time dependent on user params
+            if save_spot_time:
+                null_properties.append(each_total_seg_time)
+
+            unsort_output_data_dict[str(eachscan)] = null_properties
+            mos_proc.save_show_results_img(imgs[0], str(eachscan),
                                            display_bool = False,
                                            save_dir = each_img_save_dir,
-                                           scale_factor = each_mosaic.scale_factor)
+                                           scale_factor = each_scale_factor)
             #optionally adds empty polygons to json_dict for saving
             if inpt_save_polys_bool:
-                save_load.null_append_json_dict(each_json_dict, str(eachscan))
+                unsort_each_json_dict[str(eachscan)] = {'spot_names':[],
+                                                        'spot_polys':[]}
+                save_load.null_append_json_dict(unsort_each_json_dict[str(eachscan)],
+                                                str(eachscan))
 
         #get total time for spot
         eta_trk.stop_update_eta()
+
+    plt.ioff()
+    #run our big per-scan parallelized segmentation function for each scan
+    # in the sample.
+    Parallel(n_jobs=n_jobs, 
+             require='sharedmem'
+             )(delayed(parallel_proc_scans)(*iter_out)
+                                  for iter_out in mos_iterator)
+
+    #fix order for output data
+    for eachscan in inpt_mos_data_dict[eachsample]['Scan_dict'].keys():
+        match_key = str(eachscan)
+        output_data_list.append(unsort_output_data_dict[match_key])
+        if inpt_save_polys_bool:
+            add_names = unsort_each_json_dict[match_key]['spot_names']
+            add_polys = unsort_each_json_dict[match_key]['spot_polys']
+            each_json_dict['spot_names'] = [*each_json_dict['spot_names'],
+                                            *add_names]
+            each_json_dict['spot_polys'] = [*each_json_dict['spot_polys'],
+                                            *add_polys]
+
+
     #deletes mosaic class instance after processing. \
     # May or may not reduce RAM during automated processing; probably best practice.
-    del each_mosaic
-
+    del mos_iterator
+    
+    #additional parameters to save to output (i.e., for performance monitoring)
+    addit_save_fields = []
+    
+    if save_spot_time:
+        addit_save_fields.append('spot_time')
+    
     #converts collected data to pandas DataFrame, saves as .csv
     output_dataframe = pd.DataFrame(output_data_list,
                                     columns=czd_utils.get_save_fields(proj_type='mosaic',
                                                                       save_type='auto',
-                                                                      addit_fields = []))
+                                                                      addit_fields=addit_save_fields))
     csv_filename = str(eachsample) + '_grain_dimensions.csv'
     output_csv_filepath = os.path.join(csv_save_dir, csv_filename)
     czd_utils.save_csv(output_csv_filepath, output_dataframe)
@@ -396,7 +547,8 @@ def auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
 
 def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
                    inpt_predictor, inpt_save_polys_bool, inpt_alt_methods,
-                   id_string = '', stream_output=False):
+                   id_string = '', stream_output=False, save_spot_time=False,
+                   n_jobs=2, **kwargs):
     """Automatically segment, measure, and save results for every selected
     sample in an ALC dataset.
 
@@ -429,6 +581,8 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
         straight to output, no clearing or refreshing) or displayed in an
         automatically-refreshing block at the top of cell outputs.
         The default is False.
+    n_jobs : int, optional
+        Number of parallel threads to run using joblib during processing.
 
     Returns
     -------
@@ -461,7 +615,7 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     img_save_root_dir = os.path.join(run_dir, 'mask_images')
     os.makedirs(img_save_root_dir)
 
-    #creates a directory for zircon dimension .csv files
+    #creates a directory for grain dimension .csv files
     csv_save_dir = os.path.join(run_dir, 'grain_dimensions')
     os.makedirs(csv_save_dir)
 
@@ -469,12 +623,17 @@ def full_auto_proc(inpt_root_dir, inpt_selected_samples, inpt_mos_data_dict,
     eta_trk = eta.EtaTracker(czd_utils.alc_calc_scans_n(inpt_mos_data_dict,
                                                         inpt_selected_samples))
     out_trk = eta.OutputTracker(n_blank_lines=10, stream_outputs=stream_output)
+    
+    #start timing for ETA
+    eta_trk.start()
 
     #starts loop through dataset dictionary
     for eachsample in inpt_selected_samples:
         auto_proc_sample(run_dir, img_save_root_dir, csv_save_dir, eachsample,
                          inpt_save_polys_bool, inpt_mos_data_dict, inpt_predictor,
-                         inpt_alt_methods, eta_trk, out_trk)
+                         inpt_alt_methods, eta_trk, out_trk,
+                         save_spot_time=save_spot_time, n_jobs=n_jobs, **kwargs)
         gc.collect()
+    out_trk.print_txt('Done')
 
     return run_dir

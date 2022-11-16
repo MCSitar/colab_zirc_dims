@@ -19,7 +19,7 @@ __all__ = ['mask_to_poly',
 # code for fxn below significantly modified from: \
 # https://github.com/waspinator/pycococreator (covered by Apache-2.0 License)
 def contour_to_poly(mask_contour, mask_shape, tolerance = 1, scale_factor = 1.0):
-    """Convert a numpy mask array to polygon suitable for GUI display, editing.
+    """Convert a contour array to polygon vertices suitable for GUI display, editing.
 
     Parameters
     ----------

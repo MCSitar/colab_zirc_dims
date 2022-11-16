@@ -16,7 +16,8 @@ from .. import mos_proc
 
 __all__ = ['otsu_masks',
            'segment',
-           'gen_segment']
+           'gen_segment',
+           'segment_given_imgs']
 
 # Get regionated masks from an image via Otsu threshholding
 def otsu_masks(input_image):
@@ -90,7 +91,7 @@ def segment(curr_mosaic_img, curr_predictor,
     orig_subimg_size = curr_mosaic_img.sub_img_size_input
 
     #apply predictor to given subimg
-    central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img))
+    central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img[:,:,::-1]))
 
     # try zooming out slightly
     if try_bools[0] and not central_mask[0]:
@@ -99,7 +100,7 @@ def segment(curr_mosaic_img, curr_predictor,
         else:
             print('Trying segementation of zoomed-out subimage')
         curr_mosaic_img.set_sub_img_size(round(orig_subimg_size * 1.1))
-        central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img))
+        central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img[:,:,::-1]))
         curr_mosaic_img.set_sub_img_size(orig_subimg_size)
     #try zooming in slightly
     if try_bools[1] and not central_mask[0]:
@@ -108,7 +109,7 @@ def segment(curr_mosaic_img, curr_predictor,
         else:
             print('Trying segementation of zoomed-in subimage')
         curr_mosaic_img.set_sub_img_size(round(orig_subimg_size * 0.9))
-        central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img))
+        central_mask = mos_proc.get_central_mask(curr_predictor(curr_mosaic_img.sub_img[:,:,::-1]))
         curr_mosaic_img.set_sub_img_size(orig_subimg_size)
     #try increasing contrast
     if try_bools[2] and not central_mask[0]:
@@ -117,7 +118,7 @@ def segment(curr_mosaic_img, curr_predictor,
         else:
             print('Trying segmentation of contrast-enhanced subimage')
         cont_enhanced = exposure.equalize_hist(curr_mosaic_img.sub_img)
-        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced))
+        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced[:,:,::-1]))
     #try otsu threshholding
     if try_bools[3] and not central_mask[0]:
         if out_trk is not None:
@@ -162,7 +163,7 @@ def gen_segment(curr_img, curr_predictor,
     """
 
     #apply predictor to given subimg
-    central_mask = mos_proc.get_central_mask(curr_predictor(curr_img))
+    central_mask = mos_proc.get_central_mask(curr_predictor(curr_img[:,:,::-1]))
 
     #try increasing contrast
     if try_bools[0] and not central_mask[0]:
@@ -171,7 +172,7 @@ def gen_segment(curr_img, curr_predictor,
         else:
             print('Trying segmentation of contrast-enhanced subimage')
         cont_enhanced = exposure.equalize_hist(curr_img)
-        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced))
+        central_mask = mos_proc.get_central_mask(curr_predictor(cont_enhanced[:,:,::-1]))
     #try otsu threshholding
     if try_bools[1] and not central_mask[0]:
         if out_trk is not None:
@@ -180,3 +181,70 @@ def gen_segment(curr_img, curr_predictor,
             print('Trying Otsu threshholding')
         central_mask = mos_proc.get_central_mask(otsu_masks(curr_img))
     return central_mask
+
+
+def segment_given_imgs(imgs, curr_predictor,
+                       try_bools=[False, False, False, False], **kwargs):
+    """Try to segment a series of images (or single image) using the given
+    predictor. Does not rely on changing variables in an outer MosaicImage
+    instance, and runs silently, thus fixing some problems with using the
+    older segmentation function in parallel.
+
+    Parameters
+    ----------
+    imgs : list[np.ndarray] or np.ndarray
+        List of 3 channel images (as np ndarrays) to attempt to segment, in
+        order, or a single 3-channel image alone.
+    curr_predictor : Detectron2 Predictor class instance
+        A predictor to apply to the given images extracted.
+    try_bools : list[bool], optional
+        A list of bools determining what alternate segmentation methods will be
+        applied if Detectron2 segmentation of the first image is unsuccesful.
+        In order, these are:
+        [apply predictor to 0.9x zoomed-out subimg,
+         apply predictor to 1.1x zoomed-in subimg,
+         apply predictor to histogram-equalized (contrast-enhanced) subimg,
+         Otsu threshholding]
+        Only the last two bools are actually parsed here, so only two bools are
+        required.
+    **kwargs : dict, optional
+        If 'only_otsu'=True in kwargs, only try Otsu thresholding of the first
+        image in imgs, then return the result (used for benchmarking Otsu
+        accuracy).
+
+    Returns
+    -------
+    mask_found_bool : bool
+        True or False, depending on whether a central mask was found.
+    array or list
+        np array for the central mask found. Empty list if none found.
+
+    """
+    assert isinstance(imgs, (list, tuple, np.ndarray, np.generic))
+    if isinstance(imgs, (np.ndarray, np.generic)):
+        imgs = [imgs]
+    #hidden kwarg for benchmarking accuracy
+    if 'only_otsu' in kwargs:
+        if kwargs['only_otsu'] is True:
+            return mos_proc.get_central_mask(otsu_masks(imgs[0]))
+    try_otsu = try_bools[-1] #Otsu thresholding bool will always be last
+    try_cont_enh = try_bools[-2]#contrast enhancement will always be 2nd to last
+
+    #iterate through images, trying to predict on each. Return first success.
+    for each_img in imgs:
+        central_mask_ret = mos_proc.get_central_mask(curr_predictor(each_img[:,:,::-1]),
+                                                     verbose=False)
+        #return vals if central mask found
+        if central_mask_ret[0]:
+            return central_mask_ret
+    if try_cont_enh is True: #contrast enhancement will always be 2nd to last
+        red = skimage.exposure.equalize_hist(imgs[0][:, :, 0])
+        green = skimage.exposure.equalize_hist(imgs[0][:, :, 1])
+        blue = skimage.exposure.equalize_hist(imgs[0][:, :, 2])
+        cont_enhanced = np.stack([red, green, blue], axis=2)
+        central_mask_ret=mos_proc.get_central_mask(curr_predictor(cont_enhanced[:,:,::-1]),
+                                                   verbose=False)
+    if try_otsu:
+        return mos_proc.get_central_mask(otsu_masks(imgs[0]), verbose=False)
+    #finally, return nothing except a failure indicator if nothing worked
+    return False, []
