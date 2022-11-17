@@ -7,7 +7,8 @@ The colab_zirc_dims package will work outside of Google Colab, and its processin
 4.  [Install an appropriate version of CUDA-equipped Pytorch](https://pytorch.org/). Please refer to Pytorch documentation as to CUDA versions, etc. as these will depend on your device.
 5.  Install opencv by running the command ```pip install opencv-python```
 6.  [Install Detectron2](https://github.com/facebookresearch/detectron2/blob/main/INSTALL.md). Follow [these directions](https://medium.com/@yogeshkumarpilli/how-to-install-detectron2-on-windows-10-or-11-2021-aug-with-the-latest-build-v0-5-c7333909676f) for Windows installation.
-  6.1. If Detectron2 fails to build, try installing ninja (```pip install ninja```), av (```pip install av```) and, for Windows, pywin32 (```conda install -c anaconda pywin32```), then try building it again
+
+  * If Detectron2 fails to build, try installing ninja (```pip install ninja```), av (```pip install av```) and, for Windows, pywin32 (```conda install -c anaconda pywin32```), then try building it again
 7.  Install colab_zirc_dims by running the command ```pip install colab-zirc-dims```
 8.  Install jupyter (```conda install -c anaconda jupyter```)
 9.  Install ipywidgets (```conda install ipywidgets```)
