@@ -48,6 +48,9 @@ In datasets with good image quality and well-exposed grains (i.e., with full cro
 </tbody>
 </table>
 
+See our [Processing Outputs page](https://github.com/MCSitar/colab_zirc_dims/blob/main/processing_outputs.md) for more details.
+
+
 In sub-optimal datasets, automated processing is less successful and can produce inaccurate segmentations. To mitigate this, a semi-automated Colab/Jupyter-based GUI (extended from [TensorFlow object detection utils code](https://github.com/tensorflow/models/blob/master/research/object_detection/utils/colab_utils.py)) that allows users to view and edit automatically-generated segmentations before export has also been implemented. Semi-automated processing is recommended for production of publication-quality measurement datasets.
 
 ![auto_seg_gif_reduced](https://user-images.githubusercontent.com/74220513/139791884-b88c9854-c825-4a95-a678-598abb204eea.gif)
