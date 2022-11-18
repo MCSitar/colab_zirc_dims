@@ -3,7 +3,13 @@
 Processing a reflected light image dataset using a colab_zirc_dims processing notebook will result in the following data being saved to a timestamped subdirectory within the 'outputs' subdirectory (this will be created automatically if not extant) of your project directory.
 
 ## Contents:
-  * [Measurement data & metadata](
+  * [Measurement data & metadata](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#measurement-data--metadata)
+    * [Default fields](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#default-fields)
+    * [Additional fields (image-per-shot datasets)](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#additional-fields-for-image-per-shot-eg-ucsb-datasets)
+    * [Additional fields (semi-automated measurement)](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#additional-fields-when-saving-files-from-semi-automated-segmentation-gui)
+   * [Verification images](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#verification-images)
+   * [Polygon .json files (optional)](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#polygon-json-files-optional)
+   * [References](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#references)
 
 ## Measurement data & metadata:
 This data will be saved into the file:
@@ -164,3 +170,8 @@ If indicated by the user, per-sample .json files will be saved to:
 ```.../YOUR_PROJECT_FOLDER/outputs/...processing_run_*TIMESTAMP*/saved_polygons/SAMPLE_NAME.json```
 <br>
 These .json files allow viewing and editing of (polygonized) segmentation masks for the dataset in the your project directory.
+
+## References:
+Bradski, G.: The OpenCV Library, Dr Dobbs J. Softw. Tools, 2000.
+
+van der Walt, S., Schönberger, J. L., Nunez-Iglesias, J., Boulogne, F., Warner, J. D., Yager, N., Gouillart, E., Yu, T., and contributors,  the scikit-image: scikit-image: Image processing in Python, PeerJ, 2, e453, https://doi.org/10.7717/peerj.453, 2014.
