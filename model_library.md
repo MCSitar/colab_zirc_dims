@@ -3,18 +3,18 @@
 Here you can see data on pre-trained, Detectron2-based instance segmentation models that are currently available for use in colab_zirc_dims. This page is inspired by the Detectron2 model zoo page. Models are continually being improved through adjustment of training hyperparameters, so this page (and the models available here) may be subject to change.
 
 ## Contents:
-  * **[Current 'best' models](https://github.com/MCSitar/colab_zirc_dims/edit/main/model_library.md#current-best-models)**
-    * **[Training](https://github.com/MCSitar/colab_zirc_dims/edit/main/model_library.md#Training)**
-    * **[Deployment checkpoint selection](https://github.com/MCSitar/colab_zirc_dims/edit/main/model_library.md#selection-of-checkpoints-for-deployment)**
-    * **[Summary tables](https://github.com/MCSitar/colab_zirc_dims/edit/main/model_library.md#summary-tables)**
-    * **[Discussion](https://github.com/MCSitar/colab_zirc_dims/edit/main/model_library.md#discussion)**
-   * **[Legacy models](https://github.com/MCSitar/colab_zirc_dims/edit/main/model_library.md#current-best-models)**
-     * **[Summary tables](https://github.com/MCSitar/colab_zirc_dims/edit/main/model_library.md#summary-tables-1)**
+  * **[Current 'best' models](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#current-best-models)**
+    * **[Training](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#Training)**
+    * **[Deployment checkpoint selection](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#selection-of-checkpoints-for-deployment)**
+    * **[Summary tables](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#summary-tables)**
+    * **[Discussion](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#discussion)**
+   * **[Legacy models](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#current-best-models)**
+     * **[Summary tables](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#summary-tables-1)**
 
 ## Current 'best' models:
 **Current as of colab_zirc_dims v1.0.10**
 
-These models were trained on the [czd_large](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#czd_large-dataset) dataset. Models deployed for application by colab_zirc_dims users were chosen using a modified 'early stopping' process: models were trained for a set period of >=12,000 iterations, but only the most performant model checkpoints within the confines of the colab_zirc_dims processing algorithm (i.e., those best able to reproduce the manual measurement results of Leary et al. (2022)) are provided to users. See below for more more information on training and checkpoint selection.
+These models were trained on the [czd_large](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#czd_large-dataset) dataset. Models deployed for application by colab_zirc_dims users were chosen using a modified 'early stopping' process: models were trained for a set period of >=12,000 iterations, but only the most performant model checkpoints within the confines of the colab_zirc_dims processing algorithm (i.e., those best able to reproduce the manual measurement results of Leary et al. (2022)) are provided to users. See below for more more information on training and checkpoint selection. You can train your own models using our workflow by [follow the directions here](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#training-new-models-for-colab_zirc_dims).
 
 ### Training:
 
