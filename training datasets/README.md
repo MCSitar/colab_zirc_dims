@@ -1,3 +1,18 @@
+# Contents:
+  * **[czd_large dataset](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#czd_large-dataset)**
+    * **[Download](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#download-link)**
+    * **[Summary table](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#summary-table)**
+    * **[Image sources](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#image-sources)**
+    * **[Sampling strategy](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#sampling-strategy)**
+    * **[Splitting strategy](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#splitting-strategy)**
+    * **[Annotation](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#annotation)**
+    * **[Detailed breakdown](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#detailed-dataset-breakdown)**
+    * **[Training new models](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#training-new-models-for-colab_zirc_dims)**
+  * **[Legacy dataset](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#legacy-dataset-czd_orig)**
+    * **[Summary table](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#summary-table-1)**
+  * **[References](https://github.com/MCSitar/colab_zirc_dims/tree/main/training%20datasets#references)**
+
+
 # czd_large dataset:
 Colab_zirc_dims models are currently trained on the (new) "czd_large" dataset. This is a semi-automatically annotated training-validation dataset that we have created for instance segmentation of mineral grains in reflected light images collected during LA-ICP-MS detrital zircon dating.
 
