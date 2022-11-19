@@ -10,6 +10,7 @@ Here you can see data on pre-trained, Detectron2-based instance segmentation mod
     * **[Discussion](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#discussion)**
    * **[Legacy models](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#current-best-models)**
      * **[Summary tables](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#summary-tables-1)**
+   * **[References](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#References)**
 
 ## Current 'best' models:
 **Current as of colab_zirc_dims v1.0.10**
