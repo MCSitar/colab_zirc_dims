@@ -3,13 +3,13 @@
 Processing a reflected light image dataset using a colab_zirc_dims processing notebook will result in the following data being saved to a timestamped subdirectory within the 'outputs' subdirectory (this will be created automatically if not extant) of your project directory.
 
 ## Contents:
-  * [Measurement data & metadata](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#measurement-data--metadata)
-    * [Default fields](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#default-fields)
-    * [Additional fields (image-per-shot datasets)](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#additional-fields-for-image-per-shot-eg-ucsb-datasets)
-    * [Additional fields (semi-automated measurement)](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#additional-fields-when-saving-files-from-semi-automated-segmentation-gui)
-   * [Verification images](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#verification-images)
-   * [Polygon .json files (optional)](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#polygon-json-files-optional)
-   * [References](https://github.com/MCSitar/colab_zirc_dims/edit/main/processing_outputs.md#references)
+  * **[Measurement data & metadata](https://github.com/MCSitar/colab_zirc_dims/tree/main/processing_outputs.md#measurement-data--metadata)**
+    * **[Default fields](https://github.com/MCSitar/colab_zirc_dims/tree/main/processing_outputs.md#default-fields)**
+    * **[Additional fields (image-per-shot datasets)](https://github.com/MCSitar/colab_zirc_dims/tree/main/processing_outputs.md#additional-fields-for-image-per-shot-eg-ucsb-datasets)**
+    * **[Additional fields (semi-automated measurement)](https://github.com/MCSitar/colab_zirc_dims/tree/main/processing_outputs.md#additional-fields-when-saving-files-from-semi-automated-segmentation-gui)**
+   * **[Verification images](https://github.com/MCSitar/colab_zirc_dims/tree/main/processing_outputs.md#verification-images)**
+   * **[Polygon .json files (optional)](https://github.com/MCSitar/colab_zirc_dims/tree/main/processing_outputs.md#polygon-json-files-optional)**
+   * **[References](https://github.com/MCSitar/colab_zirc_dims/tree/main/processing_outputs.md#references)**
 
 ## Measurement data & metadata:
 This data will be saved into the file:
