@@ -79,7 +79,7 @@ Template project folders are available for:
 - [Datasets where shot images have been manually organized by user(s)](https://drive.google.com/drive/folders/1VpYo5HwDUaAQ4lJ0waZJRDrWkzHv2QyM?usp=sharing)
 
 #### Other links:
-- [Video tutorial and demo - intro to Colab notebooks at 4:50](https://youtu.be/WM7qEjaJdgo)
+- [Video tutorial and demo - intro to Colab notebooks at 9:05](https://youtu.be/ZdO6B-dvHm0)
 
 ## Running notebooks without Google Colab (on local machines):
 The notebooks provided can be run as basic Jupyter notebooks in a local Anaconda environment. Some setup is required, though. Please refer to the [advanced local installation instructions](https://github.com/MCSitar/colab_zirc_dims/blob/main/advanced_local_installation.md).
