@@ -105,12 +105,18 @@ then press enter.
 To install outside of Google Colab with full segmentation functionalities, please refer to the [advanced local installation instructions](https://github.com/MCSitar/colab_zirc_dims/blob/main/advanced_local_installation.md).
 
 
-## Project Status (updated 11/16/2022)
+## Project Status (updated 12/11/2022)
 - All features are functional. Bugs may exist, and are most likely to be encountered when using the package outside of the provided notebooks.
 - All notebooks will now run as Jupyter notebooks in local Anaconda environments.
 - New 'best axes' measurement that mitigates inaccuracies in moment-based axial measurements by defering to minimum-area rectangle measurements for most high-aspect ratio grains.
 - Added new dataset, new models, and documentation pages.
 - Automated processing notebooks updated on 05/19/2022 with V1.0.8.1 hotfix for incompatibility between latest Detectron2 binary release and new standard Colab PyTorch installation (v1.11).
+### Possible future work:
+- Any changes and/or additions necessary to ensure compatibility with datasets from LA-ICP-MS facilities other than ALC and UCSB. Contact me if you have a dataset from a non-ALC, non-UCSB facility that does not seem to work with colab-zirc-dims!
+- Model retraining; will be done as needed given new architectures or hyperparameter tuning schemes that could significantly improve segmentation performance.
+- Refactoring. The colab_zirc_dims package is fairly sprawling and probably doesn't need to be.
+- Miscellaneous processing speed improvements. As of v1.0.10, there is a lot of room for improvement here, especially w/r/t maximizing GPU utilization.
+
 
 ## Additional Notes
 - Training and large-n zircon measurement datasets for this project were provided by Dr. Ryan Leary (New Mexico Tech). Also, motivation; see his [recent work](https://doi.org/10.1029/2019JB019226) on the utility of augmenting LA-ICP-MS data with grain size data.
