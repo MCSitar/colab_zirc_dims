@@ -10,6 +10,7 @@ Here you can see data on pre-trained, Detectron2-based instance segmentation mod
     * **[Discussion](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#discussion)**
    * **[Legacy models](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#current-best-models)**
      * **[Summary tables](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#summary-tables-1)**
+   * **[Example code for applying models outside of the provided notebooks](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#example-code-loading-and-applying-models-outside-of-provided-notebooks)**
    * **[References](https://github.com/MCSitar/colab_zirc_dims/blob/main/model_library.md#References)**
 
 ## Current 'best' models:
@@ -415,6 +416,31 @@ These models were trained on the on the relatively small '[czd_orig](https://git
 <sup>b</sup>Please note that this represents only the time taken to obtain a central grain mask from a single spot within colab_zirc_dims processing. Actual per-spot processing speed encompasses measurement of the resulting mask and saving verification data, and will be substantially longer.
 <!---end_table_ID3--->
 
+## Example code: loading and applying models outside of provided notebooks:
+The colab_zirc_dims package streamlines the process of loading a Detectron2 [DefaultPredictor](https://detectron2.readthedocs.io/en/latest/modules/engine.html#detectron2.engine.defaults.DefaultPredictor) instance in a Colab virtual machine or local Jupyter runtime using the non_std_cfgs.smart_load_predictor function. If necessary, this function will download additional repositories (i.e., [Swint_detectron2](https://github.com/xiaohu2015/SwinT_detectron2) or [CenterMask2](https://github.com/youngwanLEE/centermask2)) to the current working directory prior to loading the predictor. See below for an example:
+```
+from colab_zirc_dims import non_std_cfgs
+
+mypredictor = non_std_cfgs.smart_load_predictor('PATH_TO_CFG_YAML', 'PATH_TO_WEIGHTS_PTH_FILE',
+						use_cpu=False)
+```
+This predictor instance can then be applied directly to an image to get full [Detectron2 instance segmentation results](https://detectron2.readthedocs.io/en/latest/tutorials/models.html#model-output-format):
+```
+from skimage import io as skio
+
+#load the image
+img = skio.imread('PATH_TO_REFLECTED_LIGHT_IMAGE')
+
+#apply predictor to image with channel order reversed to BGR
+predictions = mypredictor(img[:,:,::-1])
+```
+Or, if the image is centered on a mineral grain, via the colab_zirc_dims.segment.segment_given_imgs() function to try to extract a 'central' mask:
+```
+from colab_zirc_dims import segment
+
+central_mask_found_bool, central_mask = segment.segment_given_imgs([img], mypredictor)
+```
+The above functions work well for dynamic model loading and application in virtual or local environments with Python and Anaconda installed and exposed. If you want to adapt a model for use in a compiled executable application with minimal Python dependencies, or to use a model with other languages (e.g., C++), you may want to look into [tracing your chosen model](https://detectron2.readthedocs.io/en/latest/tutorials/deployment.html).
 ## References:
 
 He, K., Gkioxari, G., Dollár, P., and Girshick, R.: Mask R-CNN, arXiv:1703.06870 [cs], 2018.
