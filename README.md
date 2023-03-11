@@ -125,10 +125,10 @@ To install outside of Google Colab with full segmentation functionalities, pleas
 - Any suggestions, comments, or questions about this project are also welcome.
 
 ## Citation
-This project has been written up in as a technical note in collaboration with Dr. Ryan Leary and is currently in review at Geochronology. You can find the preprint (along with associated links to additional datasets and replication code) [here](https://gchron.copernicus.org/preprints/gchron-2022-12). If you use colab_zirc_dims in your work prior to (hopeful(!)) full publication, please use the following preprint citation:
+This project has been written up as a technical note in collaboration with Dr. Ryan Leary and published (open access) in Geochronology. You can find the technical note (along with associated links to additional datasets and replication code) [here](https://doi.org/10.5194/gchron-5-109-2023). If you use colab_zirc_dims or associated datasets/models in your work, please use the following citation:
 
 ```
-Sitar, M. C. and Leary, R. J.: Technical Note: colab_zirc_dims: a Google-Colab-based Toolset for Automated and Semi-automated Measurement of Mineral Grains in LA-ICP-MS Images Using Deep Learning Models, Geochronology Discuss. [preprint], https://doi.org/10.5194/gchron-2022-12, in review, 2022.
+Sitar, M. C. and Leary, R. J.: Technical note: colab_zirc_dims: a Google Colab-compatible toolset for automated and semi-automated measurement of mineral grains in laser ablation–inductively coupled plasma–mass spectrometry images using deep learning models, Geochronology, 5, 109–126, https://doi.org/10.5194/gchron-5-109-2023, 2023.
 ```
 
 ## Author
