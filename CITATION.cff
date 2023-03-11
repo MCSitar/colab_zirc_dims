@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software or associated models/datasets, please cite it as below."
+authors:
+- family-names: "Sitar"
+  given-names: "Michael C."
+title: "colab-zirc-dims"
+url: "https://github.com/MCSitar/colab_zirc_dims"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Sitar"
+    given-names: "Michael C."
+  - family-names: "Leary"
+    given-names: "Ryan J."
+  doi: "10.5194/gchron-5-109-2023"
+  journal: "Geochronology"
+  month: 3
+  start: 109 # First page number
+  end: 126 # Last page number
+  title: "Technical note: colab_zirc_dims: a Google Colab-compatible toolset for automated and semi-automated measurement of mineral grains in laser ablation–inductively coupled plasma–mass spectrometry images using deep learning models"
+  issue: 1
+  volume: 5
+  year: 2023
