@@ -134,9 +134,7 @@ Sitar, M. C. and Leary, R. J.: Technical note: colab_zirc_dims: a Google Colab-c
 ## Author
 Michael Cole Sitar
 
-M.S. student, Colorado State University Department of Geosciences
-
-email: mcsitar@colostate.edu
+email: clsitar5@gmail.com
 
 ## References
 
