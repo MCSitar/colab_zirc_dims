@@ -105,7 +105,7 @@ def get_central_mask(results, verbose=True):
         masks = czd_utils.prediction_to_np(results)
 
     #does not search for masks if no zircons segmented from image
-    if masks == []:
+    if not results or "instances" not in results or len(results["instances"]) == 0:
         if verbose:
             print('NO GRAIN MASKS FOUND')
         return mask_found_bool, []
