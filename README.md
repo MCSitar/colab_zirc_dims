@@ -66,13 +66,13 @@ Please refer to the [training datasets section](https://github.com/MCSitar/colab
 ## Links
 #### Per-sample mosaic image datasets (e.g., from ALC):
 Colab/Jupyter notebooks are available for:
-- [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1o2GmoHuMWYIkhotz-htfDFros4B--eJx?usp=sharing)
-- [Automatically and/or semi-automatically segmenting and measuring grains from mosaics - v1.0.11](https://colab.research.google.com/drive/1Ug6GcuZSDJx0SmEqFNkIhvVIHA9IH78o?usp=sharing)
+- [Matching ALC mosiacs to .scancsv files (dataset preparation)](https://colab.research.google.com/drive/1yakvH0j0ZOeBhNa5-bygT9saqvugvB-B?usp=sharing)
+- [Automatically and/or semi-automatically segmenting and measuring grains from mosaics - v1.0.12](https://colab.research.google.com/drive/1XXynpwnioev3RnDR47nnd5brctsDB_Ow?usp=sharing)
 
 [A template project folder is available here.](https://drive.google.com/drive/folders/1cFOoxp2ELt_W6bqY24EMpxQFmI00baDl?usp=sharing)
 
 #### Single image-per-shot datasets (e.g., from UCSB):
-- [A Colab/Jupyter notebook for automatically and/or semi-automatically segmenting and measuring grains is available here - v1.0.11](https://colab.research.google.com/drive/1dtLbhDiZiQyWpUlG0vOf_nyO8eJ1mLkn?usp=sharing)
+- [A Colab/Jupyter notebook for automatically and/or semi-automatically segmenting and measuring grains is available here - v1.0.12](https://colab.research.google.com/drive/1x84iPYvVAbdYQ1tnPQgAzp4SYAB1ckus?usp=sharing)
 
 Template project folders are available for:
 - [Datasets where sample, shot information can be extracted from image filenames (e.g., from UCSB)](https://drive.google.com/drive/folders/1MkWh9PRArbV1m1eVbSTbb9C5PKC95Re3?usp=sharing)
