@@ -167,7 +167,7 @@ def gen_inspect_data(inpt_loaded_data_dict, inpt_selected_samples,
         print(3*'\n')
 
         sample_dict = inpt_loaded_data_dict[eachsample]
-        scan_sample = random.sample(sample_dict.keys(),
+        scan_sample = random.sample(list(sample_dict.keys()),
                                     n_scans_sample)
         print(str(eachsample) + ':')
         for eachscan in scan_sample:
@@ -221,7 +221,7 @@ def gen_demo_eval(inpt_selected_samples, inpt_loaded_data_dict, inpt_predictor,
     """
     for eachsample in inpt_selected_samples:
         sample_dict = inpt_loaded_data_dict[eachsample]
-        scan_sample = random.sample(sample_dict.keys(),
+        scan_sample = random.sample(list(sample_dict.keys()),
                                     n_scans_sample)
         if isinstance(src_str, type('a')):
             scan_sample = [key for key in sample_dict.keys() if src_str in str(key)]
