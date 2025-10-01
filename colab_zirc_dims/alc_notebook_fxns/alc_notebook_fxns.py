@@ -112,7 +112,7 @@ def inspect_data(inpt_mos_data_dict, inpt_selected_samples, n_scans_sample = 3):
                                       inpt_mos_data_dict[eachsample]['Align_file'],
                                       inpt_mos_data_dict[eachsample]['Max_grain_size'],
                                       inpt_mos_data_dict[eachsample]['Offsets'])
-        scan_sample = random.sample(inpt_mos_data_dict[eachsample]['Scan_dict'].keys(),
+        scan_sample = random.sample(list(inpt_mos_data_dict[eachsample]['Scan_dict'].keys()),
                                     n_scans_sample)
 
         print(str(eachsample) + ':')
@@ -314,7 +314,7 @@ def demo_eval(inpt_selected_samples, inpt_mos_data_dict, inpt_predictor,
                                       inpt_mos_data_dict[eachsample]['Align_file'],
                                       inpt_mos_data_dict[eachsample]['Max_grain_size'],
                                       inpt_mos_data_dict[eachsample]['Offsets'])
-        scan_sample = random.sample(inpt_mos_data_dict[eachsample]['Scan_dict'].keys(),
+        scan_sample = random.sample(list(inpt_mos_data_dict[eachsample]['Scan_dict'].keys()),
                                     n_scans_sample)
         #if src_str provided, ignore sample size and instead search for string
         if isinstance(src_str, type('a')):

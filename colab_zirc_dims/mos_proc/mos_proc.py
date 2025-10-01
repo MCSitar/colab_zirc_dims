@@ -549,7 +549,7 @@ def random_subimg_sample(num_samples, sample_name, scancsv_path, mosaic_path,
     if num_samples > len(list(each_scan_dict.keys())):
         num_samples = len(list(each_scan_dict.keys()))
 
-    scan_sample = random.sample(each_scan_dict.keys(), num_samples)
+    scan_sample = random.sample(list(each_scan_dict.keys()), num_samples)
     num_rows = num_samples // 3
     if num_rows < num_samples / 3:
         num_rows += 1
